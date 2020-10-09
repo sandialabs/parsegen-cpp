@@ -18,6 +18,16 @@ add_library(parsegen
   parsegen_yaml.cpp
   )
 
+add_executable(parsegen-calc
+  parsegen_calc.cpp
+  )
+
 set_property(TARGET parsegen PROPERTY CXX_STANDARD "17")
 set_property(TARGET parsegen PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET parsegen PROPERTY CXX_EXTENSIONS OFF)
+
+set_property(TARGET parsegen-calc PROPERTY CXX_STANDARD "17")
+set_property(TARGET parsegen-calc PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET parsegen-calc PROPERTY CXX_EXTENSIONS OFF)
+
+target_link_libraries(parsegen-calc parsegen)
