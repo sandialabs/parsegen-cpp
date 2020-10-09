@@ -76,7 +76,7 @@ void Reader::at_token(std::istream& stream) {
       if (sensing_indent) {
         symbol_indentation_stack.push_back(indent_text.size());
       }
-      parsegen::any shift_result;
+      std::any shift_result;
       shift_result = this->at_shift(lexer_token, lexer_text);
       value_stack.emplace_back(std::move(shift_result));
       done = true;
@@ -92,7 +92,7 @@ void Reader::at_token(std::istream& stream) {
             std::move(at(value_stack, size(value_stack) - size(prod.rhs) + i)));
       }
       resize(value_stack, size(value_stack) - size(prod.rhs));
-      parsegen::any reduce_result;
+      std::any reduce_result;
       try {
         reduce_result =
             this->at_reduce(parser_action.production, reduction_rhs);
@@ -244,7 +244,7 @@ void Reader::error_print_line(std::istream& is, std::ostream& os) {
   if (oldpos > 0) print_indicator(os, line_text, oldpos - 1);
 }
 
-any Reader::read_stream(
+std::any Reader::read_stream(
     std::istream& stream, std::string const& stream_name_in) {
   line = 1;
   column = 1;
@@ -314,13 +314,13 @@ any Reader::read_stream(
   return std::move(value_stack.back());
 }
 
-any Reader::read_string(
+std::any Reader::read_string(
     std::string const& string, std::string const& string_name) {
   std::istringstream stream(string);
   return read_stream(stream, string_name);
 }
 
-any Reader::read_file(std::string const& file_name) {
+std::any Reader::read_file(std::string const& file_name) {
   std::ifstream stream(file_name.c_str());
   if (!stream.is_open()) {
     std::stringstream ss;
@@ -330,14 +330,14 @@ any Reader::read_file(std::string const& file_name) {
   return read_stream(stream, file_name);
 }
 
-any Reader::at_shift(int, std::string&) { return any(); }
+std::any Reader::at_shift(int, std::string&) { return std::any(); }
 
-any Reader::at_reduce(int, std::vector<any>&) { return any(); }
+std::any Reader::at_reduce(int, std::vector<std::any>&) { return std::any(); }
 
 DebugReader::DebugReader(ReaderTablesPtr tables_in, std::ostream& os_in)
     : Reader(tables_in), os(os_in) {}
 
-any DebugReader::at_shift(int token, std::string& text) {
+    std::any DebugReader::at_shift(int token, std::string& text) {
   std::string text_escaped;
   for (auto c : text) {
     switch (c) {
@@ -356,22 +356,22 @@ any DebugReader::at_shift(int token, std::string& text) {
   }
   os << "SHIFT (" << at(grammar->symbol_names, token) << ")[" << text_escaped
      << "]\n";
-  return any(std::move(text_escaped));
+  return std::any(std::move(text_escaped));
 }
 
-any DebugReader::at_reduce(int prod_i, std::vector<any>& rhs) {
+std::any DebugReader::at_reduce(int prod_i, std::vector<std::any>& rhs) {
   os << "REDUCE";
   std::string lhs_text;
   auto& prod = at(grammar->productions, prod_i);
   for (int i = 0; i < size(prod.rhs); ++i) {
     auto& rhs_name = at(grammar->symbol_names, at(prod.rhs, i));
-    auto rhs_text = move_value<std::string>(at(rhs, i));
+    auto rhs_text = std::any_cast<std::string&&>(std::move(at(rhs, i)));
     os << " (" << rhs_name << ")[" << rhs_text << "]";
     lhs_text.append(rhs_text);
   }
   auto& lhs_name = at(grammar->symbol_names, prod.lhs);
   os << " -> (" << lhs_name << ")[" << lhs_text << "]\n";
-  return any(std::move(lhs_text));
+  return std::any(std::move(lhs_text));
 }
 
 }  // end namespace parsegen

@@ -118,26 +118,26 @@ class SymbolSetReader : public Reader {
   std::set<std::string> function_names;
 
  private:
-  any at_shift(int token, std::string& text) override;
-  any at_reduce(int prod, std::vector<any>& rhs) override;
+  std::any at_shift(int token, std::string& text) override;
+  std::any at_reduce(int prod, std::vector<std::any>& rhs) override;
 };
 
 SymbolSetReader::SymbolSetReader() : Reader(ask_reader_tables()) {}
 
-any SymbolSetReader::at_shift(int token, std::string& text) {
+std::any SymbolSetReader::at_shift(int token, std::string& text) {
   if (token == TOK_NAME) return text;
-  return any();
+  return std::any();
 }
 
-any SymbolSetReader::at_reduce(int prod, std::vector<any>& rhs) {
+std::any SymbolSetReader::at_reduce(int prod, std::vector<std::any>& rhs) {
   if (prod == PROD_VAR) {
-    auto& name = any_cast<std::string&>(rhs.at(0));
+    auto& name = std::any_cast<std::string&>(rhs.at(0));
     variable_names.insert(name);
   } else if (prod == PROD_CALL) {
-    auto& name = any_cast<std::string&>(rhs.at(0));
+    auto& name = std::any_cast<std::string&>(rhs.at(0));
     function_names.insert(name);
   }
-  return any();
+  return std::any();
 }
 
 std::set<std::string> get_variables_used(std::string const& expr) {

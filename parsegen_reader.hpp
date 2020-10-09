@@ -3,8 +3,8 @@
 
 #include <functional>
 #include <iosfwd>
+#include <any>
 
-#include "parsegen_any.hpp"
 #include "parsegen_reader_tables.hpp"
 #include "parsegen_std_vector.hpp"
 
@@ -16,14 +16,14 @@ class Reader {
   Reader(Reader const&) = default;
   virtual ~Reader() = default;
   Reader(ReaderTablesPtr tables_in);
-  any read_stream(std::istream& stream, std::string const& stream_name_in = "");
-  any read_string(
+  std::any read_stream(std::istream& stream, std::string const& stream_name_in = "");
+  std::any read_string(
       std::string const& string, std::string const& string_name = "");
-  any read_file(std::string const& file_name);
+  std::any read_file(std::string const& file_name);
 
  protected:
-  virtual any at_shift(int token, std::string& text);
-  virtual any at_reduce(int token, std::vector<any>& rhs);
+  virtual std::any at_shift(int token, std::string& text);
+  virtual std::any at_reduce(int token, std::vector<std::any>& rhs);
 
  protected:
   ReaderTablesPtr tables;
@@ -42,8 +42,8 @@ class Reader {
   std::string last_lexer_accept_line_text;
   int parser_state;
   std::vector<int> parser_stack;
-  std::vector<any> value_stack;
-  std::vector<any> reduction_rhs;
+  std::vector<std::any> value_stack;
+  std::vector<std::any> reduction_rhs;
   std::string stream_name;
   bool did_accept;
 
@@ -82,8 +82,8 @@ class DebugReader : public Reader {
   virtual ~DebugReader() override = default;
 
  protected:
-  virtual any at_shift(int token, std::string& text) override;
-  virtual any at_reduce(int token, std::vector<any>& rhs) override;
+  virtual std::any at_shift(int token, std::string& text) override;
+  virtual std::any at_reduce(int token, std::vector<std::any>& rhs) override;
 
  private:
   std::ostream& os;

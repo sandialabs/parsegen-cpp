@@ -137,7 +137,7 @@ FiniteAutomaton build_dfa(
     std::string const& name, std::string const& regex, int token) {
   auto reader = regex::Reader(token);
   try {
-    return any_cast<FiniteAutomaton>(reader.read_string(regex, name));
+    return std::any_cast<FiniteAutomaton>(reader.read_string(regex, name));
   } catch (const ParserFail& e) {
     std::stringstream ss;
     ss << e.what() << '\n';
@@ -154,26 +154,26 @@ regex::Reader::Reader(int result_token_in)
     : parsegen::Reader(regex::ask_reader_tables()),
       result_token(result_token_in) {}
 
-any regex::Reader::at_shift(int token, std::string& text) {
+std::any regex::Reader::at_shift(int token, std::string& text) {
   if (token != TOK_CHAR) {
-    return any();
+    return std::any();
   }
   if (size(text) == 1) {
-    return any(text[0]);
+    return std::any(text[0]);
   } else if (size(text) == 2) {
     assert(text[0] == '\\');
-    return any(text[1]);
+    return std::any(text[1]);
   } else {
     std::cerr << "BUG: regex char text is \"" << text << "\"\n";
     abort();
   }
 }
 
-any regex::Reader::at_reduce(int production, std::vector<any>& rhs) {
+std::any regex::Reader::at_reduce(int production, std::vector<std::any>& rhs) {
   switch (production) {
     case PROD_REGEX:
       return FiniteAutomaton::simplify(FiniteAutomaton::make_deterministic(
-          move_value<FiniteAutomaton>(at(rhs, 0))));
+          std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 0)))));
     case PROD_UNION_DECAY:
     case PROD_CONCAT_DECAY:
     case PROD_QUAL_DECAY:
@@ -181,54 +181,54 @@ any regex::Reader::at_reduce(int production, std::vector<any>& rhs) {
     case PROD_SET_ITEM_RANGE:
       return at(rhs, 0);
     case PROD_UNION:
-      return FiniteAutomaton::unite(move_value<FiniteAutomaton>(at(rhs, 0)),
-          move_value<FiniteAutomaton>(at(rhs, 2)));
+      return FiniteAutomaton::unite(std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 0))),
+          std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 2))));
     case PROD_CONCAT: {
       auto& a_any = at(rhs, 0);
       auto& b_any = at(rhs, 1);
-      auto a = move_value<FiniteAutomaton>(a_any);
-      auto b = move_value<FiniteAutomaton>(b_any);
+      auto a = std::any_cast<FiniteAutomaton&&>(std::move(a_any));
+      auto b = std::any_cast<FiniteAutomaton&&>(std::move(b_any));
       return FiniteAutomaton::concat(a, b, result_token);
     }
     case PROD_STAR:
       return FiniteAutomaton::star(
-          move_value<FiniteAutomaton>(at(rhs, 0)), result_token);
+          std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 0))), result_token);
     case PROD_PLUS:
       return FiniteAutomaton::plus(
-          move_value<FiniteAutomaton>(at(rhs, 0)), result_token);
+          std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 0))), result_token);
     case PROD_MAYBE:
       return FiniteAutomaton::maybe(
-          move_value<FiniteAutomaton>(at(rhs, 0)), result_token);
+          std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 0))), result_token);
     case PROD_SINGLE_CHAR:
-      return make_char_single_nfa(move_value<char>(at(rhs, 0)), result_token);
+      return make_char_single_nfa(std::any_cast<char>(at(rhs, 0)), result_token);
     case PROD_ANY:
       return FiniteAutomaton::make_range_nfa(
           NCHARS, 0, NCHARS - 1, result_token);
     case PROD_SINGLE_SET:
       return make_char_set_nfa(
-          move_value<std::set<char>>(at(rhs, 0)), result_token);
+          std::any_cast<std::set<char>&&>(std::move(at(rhs, 0))), result_token);
     case PROD_PARENS_UNION:
       return at(rhs, 1);
     case PROD_SET_POSITIVE:
       return at(rhs, 0);
     case PROD_SET_NEGATIVE:
-      return negate_set(move_value<std::set<char>>(at(rhs, 0)));
+      return negate_set(std::any_cast<std::set<char>&&>(std::move(at(rhs, 0))));
     case PROD_POSITIVE_SET:
       return at(rhs, 1);
     case PROD_NEGATIVE_SET:
       return at(rhs, 2);
     case PROD_SET_ITEMS_ADD:
-      return unite(move_value<std::set<char>>(at(rhs, 0)),
-          move_value<std::set<char>>(at(rhs, 1)));
+      return unite(std::any_cast<std::set<char>&&>(std::move(at(rhs, 0))),
+          std::any_cast<std::set<char>&&>(std::move(at(rhs, 1))));
     case PROD_SET_ITEM_CHAR:
-      return std::set<char>({move_value<char>(at(rhs, 0))});
+      return std::set<char>({std::any_cast<char>(at(rhs, 0))});
     case PROD_RANGE: {
       std::set<char> set;
-      for (char c = move_value<char>(at(rhs, 0));
-           c <= move_value<char>(at(rhs, 2)); ++c) {
+      for (char c = std::any_cast<char>(at(rhs, 0));
+           c <= std::any_cast<char>(at(rhs, 2)); ++c) {
         set.insert(c);
       }
-      return any(std::move(set));
+      return std::any(std::move(set));
     }
   }
   std::cerr << "BUG: unexpected production " << production << '\n';

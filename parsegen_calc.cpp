@@ -32,7 +32,7 @@ class CalcReader : public parsegen::Reader {
     double a1;
     int n;
   };
-  virtual parsegen::any at_shift(int token, std::string& text) {
+  virtual std::any at_shift(int token, std::string& text) {
     switch (token) {
       case parsegen::math_lang::TOK_NAME: {
         return text;
@@ -41,13 +41,13 @@ class CalcReader : public parsegen::Reader {
         return std::atof(text.c_str());
       }
     }
-    return parsegen::any();
+    return std::any();
   }
-  virtual parsegen::any at_reduce(int prod, std::vector<parsegen::any>& rhs) {
-    using parsegen::any_cast;
+  virtual std::any at_reduce(int prod, std::vector<std::any>& rhs) {
+    using std::any_cast;
     switch (prod) {
       case parsegen::math_lang::PROD_PROGRAM: {
-        if (rhs.at(1).empty()) {
+        if (!rhs.at(1).has_value()) {
           throw parsegen::ParserFail(
               "Calculator needs an expression to evaluate!");
         }
@@ -56,7 +56,7 @@ class CalcReader : public parsegen::Reader {
       case parsegen::math_lang::PROD_NO_STATEMENTS:
       case parsegen::math_lang::PROD_NO_EXPR:
       case parsegen::math_lang::PROD_NEXT_STATEMENT: {
-        return parsegen::any();
+        return std::any();
       }
       case parsegen::math_lang::PROD_ASSIGN: {
         auto& name = any_cast<std::string&>(rhs.at(0));
@@ -163,7 +163,7 @@ class CalcReader : public parsegen::Reader {
         }
         return it->second;
     }
-    return parsegen::any();
+    return std::any();
   }
 
  private:
@@ -179,7 +179,7 @@ class CalcReader : public parsegen::Reader {
 int main() {
   CalcReader reader;
   for (std::string line; std::getline(std::cin, line);) {
-    std::cout << parsegen::any_cast<double>(reader.read_string(line, "input"))
+    std::cout << std::any_cast<double>(reader.read_string(line, "input"))
               << '\n';
   }
 }

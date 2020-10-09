@@ -63,8 +63,8 @@ ReaderTablesPtr ask_reader_tables();
 FiniteAutomaton build_dfa(
     std::string const& name, std::string const& regex, int token);
 
-any at_shift_internal(int token, std::string& text);
-any at_reduce_internal(int production, std::vector<any>& rhs, int result_token);
+std::any at_shift_internal(int token, std::string& text);
+std::any at_reduce_internal(int production, std::vector<std::any>& rhs, int result_token);
 
 class Reader : public parsegen::Reader {
  public:
@@ -73,8 +73,8 @@ class Reader : public parsegen::Reader {
   virtual ~Reader() override = default;
 
  protected:
-  virtual any at_shift(int token, std::string& text) override;
-  virtual any at_reduce(int token, std::vector<any>& rhs) override;
+  virtual std::any at_shift(int token, std::string& text) override;
+  virtual std::any at_reduce(int token, std::vector<std::any>& rhs) override;
 
  private:
   int result_token;
