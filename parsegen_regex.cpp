@@ -67,7 +67,7 @@ http://www.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html */
 
 /* bootstrap ! This lexer is used to build the reader_tables that read
    regular expressions themselves, so it can't depend on that reader ! */
-FiniteAutomaton build_lexer() {
+finite_automaton build_lexer() {
   std::string meta_chars_str = ".[]()|-^*+?";
   std::set<int> all_chars;
   for (int i = 0; i < NCHARS; ++i) all_chars.insert(i);
@@ -77,22 +77,22 @@ FiniteAutomaton build_lexer() {
     nonmeta_chars.erase(it);
   }
   auto lex_nonmeta =
-      FiniteAutomaton::make_set_nfa(NCHARS, nonmeta_chars, TOK_CHAR);
+      finite_automaton::make_set_nfa(NCHARS, nonmeta_chars, TOK_CHAR);
   auto lex_slash = make_char_single_nfa('\\');
-  auto lex_any = FiniteAutomaton::make_set_nfa(NCHARS, all_chars);
-  auto lex_escaped = FiniteAutomaton::concat(lex_slash, lex_any, TOK_CHAR);
-  auto lex_char = FiniteAutomaton::unite(lex_nonmeta, lex_escaped);
-  FiniteAutomaton lex_metachars;
+  auto lex_any = finite_automaton::make_set_nfa(NCHARS, all_chars);
+  auto lex_escaped = finite_automaton::concat(lex_slash, lex_any, TOK_CHAR);
+  auto lex_char = finite_automaton::unite(lex_nonmeta, lex_escaped);
+  finite_automaton lex_metachars;
   for (int i = 0; i < size(meta_chars_str); ++i) {
     int token = TOK_CHAR + i + 1;
     auto lex_metachar = make_char_single_nfa(at(meta_chars_str, i), token);
     if (i)
-      lex_metachars = FiniteAutomaton::unite(lex_metachars, lex_metachar);
+      lex_metachars = finite_automaton::unite(lex_metachars, lex_metachar);
     else
       lex_metachars = lex_metachar;
   }
-  auto out = FiniteAutomaton::unite(lex_char, lex_metachars);
-  return FiniteAutomaton::simplify(FiniteAutomaton::make_deterministic(out));
+  auto out = finite_automaton::unite(lex_char, lex_metachars);
+  return finite_automaton::simplify(finite_automaton::make_deterministic(out));
 }
 
 reader_tablesPtr ask_reader_tables() {
@@ -133,11 +133,11 @@ LanguagePtr ask_language() {
   return ptr;
 }
 
-FiniteAutomaton build_dfa(
+finite_automaton build_dfa(
     std::string const& name, std::string const& regex, int token) {
   auto reader = regex::reader(token);
   try {
-    return std::any_cast<FiniteAutomaton>(reader.read_string(regex, name));
+    return std::any_cast<finite_automaton>(reader.read_string(regex, name));
   } catch (const parse_error& e) {
     std::stringstream ss;
     ss << e.what() << '\n';
@@ -172,8 +172,8 @@ std::any regex::reader::at_shift(int token, std::string& text) {
 std::any regex::reader::at_reduce(int production, std::vector<std::any>& rhs) {
   switch (production) {
     case PROD_REGEX:
-      return FiniteAutomaton::simplify(FiniteAutomaton::make_deterministic(
-          std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 0)))));
+      return finite_automaton::simplify(finite_automaton::make_deterministic(
+          std::any_cast<finite_automaton&&>(std::move(at(rhs, 0)))));
     case PROD_UNION_DECAY:
     case PROD_CONCAT_DECAY:
     case PROD_QUAL_DECAY:
@@ -181,28 +181,28 @@ std::any regex::reader::at_reduce(int production, std::vector<std::any>& rhs) {
     case PROD_SET_ITEM_RANGE:
       return at(rhs, 0);
     case PROD_UNION:
-      return FiniteAutomaton::unite(std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 0))),
-          std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 2))));
+      return finite_automaton::unite(std::any_cast<finite_automaton&&>(std::move(at(rhs, 0))),
+          std::any_cast<finite_automaton&&>(std::move(at(rhs, 2))));
     case PROD_CONCAT: {
       auto& a_any = at(rhs, 0);
       auto& b_any = at(rhs, 1);
-      auto a = std::any_cast<FiniteAutomaton&&>(std::move(a_any));
-      auto b = std::any_cast<FiniteAutomaton&&>(std::move(b_any));
-      return FiniteAutomaton::concat(a, b, result_token);
+      auto a = std::any_cast<finite_automaton&&>(std::move(a_any));
+      auto b = std::any_cast<finite_automaton&&>(std::move(b_any));
+      return finite_automaton::concat(a, b, result_token);
     }
     case PROD_STAR:
-      return FiniteAutomaton::star(
-          std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 0))), result_token);
+      return finite_automaton::star(
+          std::any_cast<finite_automaton&&>(std::move(at(rhs, 0))), result_token);
     case PROD_PLUS:
-      return FiniteAutomaton::plus(
-          std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 0))), result_token);
+      return finite_automaton::plus(
+          std::any_cast<finite_automaton&&>(std::move(at(rhs, 0))), result_token);
     case PROD_MAYBE:
-      return FiniteAutomaton::maybe(
-          std::any_cast<FiniteAutomaton&&>(std::move(at(rhs, 0))), result_token);
+      return finite_automaton::maybe(
+          std::any_cast<finite_automaton&&>(std::move(at(rhs, 0))), result_token);
     case PROD_SINGLE_CHAR:
       return make_char_single_nfa(std::any_cast<char>(at(rhs, 0)), result_token);
     case PROD_ANY:
-      return FiniteAutomaton::make_range_nfa(
+      return finite_automaton::make_range_nfa(
           NCHARS, 0, NCHARS - 1, result_token);
     case PROD_SINGLE_SET:
       return make_char_set_nfa(

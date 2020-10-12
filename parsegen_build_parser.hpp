@@ -39,7 +39,7 @@ struct state_configuration {
 
 using state_configurations = std::vector<state_configuration>;
 
-struct ParserInProgress {
+struct parser_in_progress {
   StatesInProgress states;
   Configs configs;
   state_configurations state_configs;
@@ -51,11 +51,11 @@ state_configurations form_state_configs(StatesInProgress const& states);
 ParserGraph form_states_to_state_configs(
     state_configurations const& scs, StatesInProgress const& states);
 
-void print_dot(std::string const& filepath, ParserInProgress const& pip);
+void print_dot(std::string const& filepath, parser_in_progress const& pip);
 
-ParserInProgress build_lalr1_parser(GrammarPtr grammar, bool verbose = false);
+parser_in_progress build_lalr1_parser(GrammarPtr grammar, bool verbose = false);
 
-Parser accept_parser(ParserInProgress const& pip);
+Parser accept_parser(parser_in_progress const& pip);
 
 }  // namespace parsegen
 

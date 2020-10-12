@@ -88,18 +88,18 @@ std::ostream& operator<<(std::ostream& os, Language const& lang) {
   return os;
 }
 
-FiniteAutomaton build_lexer(Language const& language) {
-  FiniteAutomaton lexer;
+finite_automaton build_lexer(Language const& language) {
+  finite_automaton lexer;
   for (int i = 0; i < size(language.tokens); ++i) {
     auto& name = at(language.tokens, i).name;
     auto& regex = at(language.tokens, i).regex;
     if (i == 0) {
       lexer = regex::build_dfa(name, regex, i);
     } else {
-      lexer = FiniteAutomaton::unite(lexer, regex::build_dfa(name, regex, i));
+      lexer = finite_automaton::unite(lexer, regex::build_dfa(name, regex, i));
     }
   }
-  lexer = FiniteAutomaton::simplify(FiniteAutomaton::make_deterministic(lexer));
+  lexer = finite_automaton::simplify(finite_automaton::make_deterministic(lexer));
   return lexer;
 }
 

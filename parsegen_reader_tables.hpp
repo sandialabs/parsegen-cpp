@@ -17,7 +17,7 @@ struct IndentInfo {
 
 struct reader_tables {
   Parser parser;
-  FiniteAutomaton lexer;
+  finite_automaton lexer;
   IndentInfo indent_info;
 };
 

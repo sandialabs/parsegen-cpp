@@ -16,60 +16,60 @@ namespace parsegen {
 
    by convention, the start state is state 0
  */
-struct FiniteAutomaton {
+struct finite_automaton {
   Table<int> table;
   std::vector<int> accepted_tokens;
   bool is_deterministic;
-  FiniteAutomaton() = default;
-  FiniteAutomaton(
+  finite_automaton() = default;
+  finite_automaton(
       int nsymbols_init, bool is_deterministic_init, int nstates_reserve);
-  static FiniteAutomaton make_single_nfa(
+  static finite_automaton make_single_nfa(
       int nsymbols, int symbol, int token = 0);
-  static FiniteAutomaton make_set_nfa(
+  static finite_automaton make_set_nfa(
       int nsymbols, std::set<int> const& accepted, int token = 0);
-  static FiniteAutomaton make_range_nfa(
+  static finite_automaton make_range_nfa(
       int nsymbols, int range_start, int range_end, int token = 0);
-  static FiniteAutomaton unite(
-      FiniteAutomaton const& a, FiniteAutomaton const& b);
-  static FiniteAutomaton concat(
-      FiniteAutomaton const& a, FiniteAutomaton const& b, int token = 0);
-  static FiniteAutomaton plus(FiniteAutomaton const& a, int token = 0);
-  static FiniteAutomaton maybe(FiniteAutomaton const& a, int token = 0);
-  static FiniteAutomaton star(FiniteAutomaton const& a, int token = 0);
-  static FiniteAutomaton make_deterministic(FiniteAutomaton const& nfa);
-  static FiniteAutomaton simplify_once(FiniteAutomaton const& fa);
-  static FiniteAutomaton simplify(FiniteAutomaton const& fa);
+  static finite_automaton unite(
+      finite_automaton const& a, finite_automaton const& b);
+  static finite_automaton concat(
+      finite_automaton const& a, finite_automaton const& b, int token = 0);
+  static finite_automaton plus(finite_automaton const& a, int token = 0);
+  static finite_automaton maybe(finite_automaton const& a, int token = 0);
+  static finite_automaton star(finite_automaton const& a, int token = 0);
+  static finite_automaton make_deterministic(finite_automaton const& nfa);
+  static finite_automaton simplify_once(finite_automaton const& fa);
+  static finite_automaton simplify(finite_automaton const& fa);
 };
 
-int get_nstates(FiniteAutomaton const& fa);
-int get_nsymbols(FiniteAutomaton const& fa);
-bool get_determinism(FiniteAutomaton const& fa);
-int get_epsilon0(FiniteAutomaton const& fa);
-int get_epsilon1(FiniteAutomaton const& fa);
-int add_state(FiniteAutomaton& fa);
+int get_nstates(finite_automaton const& fa);
+int get_nsymbols(finite_automaton const& fa);
+bool get_determinism(finite_automaton const& fa);
+int get_epsilon0(finite_automaton const& fa);
+int get_epsilon1(finite_automaton const& fa);
+int add_state(finite_automaton& fa);
 void add_transition(
-    FiniteAutomaton& fa, int from_state, int at_symbol, int to_state);
-void add_accept(FiniteAutomaton& fa, int state, int token);
-void remove_accept(FiniteAutomaton& fa, int state);
-int step(FiniteAutomaton const& fa, int state, int symbol);
-int accepts(FiniteAutomaton const& fa, int state);
-int get_nsymbols_eps(FiniteAutomaton const& fa);
-void append_states(FiniteAutomaton& fa, FiniteAutomaton const& other);
+    finite_automaton& fa, int from_state, int at_symbol, int to_state);
+void add_accept(finite_automaton& fa, int state, int token);
+void remove_accept(finite_automaton& fa, int state);
+int step(finite_automaton const& fa, int state, int symbol);
+int accepts(finite_automaton const& fa, int state);
+int get_nsymbols_eps(finite_automaton const& fa);
+void append_states(finite_automaton& fa, finite_automaton const& other);
 
-FiniteAutomaton make_char_nfa(bool is_deterministic_init, int nstates_reserve);
+finite_automaton make_char_nfa(bool is_deterministic_init, int nstates_reserve);
 void add_char_transition(
-    FiniteAutomaton& fa, int from_state, char at_char, int to_state);
+    finite_automaton& fa, int from_state, char at_char, int to_state);
 bool is_symbol(char c);
 int get_symbol(char c);
 char get_char(int symbol);
-FiniteAutomaton make_char_set_nfa(
+finite_automaton make_char_set_nfa(
     std::set<char> const& accepted, int token = 0);
-FiniteAutomaton make_char_range_nfa(
+finite_automaton make_char_range_nfa(
     char range_start, char range_end, int token = 0);
-FiniteAutomaton make_char_single_nfa(char symbol_char, int token = 0);
+finite_automaton make_char_single_nfa(char symbol_char, int token = 0);
 std::set<char> negate_set(std::set<char> const& s);
 
-std::ostream& operator<<(std::ostream& os, FiniteAutomaton const& fa);
+std::ostream& operator<<(std::ostream& os, finite_automaton const& fa);
 
 }  // namespace parsegen
 

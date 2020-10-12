@@ -29,7 +29,7 @@ using LanguagePtr = std::shared_ptr<Language>;
 
 GrammarPtr build_grammar(Language const& language);
 
-FiniteAutomaton build_lexer(Language const& language);
+finite_automaton build_lexer(Language const& language);
 
 reader_tablesPtr build_reader_tables(Language const& language);
 

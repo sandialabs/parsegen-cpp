@@ -51,14 +51,14 @@ static ParserGraph get_left_hand_sides_to_start_configs(
   return lhs2sc;
 }
 
-struct StateCompare {
+struct state_compare {
   using Value = state_in_progress const*;
   bool operator()(Value const& a, Value const& b) const {
     return a->configs < b->configs;
   }
 };
 
-using StatePtr2StateIndex = std::map<state_in_progress const*, int, StateCompare>;
+using StatePtr2StateIndex = std::map<state_in_progress const*, int, state_compare>;
 
 static void close(state_in_progress& state, Configs const& cs,
     Grammar const& grammar, ParserGraph const& lhs2sc) {
@@ -383,7 +383,7 @@ static std::string escape_dot(std::string const& s) {
   return out;
 }
 
-void print_dot(std::string const& filepath, ParserInProgress const& pip) {
+void print_dot(std::string const& filepath, parser_in_progress const& pip) {
   auto& sips = pip.states;
   auto& cs = pip.configs;
   auto& grammar = pip.grammar;
@@ -1020,8 +1020,8 @@ static std::vector<bool> determine_adequate_states(
   return out;
 }
 
-ParserInProgress build_lalr1_parser(GrammarPtr grammar, bool verbose) {
-  ParserInProgress out;
+parser_in_progress build_lalr1_parser(GrammarPtr grammar, bool verbose) {
+  parser_in_progress out;
   auto& cs = out.configs;
   auto& states = out.states;
   auto& scs = out.state_configs;
@@ -1106,7 +1106,7 @@ ParserInProgress build_lalr1_parser(GrammarPtr grammar, bool verbose) {
   return out;
 }
 
-Parser accept_parser(ParserInProgress const& pip) {
+Parser accept_parser(parser_in_progress const& pip) {
   auto& sips = pip.states;
   auto& grammar = pip.grammar;
   auto out = Parser(grammar, size(sips));
