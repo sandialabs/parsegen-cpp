@@ -13,11 +13,11 @@
 namespace parsegen {
 
 struct language {
-  struct Token {
+  struct token {
     std::string name;
     std::string regex;
   };
-  std::vector<Token> tokens;
+  std::vector<token> tokens;
   struct production {
     std::string lhs;
     std::vector<std::string> rhs;

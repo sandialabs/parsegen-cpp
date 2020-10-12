@@ -278,11 +278,11 @@ static first_set_type get_first_set_of_string(
 static std::vector<first_set_type> compute_first_sets(
     grammar const& grammar, bool verbose) {
   if (verbose) std::cerr << "computing FIRST sets...\n";
-  struct Event {
+  struct event {
     int added_symbol;
     int dependee;
   };
-  std::queue<Event> event_q;
+  std::queue<event> event_q;
   auto nsymbols = grammar.nsymbols;
   auto first_sets = make_vector<first_set_type>(nsymbols);
   auto lhs2prods = get_productions_by_lhs(grammar);

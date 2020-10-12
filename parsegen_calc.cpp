@@ -27,7 +27,7 @@ class calculator : public parsegen::reader {
   virtual ~calculator() = default;
 
  protected:
-  struct CallArgs {
+  struct arguments {
     double a0;
     double a1;
     int n;
@@ -107,7 +107,7 @@ class calculator : public parsegen::reader {
             any_cast<double>(rhs.at(0)), any_cast<double>(rhs.at(3)));
       case parsegen::math_lang::PROD_CALL: {
         auto& name = any_cast<std::string&>(rhs.at(0));
-        auto& args = any_cast<CallArgs&>(rhs.at(4));
+        auto& args = any_cast<arguments&>(rhs.at(4));
         if (args.n < 1 || args.n > 2) {
           throw parsegen::parse_error(
               "Only unary and binary functions supported!\n");
@@ -131,18 +131,18 @@ class calculator : public parsegen::reader {
         }
       }
       case parsegen::math_lang::PROD_NO_ARGS: {
-        CallArgs args;
+        arguments args;
         args.n = 0;
         return args;
       }
       case parsegen::math_lang::PROD_FIRST_ARG: {
-        CallArgs args;
+        arguments args;
         args.a0 = any_cast<double>(rhs.at(0));
         args.n = 1;
         return args;
       }
       case parsegen::math_lang::PROD_NEXT_ARG: {
-        auto& args = any_cast<CallArgs&>(rhs.at(0));
+        auto& args = any_cast<arguments&>(rhs.at(0));
         args.a1 = any_cast<double>(rhs.at(3));
         args.n = 2;
         return args;
