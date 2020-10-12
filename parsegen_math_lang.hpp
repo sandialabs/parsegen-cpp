@@ -82,9 +82,9 @@ enum { NTOKS = TOK_ASSIGN + 1 };
 
 language build_language();
 
-languagePtr ask_language();
+language_ptr ask_language();
 
-reader_tablesPtr ask_reader_tables();
+reader_tables_ptr ask_reader_tables();
 
 std::set<std::string> get_variables_used(std::string const& expr);
 std::set<std::string> get_symbols_used(std::string const& expr);

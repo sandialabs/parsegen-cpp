@@ -254,15 +254,15 @@ static state_set get_epsilon_closure(state_set ss, finite_automaton const& fa) {
   return ss;
 }
 
-using state_setPtr = state_set*;
+using state_set_ptr = state_set*;
 
 struct state_set_ptr_compare {
-  bool operator()(state_setPtr const& a, state_setPtr const& b) const {
+  bool operator()(state_set_ptr const& a, state_set_ptr const& b) const {
     return *a < *b;
   }
 };
 
-using state_set_ptr_to_state_map = std::map<state_setPtr, int, state_set_ptr_compare>;
+using state_set_ptr_to_state_map = std::map<state_set_ptr, int, state_set_ptr_compare>;
 using state_set_ptr_vector = std::vector<std::unique_ptr<state_set>>;
 
 static void emplace_back(state_set_ptr_vector& ssupv, state_set& ss) {

@@ -24,13 +24,13 @@ struct action {
 };
 
 struct parser {
-  grammarPtr grammar;
+  grammar_ptr grammar;
   /* (state x terminal) -> action */
   table<action> terminal_table;
   /* (state x non-terminal) -> new state */
   table<int> nonterminal_table;
   parser() = default;
-  parser(grammarPtr g, int nstates_reserve);
+  parser(grammar_ptr g, int nstates_reserve);
 };
 
 int add_state(parser& p);
@@ -41,7 +41,7 @@ void add_nonterminal_action(
 action const& get_action(parser const& p, int state, int terminal);
 int execute_action(
     parser const& p, std::vector<int>& stack, action const& action);
-grammarPtr const& get_grammar(parser const& p);
+grammar_ptr const& get_grammar(parser const& p);
 
 class parse_error : public std::invalid_argument {
  public:

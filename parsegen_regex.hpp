@@ -54,11 +54,11 @@ enum {
 enum { NTOKS = TOK_MAYBE + 1 };
 
 language build_language();
-languagePtr ask_language();
+language_ptr ask_language();
 
 finite_automaton build_lexer();
 
-reader_tablesPtr ask_reader_tables();
+reader_tables_ptr ask_reader_tables();
 
 finite_automaton build_dfa(
     std::string const& name, std::string const& regex, int token);

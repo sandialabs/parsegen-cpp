@@ -15,7 +15,7 @@ class reader {
   reader() = delete;
   reader(reader const&) = default;
   virtual ~reader() = default;
-  reader(reader_tablesPtr tables_in);
+  reader(reader_tables_ptr tables_in);
   std::any read_stream(std::istream& stream, std::string const& stream_name_in = "");
   std::any read_string(
       std::string const& string, std::string const& string_name = "");
@@ -26,10 +26,10 @@ class reader {
   virtual std::any at_reduce(int token, std::vector<std::any>& rhs);
 
  protected:
-  reader_tablesPtr tables;
+  reader_tables_ptr tables;
   parser const& parser;
   finite_automaton const& lexer;
-  grammarPtr grammar;
+  grammar_ptr grammar;
   std::size_t line;
   std::size_t column;
   int lexer_state;
@@ -77,7 +77,7 @@ class reader {
 
 class debug_reader : public reader {
  public:
-  debug_reader(reader_tablesPtr tables_in, std::ostream& os_in);
+  debug_reader(reader_tables_ptr tables_in, std::ostream& os_in);
   debug_reader(debug_reader const& other) = default;
   virtual ~debug_reader() override = default;
 

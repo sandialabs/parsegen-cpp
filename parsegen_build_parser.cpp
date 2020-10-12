@@ -460,7 +460,7 @@ void print_dot(std::string const& filepath, parser_in_progress const& pip) {
 
 static parserGraph make_immediate_predecessor_graph(state_configurations const& scs,
     state_in_progress_vector const& states, parserGraph const& states2scs,
-    configurations const& cs, grammarPtr grammar) {
+    configurations const& cs, grammar_ptr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
   for (int s_i = 0; s_i < size(states); ++s_i) {
     auto& state = *at(states, s_i);
@@ -489,7 +489,7 @@ static parserGraph make_immediate_predecessor_graph(state_configurations const& 
 
 static parserGraph find_transition_predecessors(state_configurations const& scs,
     state_in_progress_vector const& states, parserGraph const& states2scs,
-    configurations const& cs, grammarPtr grammar) {
+    configurations const& cs, grammar_ptr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
   for (int state_i = 0; state_i < size(states); ++state_i) {
     auto& state = *at(states, state_i);
@@ -524,7 +524,7 @@ static parserGraph find_transition_predecessors(state_configurations const& scs,
 
 static parserGraph make_originator_graph(state_configurations const& scs,
     state_in_progress_vector const& states, parserGraph const& states2scs,
-    configurations const& cs, grammarPtr grammar) {
+    configurations const& cs, grammar_ptr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
   auto ipg =
       make_immediate_predecessor_graph(scs, states, states2scs, cs, grammar);
@@ -556,7 +556,7 @@ static parserGraph make_originator_graph(state_configurations const& scs,
 }
 
 static std::vector<int> get_follow_string(int sc_addr, state_configurations const& scs,
-    state_in_progress_vector const& states, configurations const& cs, grammarPtr grammar) {
+    state_in_progress_vector const& states, configurations const& cs, grammar_ptr grammar) {
   auto& sc = at(scs, sc_addr);
   auto& state = *at(states, sc.state);
   auto config_i = at(state.configs, sc.config_in_state);
@@ -573,7 +573,7 @@ static std::vector<int> get_follow_string(int sc_addr, state_configurations cons
   return out;
 }
 
-static void print_string(std::vector<int> const& str, grammarPtr grammar) {
+static void print_string(std::vector<int> const& str, grammar_ptr grammar) {
   std::cerr << "\"";
   for (auto symb : str) {
     auto& symb_name = at(grammar->symbol_names, symb);
@@ -637,7 +637,7 @@ using context_types = std::vector<context_type>;
 
 static void context_adding_routine(std::vector<int> const& lane,
     int zeta_pointer, context_type& contexts_generated, context_types& contexts,
-    bool verbose, grammarPtr grammar) {
+    bool verbose, grammar_ptr grammar) {
   if (verbose) {
     std::cerr << "  CONTEXT ADDING ROUTINE\n";
     std::cerr << "  LANE:";
@@ -738,7 +738,7 @@ static void deal_with_tests_failed(int& num_originators_failed,
 static void heuristic_propagation_of_context_sets(int tau_addr,
     context_types& contexts, std::vector<bool>& complete, state_configurations const& scs,
     state_in_progress_vector const& states, parserGraph const& states2scs,
-    configurations const& cs, grammarPtr grammar) {
+    configurations const& cs, grammar_ptr grammar) {
   auto& tau = at(scs, tau_addr);
   auto& state = *at(states, tau.state);
   auto config_i = at(state.configs, tau.config_in_state);
@@ -764,7 +764,7 @@ static void compute_context_set(int zeta_j_addr, context_types& contexts,
     std::vector<bool>& complete, state_configurations const& scs,
     parserGraph const& originator_graph, state_in_progress_vector const& states,
     parserGraph const& states2scs, configurations const& cs,
-    std::vector<first_set_type> const& first_sets, grammarPtr grammar, bool verbose) {
+    std::vector<first_set_type> const& first_sets, grammar_ptr grammar, bool verbose) {
   if (verbose)
     std::cerr << "Computing context set for $\\zeta_j$ = " << zeta_j_addr
               << "...\n";
@@ -970,7 +970,7 @@ static void compute_context_set(int zeta_j_addr, context_types& contexts,
 }
 
 static std::vector<bool> determine_adequate_states(
-    state_in_progress_vector const& states, grammarPtr grammar, bool verbose) {
+    state_in_progress_vector const& states, grammar_ptr grammar, bool verbose) {
   auto out = make_vector<bool>(size(states));
   for (int s_i = 0; s_i < size(states); ++s_i) {
     auto& state = *at(states, s_i);
@@ -1020,7 +1020,7 @@ static std::vector<bool> determine_adequate_states(
   return out;
 }
 
-parser_in_progress build_lalr1_parser(grammarPtr grammar, bool verbose) {
+parser_in_progress build_lalr1_parser(grammar_ptr grammar, bool verbose) {
   parser_in_progress out;
   auto& cs = out.configs;
   auto& states = out.states;

@@ -11,7 +11,7 @@
 
 namespace parsegen {
 
-grammarPtr build_grammar(language const& language) {
+grammar_ptr build_grammar(language const& language) {
   std::map<std::string, int> symbol_map;
   int nterminals = 0;
   for (auto& token : language.tokens) {
@@ -149,12 +149,12 @@ static indentation build_indent_info(language const& language) {
   return out;
 }
 
-reader_tablesPtr build_reader_tables(language const& language) {
+reader_tables_ptr build_reader_tables(language const& language) {
   auto lexer = build_lexer(language);
   auto indent_info = build_indent_info(language);
   auto grammar = build_grammar(language);
   auto parser = accept_parser(build_lalr1_parser(grammar));
-  return reader_tablesPtr(new reader_tables({parser, lexer, indent_info}));
+  return reader_tables_ptr(new reader_tables({parser, lexer, indent_info}));
 }
 
 }  // namespace parsegen

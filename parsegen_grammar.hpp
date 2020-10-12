@@ -23,7 +23,7 @@ struct grammar {
   std::vector<std::string> symbol_names;
 };
 
-using grammarPtr = std::shared_ptr<grammar const>;
+using grammar_ptr = std::shared_ptr<grammar const>;
 
 int get_nnonterminals(grammar const& g);
 bool is_terminal(grammar const& g, int symbol);

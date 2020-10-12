@@ -25,13 +25,13 @@ struct language {
   std::vector<production> productions;
 };
 
-using languagePtr = std::shared_ptr<language>;
+using language_ptr = std::shared_ptr<language>;
 
-grammarPtr build_grammar(language const& language);
+grammar_ptr build_grammar(language const& language);
 
 finite_automaton build_lexer(language const& language);
 
-reader_tablesPtr build_reader_tables(language const& language);
+reader_tables_ptr build_reader_tables(language const& language);
 
 std::ostream& operator<<(std::ostream& os, language const& lang);
 

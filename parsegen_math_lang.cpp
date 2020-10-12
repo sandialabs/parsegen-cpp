@@ -77,12 +77,12 @@ language build_language() {
   return out;
 }
 
-languagePtr ask_language() {
+language_ptr ask_language() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static languagePtr ptr;
+  static language_ptr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -92,17 +92,17 @@ languagePtr ask_language() {
   return ptr;
 }
 
-reader_tablesPtr ask_reader_tables() {
+reader_tables_ptr ask_reader_tables() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static reader_tablesPtr ptr;
+  static reader_tables_ptr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
   if (ptr.use_count() == 0) {
-    languagePtr lang = ask_language();
+    language_ptr lang = ask_language();
     ptr = build_reader_tables(*lang);
   }
   return ptr;

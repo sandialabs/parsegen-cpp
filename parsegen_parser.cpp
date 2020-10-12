@@ -2,7 +2,7 @@
 
 namespace parsegen {
 
-parser::parser(grammarPtr g, int nstates_reserve)
+parser::parser(grammar_ptr g, int nstates_reserve)
     : grammar(g),
       terminal_table(g->nterminals, nstates_reserve),
       nonterminal_table(get_nnonterminals(*g), nstates_reserve) {}
@@ -67,7 +67,7 @@ int execute_action(
   return stack.back();
 }
 
-grammarPtr const& get_grammar(parser const& p) { return p.grammar; }
+grammar_ptr const& get_grammar(parser const& p) { return p.grammar; }
 
 parse_error::parse_error(const std::string& msg) : std::invalid_argument(msg) {}
 

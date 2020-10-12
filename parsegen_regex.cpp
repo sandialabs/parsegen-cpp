@@ -95,12 +95,12 @@ finite_automaton build_lexer() {
   return finite_automaton::simplify(finite_automaton::make_deterministic(out));
 }
 
-reader_tablesPtr ask_reader_tables() {
+reader_tables_ptr ask_reader_tables() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static reader_tablesPtr ptr;
+  static reader_tables_ptr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -118,12 +118,12 @@ reader_tablesPtr ask_reader_tables() {
   return ptr;
 }
 
-languagePtr ask_language() {
+language_ptr ask_language() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static languagePtr ptr;
+  static language_ptr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif

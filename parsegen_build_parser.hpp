@@ -44,7 +44,7 @@ struct parser_in_progress {
   configurations configs;
   state_configurations state_configs;
   parserGraph states2state_configs;
-  grammarPtr grammar;
+  grammar_ptr grammar;
 };
 
 state_configurations form_state_configs(state_in_progress_vector const& states);
@@ -53,7 +53,7 @@ parserGraph form_states_to_state_configs(
 
 void print_dot(std::string const& filepath, parser_in_progress const& pip);
 
-parser_in_progress build_lalr1_parser(grammarPtr grammar, bool verbose = false);
+parser_in_progress build_lalr1_parser(grammar_ptr grammar, bool verbose = false);
 
 parser accept_parser(parser_in_progress const& pip);
 

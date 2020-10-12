@@ -21,7 +21,7 @@ struct reader_tables {
   indentation indent_info;
 };
 
-using reader_tablesPtr = std::shared_ptr<reader_tables const>;
+using reader_tables_ptr = std::shared_ptr<reader_tables const>;
 
 }  // namespace parsegen
 
