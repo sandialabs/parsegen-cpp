@@ -52,15 +52,15 @@ static ParserGraph get_left_hand_sides_to_start_configs(
 }
 
 struct StateCompare {
-  using Value = StateInProgress const*;
+  using Value = state_in_progress const*;
   bool operator()(Value const& a, Value const& b) const {
     return a->configs < b->configs;
   }
 };
 
-using StatePtr2StateIndex = std::map<StateInProgress const*, int, StateCompare>;
+using StatePtr2StateIndex = std::map<state_in_progress const*, int, StateCompare>;
 
-static void close(StateInProgress& state, Configs const& cs,
+static void close(state_in_progress& state, Configs const& cs,
     Grammar const& grammar, ParserGraph const& lhs2sc) {
   std::queue<int> config_q;
   std::set<int> config_set;
@@ -88,9 +88,9 @@ static void close(StateInProgress& state, Configs const& cs,
   state.configs.assign(config_set.begin(), config_set.end());
 }
 
-static void emplace_back(StatesInProgress& sips, StateInProgress& sip) {
+static void emplace_back(StatesInProgress& sips, state_in_progress& sip) {
   sips.push_back(
-      std::unique_ptr<StateInProgress>(new StateInProgress(std::move(sip))));
+      std::unique_ptr<state_in_progress>(new state_in_progress(std::move(sip))));
 }
 
 static void add_reduction_actions(
@@ -102,7 +102,7 @@ static void add_reduction_actions(
       auto prod_i = config.production;
       auto& prod = at(grammar.productions, prod_i);
       if (config.dot != size(prod.rhs)) continue;
-      ActionInProgress reduction;
+      action_in_progress reduction;
       reduction.action.kind = ACTION_REDUCE;
       reduction.action.production = config.production;
       state.actions.push_back(reduction);
@@ -132,7 +132,7 @@ static StatesInProgress build_lr0_parser(
   StatePtr2StateIndex state_ptrs2idxs;
   std::queue<int> state_q;
   { /* start state */
-    StateInProgress start_state;
+    state_in_progress start_state;
     auto accept_nt = get_accept_nonterminal(grammar);
     /* there should only be one start configuration for the accept symbol */
     auto start_accept_config = get_edges(lhs2sc, accept_nt).front();
@@ -157,7 +157,7 @@ static StatesInProgress build_lr0_parser(
       transition_symbols.insert(symbol_after_dot);
     }
     for (auto transition_symbol : transition_symbols) {
-      StateInProgress next_state;
+      state_in_progress next_state;
       for (auto config_i : state.configs) {
         auto& config = at(cs, config_i);
         auto prod_i = config.production;
@@ -180,7 +180,7 @@ static StatesInProgress build_lr0_parser(
       } else {
         next_state_i = it->second;
       }
-      ActionInProgress transition;
+      action_in_progress transition;
       transition.action.kind = ACTION_SHIFT;
       transition.action.next_state = next_state_i;
       transition.context.insert(transition_symbol);
@@ -349,8 +349,8 @@ static std::vector<FirstSet> compute_first_sets(
   return first_sets;
 }
 
-StateConfigs form_state_configs(StatesInProgress const& states) {
-  StateConfigs out;
+state_configurations form_state_configs(StatesInProgress const& states) {
+  state_configurations out;
   for (int i = 0; i < size(states); ++i) {
     auto& state = *at(states, i);
     for (int j = 0; j < size(state.configs); ++j) out.push_back({i, j});
@@ -359,7 +359,7 @@ StateConfigs form_state_configs(StatesInProgress const& states) {
 }
 
 ParserGraph form_states_to_state_configs(
-    StateConfigs const& scs, StatesInProgress const& states) {
+    state_configurations const& scs, StatesInProgress const& states) {
   auto out = make_graph_with_nnodes(size(states));
   for (int i = 0; i < size(scs); ++i) {
     auto& sc = at(scs, i);
@@ -458,7 +458,7 @@ void print_dot(std::string const& filepath, ParserInProgress const& pip) {
   file << "}\n";
 }
 
-static ParserGraph make_immediate_predecessor_graph(StateConfigs const& scs,
+static ParserGraph make_immediate_predecessor_graph(state_configurations const& scs,
     StatesInProgress const& states, ParserGraph const& states2scs,
     Configs const& cs, GrammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
@@ -487,7 +487,7 @@ static ParserGraph make_immediate_predecessor_graph(StateConfigs const& scs,
   return out;
 }
 
-static ParserGraph find_transition_predecessors(StateConfigs const& scs,
+static ParserGraph find_transition_predecessors(state_configurations const& scs,
     StatesInProgress const& states, ParserGraph const& states2scs,
     Configs const& cs, GrammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
@@ -522,7 +522,7 @@ static ParserGraph find_transition_predecessors(StateConfigs const& scs,
   return out;
 }
 
-static ParserGraph make_originator_graph(StateConfigs const& scs,
+static ParserGraph make_originator_graph(state_configurations const& scs,
     StatesInProgress const& states, ParserGraph const& states2scs,
     Configs const& cs, GrammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
@@ -555,7 +555,7 @@ static ParserGraph make_originator_graph(StateConfigs const& scs,
   return out;
 }
 
-static std::vector<int> get_follow_string(int sc_addr, StateConfigs const& scs,
+static std::vector<int> get_follow_string(int sc_addr, state_configurations const& scs,
     StatesInProgress const& states, Configs const& cs, GrammarPtr grammar) {
   auto& sc = at(scs, sc_addr);
   auto& state = *at(states, sc.state);
@@ -736,7 +736,7 @@ static void deal_with_tests_failed(int& num_originators_failed,
 }
 
 static void heuristic_propagation_of_context_sets(int tau_addr,
-    Contexts& contexts, std::vector<bool>& complete, StateConfigs const& scs,
+    Contexts& contexts, std::vector<bool>& complete, state_configurations const& scs,
     StatesInProgress const& states, ParserGraph const& states2scs,
     Configs const& cs, GrammarPtr grammar) {
   auto& tau = at(scs, tau_addr);
@@ -761,7 +761,7 @@ static void heuristic_propagation_of_context_sets(int tau_addr,
 /* Here it is! The magical algorithm described by a flowchart in
    Figure 7 of David Pager's paper. */
 static void compute_context_set(int zeta_j_addr, Contexts& contexts,
-    std::vector<bool>& complete, StateConfigs const& scs,
+    std::vector<bool>& complete, state_configurations const& scs,
     ParserGraph const& originator_graph, StatesInProgress const& states,
     ParserGraph const& states2scs, Configs const& cs,
     std::vector<FirstSet> const& first_sets, GrammarPtr grammar, bool verbose) {
