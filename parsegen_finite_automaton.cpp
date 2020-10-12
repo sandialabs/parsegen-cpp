@@ -392,10 +392,10 @@ void add_char_transition(
 }
 
 template <typename T, bool is_signed = std::numeric_limits<T>::is_signed>
-struct IsSymbol;
+struct is_symbol_helper;
 
 template <typename T>
-struct IsSymbol<T, true> {
+struct is_symbol_helper<T, true> {
   static bool eval(T c) {
     if (c < 0) return false;
     return 0 <= parsegen::chartab[int(c)];
@@ -403,20 +403,20 @@ struct IsSymbol<T, true> {
 };
 
 template <typename T>
-struct IsSymbol<T, false> {
+struct is_symbol_helper<T, false> {
   static bool eval(T c) {
     if (c >= OMEGA_H_CHARTAB_SIZE) return false;
     return 0 <= parsegen::chartab[int(c)];
   }
 };
 
-bool is_symbol(char c) { return IsSymbol<char>::eval(c); }
+bool is_symbol(char c) { return is_symbol_helper<char>::eval(c); }
 
 template <typename T, bool is_signed = std::numeric_limits<T>::is_signed>
-struct GetSymbol;
+struct get_symbol_helper;
 
 template <typename T>
-struct GetSymbol<T, true> {
+struct get_symbol_helper<T, true> {
   static int eval(T c) {
     assert(0 <= c);
     int symbol = parsegen::chartab[int(c)];
@@ -426,7 +426,7 @@ struct GetSymbol<T, true> {
 };
 
 template <typename T>
-struct GetSymbol<T, false> {
+struct get_symbol_helper<T, false> {
   static int eval(T c) {
     int symbol = parsegen::chartab[int(c)];
     assert(0 <= symbol);
@@ -434,7 +434,7 @@ struct GetSymbol<T, false> {
   }
 };
 
-int get_symbol(char c) { return GetSymbol<char>::eval(c); }
+int get_symbol(char c) { return get_symbol_helper<char>::eval(c); }
 
 char get_char(int symbol) {
   assert(0 <= symbol);
