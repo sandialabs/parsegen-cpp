@@ -50,7 +50,7 @@ class reader {
  protected:  // variables for indentation-sensitive language parsing
   bool sensing_indent;
   std::string indent_text;
-  struct IndentStackEntry {
+  struct indent_stack_entry {
     std::size_t line;
     std::size_t start_length;
     std::size_t end_length;
@@ -58,7 +58,7 @@ class reader {
   // this is the stack that shows, for the current leading indentation
   // characters, which subset of them came from each nested increase
   // in indentation
-  std::vector<IndentStackEntry> indent_stack;
+  std::vector<indent_stack_entry> indent_stack;
   // this stack notes, for each symbol in the pushdown automaton
   // stack, how many characters indent the line that that symbol
   // starts on
