@@ -58,7 +58,7 @@ struct state_compare {
   }
 };
 
-using StatePtr2StateIndex = std::map<state_in_progress const*, int, state_compare>;
+using state_ptr_to_state_index_map = std::map<state_in_progress const*, int, state_compare>;
 
 static void close(state_in_progress& state, configurations const& cs,
     grammar const& grammar, parserGraph const& lhs2sc) {
@@ -88,13 +88,13 @@ static void close(state_in_progress& state, configurations const& cs,
   state.configs.assign(config_set.begin(), config_set.end());
 }
 
-static void emplace_back(StatesInProgress& sips, state_in_progress& sip) {
+static void emplace_back(state_in_progress_vector& sips, state_in_progress& sip) {
   sips.push_back(
       std::unique_ptr<state_in_progress>(new state_in_progress(std::move(sip))));
 }
 
 static void add_reduction_actions(
-    StatesInProgress& states, configurations const& cs, grammar const& grammar) {
+    state_in_progress_vector& states, configurations const& cs, grammar const& grammar) {
   for (auto& state_uptr : states) {
     auto& state = *state_uptr;
     for (auto config_i : state.configs) {
@@ -110,7 +110,7 @@ static void add_reduction_actions(
   }
 }
 
-static void set_lr0_contexts(StatesInProgress& states, grammar const& grammar) {
+static void set_lr0_contexts(state_in_progress_vector& states, grammar const& grammar) {
   for (auto& state_uptr : states) {
     auto& state = *state_uptr;
     for (auto& action : state.actions) {
@@ -126,10 +126,10 @@ static void set_lr0_contexts(StatesInProgress& states, grammar const& grammar) {
   }
 }
 
-static StatesInProgress build_lr0_parser(
+static state_in_progress_vector build_lr0_parser(
     configurations const& cs, grammar const& grammar, parserGraph const& lhs2sc) {
-  StatesInProgress states;
-  StatePtr2StateIndex state_ptrs2idxs;
+  state_in_progress_vector states;
+  state_ptr_to_state_index_map state_ptrs2idxs;
   std::queue<int> state_q;
   { /* start state */
     state_in_progress start_state;
@@ -231,7 +231,7 @@ static parserGraph get_symbol_graph(
    a null terminal descendant, indicated by the prescence of a special
    FIRST_NULL symbol in the FIRST set */
 enum { FIRST_NULL = -425 };
-using FirstSet = std::set<int>;
+using first_set_type = std::set<int>;
 
 static void print_set(std::set<int> const& set, grammar const& grammar) {
   std::cerr << "{";
@@ -251,9 +251,9 @@ static void print_set(std::set<int> const& set, grammar const& grammar) {
   std::cerr << "}";
 }
 
-static FirstSet get_first_set_of_string(
-    std::vector<int> const& string, std::vector<FirstSet> const& first_sets) {
-  FirstSet out;
+static first_set_type get_first_set_of_string(
+    std::vector<int> const& string, std::vector<first_set_type> const& first_sets) {
+  first_set_type out;
   /* walk the string, stop when any symbol is found that doesn't
      have a null terminal descendant */
   int i;
@@ -275,7 +275,7 @@ static FirstSet get_first_set_of_string(
 /* figure out the FIRST sets for each non-terminal in the grammar.
    I couldn't find a super-efficient way to do this, so here is a
    free-for-all event-driven implementation. */
-static std::vector<FirstSet> compute_first_sets(
+static std::vector<first_set_type> compute_first_sets(
     grammar const& grammar, bool verbose) {
   if (verbose) std::cerr << "computing FIRST sets...\n";
   struct Event {
@@ -284,7 +284,7 @@ static std::vector<FirstSet> compute_first_sets(
   };
   std::queue<Event> event_q;
   auto nsymbols = grammar.nsymbols;
-  auto first_sets = make_vector<FirstSet>(nsymbols);
+  auto first_sets = make_vector<first_set_type>(nsymbols);
   auto lhs2prods = get_productions_by_lhs(grammar);
   for (int symbol = 0; symbol < nsymbols; ++symbol) {
     if (is_terminal(grammar, symbol)) {
@@ -349,7 +349,7 @@ static std::vector<FirstSet> compute_first_sets(
   return first_sets;
 }
 
-state_configurations form_state_configs(StatesInProgress const& states) {
+state_configurations form_state_configs(state_in_progress_vector const& states) {
   state_configurations out;
   for (int i = 0; i < size(states); ++i) {
     auto& state = *at(states, i);
@@ -359,7 +359,7 @@ state_configurations form_state_configs(StatesInProgress const& states) {
 }
 
 parserGraph form_states_to_state_configs(
-    state_configurations const& scs, StatesInProgress const& states) {
+    state_configurations const& scs, state_in_progress_vector const& states) {
   auto out = make_graph_with_nnodes(size(states));
   for (int i = 0; i < size(scs); ++i) {
     auto& sc = at(scs, i);
@@ -459,7 +459,7 @@ void print_dot(std::string const& filepath, parser_in_progress const& pip) {
 }
 
 static parserGraph make_immediate_predecessor_graph(state_configurations const& scs,
-    StatesInProgress const& states, parserGraph const& states2scs,
+    state_in_progress_vector const& states, parserGraph const& states2scs,
     configurations const& cs, grammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
   for (int s_i = 0; s_i < size(states); ++s_i) {
@@ -488,7 +488,7 @@ static parserGraph make_immediate_predecessor_graph(state_configurations const& 
 }
 
 static parserGraph find_transition_predecessors(state_configurations const& scs,
-    StatesInProgress const& states, parserGraph const& states2scs,
+    state_in_progress_vector const& states, parserGraph const& states2scs,
     configurations const& cs, grammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
   for (int state_i = 0; state_i < size(states); ++state_i) {
@@ -523,7 +523,7 @@ static parserGraph find_transition_predecessors(state_configurations const& scs,
 }
 
 static parserGraph make_originator_graph(state_configurations const& scs,
-    StatesInProgress const& states, parserGraph const& states2scs,
+    state_in_progress_vector const& states, parserGraph const& states2scs,
     configurations const& cs, grammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
   auto ipg =
@@ -556,7 +556,7 @@ static parserGraph make_originator_graph(state_configurations const& scs,
 }
 
 static std::vector<int> get_follow_string(int sc_addr, state_configurations const& scs,
-    StatesInProgress const& states, configurations const& cs, grammarPtr grammar) {
+    state_in_progress_vector const& states, configurations const& cs, grammarPtr grammar) {
   auto& sc = at(scs, sc_addr);
   auto& state = *at(states, sc.state);
   auto config_i = at(state.configs, sc.config_in_state);
@@ -582,13 +582,13 @@ static void print_string(std::vector<int> const& str, grammarPtr grammar) {
   std::cerr << "\"";
 }
 
-static bool has_non_null_terminal_descendant(FirstSet const& first_set) {
+static bool has_non_null_terminal_descendant(first_set_type const& first_set) {
   if (first_set.empty()) return false;
   if (first_set.size() > 1) return true;
   return *(first_set.begin()) != FIRST_NULL;
 }
 
-static Context get_contexts(FirstSet first_set) {
+static context_type get_contexts(first_set_type first_set) {
   auto it = first_set.find(FIRST_NULL);
   if (it != first_set.end()) first_set.erase(it);
   return first_set;
@@ -633,10 +633,10 @@ static void move_markers(std::vector<int>& lane, int zeta_prime_addr,
   if (tests_failed) lane.push_back(top_addr);
 }
 
-using Contexts = std::vector<Context>;
+using context_types = std::vector<context_type>;
 
 static void context_adding_routine(std::vector<int> const& lane,
-    int zeta_pointer, Context& contexts_generated, Contexts& contexts,
+    int zeta_pointer, context_type& contexts_generated, context_types& contexts,
     bool verbose, grammarPtr grammar) {
   if (verbose) {
     std::cerr << "  CONTEXT ADDING ROUTINE\n";
@@ -736,8 +736,8 @@ static void deal_with_tests_failed(int& num_originators_failed,
 }
 
 static void heuristic_propagation_of_context_sets(int tau_addr,
-    Contexts& contexts, std::vector<bool>& complete, state_configurations const& scs,
-    StatesInProgress const& states, parserGraph const& states2scs,
+    context_types& contexts, std::vector<bool>& complete, state_configurations const& scs,
+    state_in_progress_vector const& states, parserGraph const& states2scs,
     configurations const& cs, grammarPtr grammar) {
   auto& tau = at(scs, tau_addr);
   auto& state = *at(states, tau.state);
@@ -760,11 +760,11 @@ static void heuristic_propagation_of_context_sets(int tau_addr,
 
 /* Here it is! The magical algorithm described by a flowchart in
    Figure 7 of David Pager's paper. */
-static void compute_context_set(int zeta_j_addr, Contexts& contexts,
+static void compute_context_set(int zeta_j_addr, context_types& contexts,
     std::vector<bool>& complete, state_configurations const& scs,
-    parserGraph const& originator_graph, StatesInProgress const& states,
+    parserGraph const& originator_graph, state_in_progress_vector const& states,
     parserGraph const& states2scs, configurations const& cs,
-    std::vector<FirstSet> const& first_sets, grammarPtr grammar, bool verbose) {
+    std::vector<first_set_type> const& first_sets, grammarPtr grammar, bool verbose) {
   if (verbose)
     std::cerr << "Computing context set for $\\zeta_j$ = " << zeta_j_addr
               << "...\n";
@@ -781,7 +781,7 @@ static void compute_context_set(int zeta_j_addr, Contexts& contexts,
   lane.push_back(zeta_j_addr);
   at(in_lane, zeta_j_addr) = true;
   bool tests_failed = false;
-  Context contexts_generated;
+  context_type contexts_generated;
   if (verbose) {
     std::cerr << "Initial LANE:";
     print_stack(lane);
@@ -970,7 +970,7 @@ static void compute_context_set(int zeta_j_addr, Contexts& contexts,
 }
 
 static std::vector<bool> determine_adequate_states(
-    StatesInProgress const& states, grammarPtr grammar, bool verbose) {
+    state_in_progress_vector const& states, grammarPtr grammar, bool verbose) {
   auto out = make_vector<bool>(size(states));
   for (int s_i = 0; s_i < size(states); ++s_i) {
     auto& state = *at(states, s_i);
@@ -1041,7 +1041,7 @@ parser_in_progress build_lalr1_parser(grammarPtr grammar, bool verbose) {
     return out;
   }
   auto complete = make_vector<bool>(size(scs), false);
-  auto contexts = make_vector<Context>(size(scs));
+  auto contexts = make_vector<context_type>(size(scs));
   auto accept_prod_i = get_accept_production(*grammar);
   /* initialize the accepting state-configs as described in
      footnote 8 at the bottom of page 37 */

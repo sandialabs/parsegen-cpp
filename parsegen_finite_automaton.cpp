@@ -220,11 +220,11 @@ finite_automaton finite_automaton::star(finite_automaton const& a, int token) {
   return maybe(plus(a, token), token);
 }
 
-using StateSet = std::set<int>;
+using state_set = std::set<int>;
 
-static StateSet step(
-    StateSet const& ss, int symbol, finite_automaton const& fa) {
-  StateSet next_ss;
+static state_set step(
+    state_set const& ss, int symbol, finite_automaton const& fa) {
+  state_set next_ss;
   for (auto state : ss) {
     auto next_state = step(fa, state, symbol);
     if (next_state != -1) next_ss.insert(next_state);
@@ -234,7 +234,7 @@ static StateSet step(
 
 using StateQueue = std::queue<int>;
 
-static StateSet get_epsilon_closure(StateSet ss, finite_automaton const& fa) {
+static state_set get_epsilon_closure(state_set ss, finite_automaton const& fa) {
   StateQueue q;
   for (auto state : ss) q.push(state);
   auto epsilon0 = get_epsilon0(fa);
@@ -254,29 +254,29 @@ static StateSet get_epsilon_closure(StateSet ss, finite_automaton const& fa) {
   return ss;
 }
 
-using StateSetPtr = StateSet*;
+using state_setPtr = state_set*;
 
 struct state_set_ptr_compare {
-  bool operator()(StateSetPtr const& a, StateSetPtr const& b) const {
+  bool operator()(state_setPtr const& a, state_setPtr const& b) const {
     return *a < *b;
   }
 };
 
-using StateSetPtr2State = std::map<StateSetPtr, int, state_set_ptr_compare>;
-using StateSetUniqPtrVector = std::vector<std::unique_ptr<StateSet>>;
+using state_setPtr2State = std::map<state_setPtr, int, state_set_ptr_compare>;
+using state_setUniqPtrVector = std::vector<std::unique_ptr<state_set>>;
 
-static void emplace_back(StateSetUniqPtrVector& ssupv, StateSet& ss) {
-  ssupv.push_back(std::unique_ptr<StateSet>(new StateSet(std::move(ss))));
+static void emplace_back(state_setUniqPtrVector& ssupv, state_set& ss) {
+  ssupv.push_back(std::unique_ptr<state_set>(new state_set(std::move(ss))));
 }
 
 /* powerset construction, NFA -> DFA */
 finite_automaton finite_automaton::make_deterministic(
     finite_automaton const& nfa) {
   if (get_determinism(nfa)) return nfa;
-  StateSetPtr2State ssp2s;
-  StateSetUniqPtrVector ssupv;
+  state_setPtr2State ssp2s;
+  state_setUniqPtrVector ssupv;
   finite_automaton out(get_nsymbols(nfa), true, 0);
-  StateSet start_ss;
+  state_set start_ss;
   start_ss.insert(0);
   start_ss = get_epsilon_closure(start_ss, nfa);
   emplace_back(ssupv, start_ss);

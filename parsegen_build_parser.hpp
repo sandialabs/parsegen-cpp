@@ -16,13 +16,13 @@ struct configuration {
 
 using configurations = std::vector<configuration>;
 
-using Context = std::set<int>;
+using context_type = std::set<int>;
 
 /* nonterminal transitions will be stored as SHIFT
    actions while in progress */
 struct action_in_progress {
   action action;
-  Context context;
+  context_type context;
 };
 
 struct state_in_progress {
@@ -30,7 +30,7 @@ struct state_in_progress {
   std::vector<action_in_progress> actions;
 };
 
-using StatesInProgress = std::vector<std::unique_ptr<state_in_progress>>;
+using state_in_progress_vector = std::vector<std::unique_ptr<state_in_progress>>;
 
 struct state_configuration {
   int state;
@@ -40,16 +40,16 @@ struct state_configuration {
 using state_configurations = std::vector<state_configuration>;
 
 struct parser_in_progress {
-  StatesInProgress states;
+  state_in_progress_vector states;
   configurations configs;
   state_configurations state_configs;
   parserGraph states2state_configs;
   grammarPtr grammar;
 };
 
-state_configurations form_state_configs(StatesInProgress const& states);
+state_configurations form_state_configs(state_in_progress_vector const& states);
 parserGraph form_states_to_state_configs(
-    state_configurations const& scs, StatesInProgress const& states);
+    state_configurations const& scs, state_in_progress_vector const& states);
 
 void print_dot(std::string const& filepath, parser_in_progress const& pip);
 
