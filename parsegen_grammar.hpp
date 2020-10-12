@@ -16,10 +16,10 @@ struct grammar {
     int lhs;
     RHS rhs;
   };
-  using Productions = std::vector<Production>;
+  using production_vector = std::vector<Production>;
   int nsymbols;
   int nterminals;
-  Productions productions;
+  production_vector productions;
   std::vector<std::string> symbol_names;
 };
 
