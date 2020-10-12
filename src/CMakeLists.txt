@@ -1,3 +1,8 @@
+set(PARSEGEN_HEADERS
+  parsegen_language.hpp
+  parsegen_reader.hpp
+  )
+
 add_library(parsegen
   parsegen_chartab.cpp
   parsegen_build_parser.cpp
@@ -13,13 +18,17 @@ add_library(parsegen
   parsegen_yaml.cpp
   )
 
-add_executable(parsegen-calc
-  parsegen_calc.cpp
-  )
-
 set_property(TARGET parsegen PROPERTY CXX_STANDARD "17")
 set_property(TARGET parsegen PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET parsegen PROPERTY CXX_EXTENSIONS OFF)
+set_target_properties(parsegen PROPERTIES
+  PUBLIC_HEADER "${PARSEGEN_HEADERS}")
+target_include_directories(parsegen
+    INTERFACE $<INSTALL_INTERFACE:include>)
+
+add_executable(parsegen-calc
+  parsegen_calc.cpp
+  )
 
 set_property(TARGET parsegen-calc PROPERTY CXX_STANDARD "17")
 set_property(TARGET parsegen-calc PROPERTY CXX_STANDARD_REQUIRED ON)
