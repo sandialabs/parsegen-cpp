@@ -41,17 +41,31 @@ can employ.
 
 Frequently Asked Questions
 --------------------------
-1. How do I build it? ParseGen uses the CMake build system and
+1. How do I build it?
+
+ParseGen uses the CMake build system and
 tries to be a "standard modern CMake package" as much as possible.
-2. Where do I start with the API? The two most important classes
+
+2. Where do I start with the API?
+
+The two most important classes
 in ParseGen are the `language`, which fully describes a text language,
 and the `reader`, which parses a language according to user-defined
 rules that react to syntactic constructs observed.
-3. Why C++? C++ is the language of choice in the HPC community
+
+3. Why C++?
+
+C++ is the language of choice in the HPC community
 that funded this work, and can interface to other languages.
-4. Why C++17? We use the `std::any` feature of C++17 to allow
+
+4. Why C++17?
+
+We use the `std::any` feature of C++17 to allow
 users to return any object as the result of parsing some text.
-5. Why ASCII only, why not Unicode? Dealing with Unicode is
+
+5. Why ASCII only, why not Unicode?
+
+Dealing with Unicode is
 hard, and ParseGen's objects are table-based which means their
 memory use is proportional to the number of possible characters,
 which would be infeasible for Unicode code points.
