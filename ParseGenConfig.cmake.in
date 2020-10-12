@@ -1,0 +1,7 @@
+# Compute paths
+get_filename_component(ParseGen_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+# Our library dependencies (contains definitions for IMPORTED targets)
+if(NOT TARGET hpc AND NOT ParseGen_BINARY_DIR)
+  include("${ParseGen_CMAKE_DIR}/ParseGenTargets.cmake")
+endif()

@@ -26,3 +26,11 @@ set_property(TARGET parsegen-calc PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET parsegen-calc PROPERTY CXX_EXTENSIONS OFF)
 
 target_link_libraries(parsegen-calc parsegen)
+
+install(TARGETS parsegen
+  EXPORT ParseGenTargets
+  LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
+  ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
+  RUNTIME DESTINATION "${INSTALL_LIB_DIR}"
+  PUBLIC_HEADER DESTINATION "include"
+  )
