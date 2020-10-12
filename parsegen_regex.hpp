@@ -58,7 +58,7 @@ LanguagePtr ask_language();
 
 FiniteAutomaton build_lexer();
 
-ReaderTablesPtr ask_reader_tables();
+readerTablesPtr ask_reader_tables();
 
 FiniteAutomaton build_dfa(
     std::string const& name, std::string const& regex, int token);
@@ -66,11 +66,11 @@ FiniteAutomaton build_dfa(
 std::any at_shift_internal(int token, std::string& text);
 std::any at_reduce_internal(int production, std::vector<std::any>& rhs, int result_token);
 
-class Reader : public parsegen::Reader {
+class reader : public parsegen::reader {
  public:
-  Reader(int result_token_in);
-  Reader(Reader const&) = default;
-  virtual ~Reader() override = default;
+  reader(int result_token_in);
+  reader(reader const&) = default;
+  virtual ~reader() override = default;
 
  protected:
   virtual std::any at_shift(int token, std::string& text) override;

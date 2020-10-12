@@ -92,12 +92,12 @@ LanguagePtr ask_language() {
   return ptr;
 }
 
-ReaderTablesPtr ask_reader_tables() {
+readerTablesPtr ask_reader_tables() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static ReaderTablesPtr ptr;
+  static readerTablesPtr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -108,10 +108,10 @@ ReaderTablesPtr ask_reader_tables() {
   return ptr;
 }
 
-class SymbolSetReader : public Reader {
+class symbols_reader : public reader {
  public:
-  SymbolSetReader();
-  ~SymbolSetReader() override = default;
+  symbols_reader();
+  ~symbols_reader() override = default;
 
  public:
   std::set<std::string> variable_names;
@@ -122,14 +122,14 @@ class SymbolSetReader : public Reader {
   std::any at_reduce(int prod, std::vector<std::any>& rhs) override;
 };
 
-SymbolSetReader::SymbolSetReader() : Reader(ask_reader_tables()) {}
+symbols_reader::symbols_reader() : reader(ask_reader_tables()) {}
 
-std::any SymbolSetReader::at_shift(int token, std::string& text) {
+std::any symbols_reader::at_shift(int token, std::string& text) {
   if (token == TOK_NAME) return text;
   return std::any();
 }
 
-std::any SymbolSetReader::at_reduce(int prod, std::vector<std::any>& rhs) {
+std::any symbols_reader::at_reduce(int prod, std::vector<std::any>& rhs) {
   if (prod == PROD_VAR) {
     auto& name = std::any_cast<std::string&>(rhs.at(0));
     variable_names.insert(name);
@@ -141,13 +141,13 @@ std::any SymbolSetReader::at_reduce(int prod, std::vector<std::any>& rhs) {
 }
 
 std::set<std::string> get_variables_used(std::string const& expr) {
-  SymbolSetReader reader;
+  symbols_reader reader;
   reader.read_string(expr, "get_variables_used");
   return reader.variable_names;
 }
 
 std::set<std::string> get_symbols_used(std::string const& expr) {
-  SymbolSetReader reader;
+  symbols_reader reader;
   reader.read_string(expr, "get_symbols_used");
   auto set = std::move(reader.variable_names);
   set.insert(reader.function_names.begin(), reader.function_names.end());

@@ -43,9 +43,9 @@ int execute_action(
     Parser const& p, std::vector<int>& stack, Action const& action);
 GrammarPtr const& get_grammar(Parser const& p);
 
-class ParserFail : public std::invalid_argument {
+class parse_error : public std::invalid_argument {
  public:
-  ParserFail(const std::string& msg);
+  parse_error(const std::string& msg);
   virtual void out_of_line_virtual_method();
 };
 

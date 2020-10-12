@@ -69,8 +69,8 @@ int execute_action(
 
 GrammarPtr const& get_grammar(Parser const& p) { return p.grammar; }
 
-ParserFail::ParserFail(const std::string& msg) : std::invalid_argument(msg) {}
+parse_error::parse_error(const std::string& msg) : std::invalid_argument(msg) {}
 
-void ParserFail::out_of_line_virtual_method() {}
+void parse_error::out_of_line_virtual_method() {}
 
 }  // end namespace parsegen

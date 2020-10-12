@@ -9,9 +9,9 @@
 
 namespace {
 
-class CalcReader : public parsegen::Reader {
+class calculator : public parsegen::reader {
  public:
-  CalcReader() : parsegen::Reader(parsegen::math_lang::ask_reader_tables()) {
+  calculator() : parsegen::reader(parsegen::math_lang::ask_reader_tables()) {
     unary_function_map["sqrt"] = &std::sqrt;
     unary_function_map["sin"] = &std::sin;
     unary_function_map["cos"] = &std::cos;
@@ -24,7 +24,7 @@ class CalcReader : public parsegen::Reader {
     unary_function_map["log10"] = &std::log10;
     binary_function_map["atan2"] = &std::atan2;
   }
-  virtual ~CalcReader() = default;
+  virtual ~calculator() = default;
 
  protected:
   struct CallArgs {
@@ -48,7 +48,7 @@ class CalcReader : public parsegen::Reader {
     switch (prod) {
       case parsegen::math_lang::PROD_PROGRAM: {
         if (!rhs.at(1).has_value()) {
-          throw parsegen::ParserFail(
+          throw parsegen::parse_error(
               "Calculator needs an expression to evaluate!");
         }
         return std::move(rhs.at(1));
@@ -109,14 +109,14 @@ class CalcReader : public parsegen::Reader {
         auto& name = any_cast<std::string&>(rhs.at(0));
         auto& args = any_cast<CallArgs&>(rhs.at(4));
         if (args.n < 1 || args.n > 2) {
-          throw parsegen::ParserFail(
+          throw parsegen::parse_error(
               "Only unary and binary functions supported!\n");
         }
         if (args.n == 1) {
           if (!unary_function_map.count(name)) {
             std::stringstream ss;
             ss << "Unknown unary function name \"" << name << "\"\n";
-            throw parsegen::ParserFail(ss.str());
+            throw parsegen::parse_error(ss.str());
           }
           Unary fptr = unary_function_map[name];
           return (*fptr)(args.a0);
@@ -124,7 +124,7 @@ class CalcReader : public parsegen::Reader {
           if (!binary_function_map.count(name)) {
             std::stringstream ss;
             ss << "Unknown binary function name \"" << name << "\"\n";
-            throw parsegen::ParserFail(ss.str());
+            throw parsegen::parse_error(ss.str());
           }
           Binary fptr = binary_function_map[name];
           return (*fptr)(args.a0, args.a1);
@@ -159,7 +159,7 @@ class CalcReader : public parsegen::Reader {
         if (it == variable_map.end()) {
           std::stringstream ss;
           ss << "variable " << name << " not defined!";
-          throw parsegen::ParserFail(ss.str());
+          throw parsegen::parse_error(ss.str());
         }
         return it->second;
     }
@@ -177,7 +177,7 @@ class CalcReader : public parsegen::Reader {
 }  // end anonymous namespace
 
 int main() {
-  CalcReader reader;
+  calculator reader;
   for (std::string line; std::getline(std::cin, line);) {
     std::cout << std::any_cast<double>(reader.read_string(line, "input"))
               << '\n';

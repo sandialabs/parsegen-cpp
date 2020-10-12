@@ -65,7 +65,7 @@ http://www.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html */
   return out;
 }
 
-/* bootstrap ! This lexer is used to build the ReaderTables that read
+/* bootstrap ! This lexer is used to build the readerTables that read
    regular expressions themselves, so it can't depend on that reader ! */
 FiniteAutomaton build_lexer() {
   std::string meta_chars_str = ".[]()|-^*+?";
@@ -95,12 +95,12 @@ FiniteAutomaton build_lexer() {
   return FiniteAutomaton::simplify(FiniteAutomaton::make_deterministic(out));
 }
 
-ReaderTablesPtr ask_reader_tables() {
+readerTablesPtr ask_reader_tables() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static ReaderTablesPtr ptr;
+  static readerTablesPtr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -113,7 +113,7 @@ ReaderTablesPtr ask_reader_tables() {
     indent_info.is_sensitive = false;
     indent_info.indent_token = -1;
     indent_info.dedent_token = -1;
-    ptr.reset(new ReaderTables{parser, lexer, indent_info});
+    ptr.reset(new readerTables{parser, lexer, indent_info});
   }
   return ptr;
 }
@@ -135,26 +135,26 @@ LanguagePtr ask_language() {
 
 FiniteAutomaton build_dfa(
     std::string const& name, std::string const& regex, int token) {
-  auto reader = regex::Reader(token);
+  auto reader = regex::reader(token);
   try {
     return std::any_cast<FiniteAutomaton>(reader.read_string(regex, name));
-  } catch (const ParserFail& e) {
+  } catch (const parse_error& e) {
     std::stringstream ss;
     ss << e.what() << '\n';
     ss << "error: couldn't build DFA for token \"" << name << "\" regex \""
        << regex << "\"\n";
-    ss << "repeating with DebugReader:\n";
-    DebugReader debug_reader(regex::ask_reader_tables(), ss);
+    ss << "repeating with debug_reader:\n";
+    debug_reader debug_reader(regex::ask_reader_tables(), ss);
     debug_reader.read_string(regex, name);
-    throw ParserFail(ss.str());
+    throw parse_error(ss.str());
   }
 }
 
-regex::Reader::Reader(int result_token_in)
-    : parsegen::Reader(regex::ask_reader_tables()),
+regex::reader::reader(int result_token_in)
+    : parsegen::reader(regex::ask_reader_tables()),
       result_token(result_token_in) {}
 
-std::any regex::Reader::at_shift(int token, std::string& text) {
+std::any regex::reader::at_shift(int token, std::string& text) {
   if (token != TOK_CHAR) {
     return std::any();
   }
@@ -169,7 +169,7 @@ std::any regex::Reader::at_shift(int token, std::string& text) {
   }
 }
 
-std::any regex::Reader::at_reduce(int production, std::vector<std::any>& rhs) {
+std::any regex::reader::at_reduce(int production, std::vector<std::any>& rhs) {
   switch (production) {
     case PROD_REGEX:
       return FiniteAutomaton::simplify(FiniteAutomaton::make_deterministic(

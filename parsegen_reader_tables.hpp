@@ -15,13 +15,13 @@ struct IndentInfo {
   int newline_token;
 };
 
-struct ReaderTables {
+struct readerTables {
   Parser parser;
   FiniteAutomaton lexer;
   IndentInfo indent_info;
 };
 
-using ReaderTablesPtr = std::shared_ptr<ReaderTables const>;
+using readerTablesPtr = std::shared_ptr<readerTables const>;
 
 }  // namespace parsegen
 

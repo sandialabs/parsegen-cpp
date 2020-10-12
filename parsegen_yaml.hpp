@@ -157,7 +157,7 @@ enum { NTOKS = TOK_OTHER + 1 };
 
 Language build_language();
 LanguagePtr ask_language();
-ReaderTablesPtr ask_reader_tables();
+readerTablesPtr ask_reader_tables();
 
 }  // end namespace yaml
 }  // end namespace parsegen

@@ -39,7 +39,7 @@ void print_underline(std::ostream& os, std::string const& above,
 
 }  // end anonymous namespace
 
-void Reader::at_token(std::istream& stream) {
+void reader::at_token(std::istream& stream) {
   bool done = false;
   /* this can loop arbitrarily as reductions are made,
      because they don't consume the token */
@@ -71,7 +71,7 @@ void Reader::at_token(std::istream& stream) {
       ss << "Got: " << at(grammar->symbol_names, lexer_token) << '\n';
       ss << "Lexer text: \"" << lexer_text << "\"\n";
       ss << "Parser was in state " << parser_state << '\n';
-      throw ParserFail(ss.str());
+      throw parse_error(ss.str());
     } else if (parser_action.kind == ACTION_SHIFT) {
       if (sensing_indent) {
         symbol_indentation_stack.push_back(indent_text.size());
@@ -96,13 +96,13 @@ void Reader::at_token(std::istream& stream) {
       try {
         reduce_result =
             this->at_reduce(parser_action.production, reduction_rhs);
-      } catch (const ParserFail& e) {
+      } catch (const parse_error& e) {
         std::stringstream ss;
         ss << "error: Parser failure at line " << line;
         ss << " column " << column << " of " << stream_name << '\n';
         error_print_line(stream, ss);
         ss << '\n' << e.what();
-        throw ParserFail(ss.str());
+        throw parse_error(ss.str());
       }
       value_stack.emplace_back(std::move(reduce_result));
       if (sensing_indent) {
@@ -120,7 +120,7 @@ void Reader::at_token(std::istream& stream) {
   }
 }
 
-void Reader::indent_mismatch() {
+void reader::indent_mismatch() {
   assert(!indent_stack.empty());
   auto top = indent_stack.back();
   std::stringstream ss;
@@ -128,10 +128,10 @@ void Reader::indent_mismatch() {
      << stream_name << " don't match those beginning line " << top.line << '\n';
   ss << "It is strongly recommended not to mix tabs and spaces in "
         "indentation-sensitive formats\n";
-  throw ParserFail(ss.str());
+  throw parse_error(ss.str());
 }
 
-void Reader::at_token_indent(std::istream& stream) {
+void reader::at_token_indent(std::istream& stream) {
   if (!sensing_indent || lexer_token != tables->indent_info.newline_token) {
     at_token(stream);
     return;
@@ -173,7 +173,7 @@ void Reader::at_token_indent(std::istream& stream) {
   }
 }
 
-void Reader::backtrack_to_last_accept(std::istream& stream) {
+void reader::backtrack_to_last_accept(std::istream& stream) {
   /* all the last_accept and backtracking is driven by
     the "accept the longest match" rule */
   line = last_lexer_accept_line;
@@ -186,13 +186,13 @@ void Reader::backtrack_to_last_accept(std::istream& stream) {
   }
 }
 
-void Reader::reset_lexer_state() {
+void reader::reset_lexer_state() {
   lexer_state = 0;
   lexer_text.clear();
   lexer_token = -1;
 }
 
-void Reader::at_lexer_end(std::istream& stream) {
+void reader::at_lexer_end(std::istream& stream) {
   if (lexer_token == -1) {
     std::stringstream ss;
     if (lexer_text.find('\n') == std::string::npos) {
@@ -207,14 +207,14 @@ void Reader::at_lexer_end(std::istream& stream) {
       ss << " column " << column << " of " << stream_name << "):\n";
       ss << lexer_text << '\n';
     }
-    throw ParserFail(ss.str());
+    throw parse_error(ss.str());
   }
   backtrack_to_last_accept(stream);
   at_token_indent(stream);
   reset_lexer_state();
 }
 
-Reader::Reader(ReaderTablesPtr tables_in)
+reader::reader(readerTablesPtr tables_in)
     : tables(tables_in),
       parser(tables->parser),
       lexer(tables->lexer),
@@ -222,7 +222,7 @@ Reader::Reader(ReaderTablesPtr tables_in)
   assert(get_determinism(lexer));
 }
 
-void Reader::update_position(char c) {
+void reader::update_position(char c) {
   if (c == '\n') {
     ++line;
     column = 1;
@@ -232,7 +232,7 @@ void Reader::update_position(char c) {
   }
 }
 
-void Reader::error_print_line(std::istream& is, std::ostream& os) {
+void reader::error_print_line(std::istream& is, std::ostream& os) {
   auto oldpos = line_text.size();
   char c;
   while (is.get(c)) {
@@ -244,7 +244,7 @@ void Reader::error_print_line(std::istream& is, std::ostream& os) {
   if (oldpos > 0) print_indicator(os, line_text, oldpos - 1);
 }
 
-std::any Reader::read_stream(
+std::any reader::read_stream(
     std::istream& stream, std::string const& stream_name_in) {
   line = 1;
   column = 1;
@@ -273,7 +273,7 @@ std::any Reader::read_stream(
       ss << " at line " << line << " column " << column;
       ss << " of " << stream_name << '\n';
       error_print_line(stream, ss);
-      throw ParserFail(ss.str());
+      throw parse_error(ss.str());
     }
     line_text.push_back(c);
     lexer_text.push_back(c);
@@ -299,7 +299,7 @@ std::any Reader::read_stream(
         lexer_text.substr(last_lexer_accept, std::string::npos);
     ss << "error: Could not tokenize \"" << bad_str;
     ss << "\" at end of " << stream_name << '\n';
-    throw ParserFail(ss.str());
+    throw parse_error(ss.str());
   }
   at_lexer_end(stream);
   lexer_token = get_end_terminal(*grammar);
@@ -308,36 +308,36 @@ std::any Reader::read_stream(
     assert(
         !"The EOF terminal was accepted but the root nonterminal was not "
         "reduced\n"
-        "This indicates a bug in parsegen::Reader\n");
+        "This indicates a bug in parsegen::reader\n");
   }
   assert(value_stack.size() == 1);
   return std::move(value_stack.back());
 }
 
-std::any Reader::read_string(
+std::any reader::read_string(
     std::string const& string, std::string const& string_name) {
   std::istringstream stream(string);
   return read_stream(stream, string_name);
 }
 
-std::any Reader::read_file(std::string const& file_name) {
+std::any reader::read_file(std::string const& file_name) {
   std::ifstream stream(file_name.c_str());
   if (!stream.is_open()) {
     std::stringstream ss;
     ss << "Could not open file " << file_name;
-    throw ParserFail(ss.str());
+    throw parse_error(ss.str());
   }
   return read_stream(stream, file_name);
 }
 
-std::any Reader::at_shift(int, std::string&) { return std::any(); }
+std::any reader::at_shift(int, std::string&) { return std::any(); }
 
-std::any Reader::at_reduce(int, std::vector<std::any>&) { return std::any(); }
+std::any reader::at_reduce(int, std::vector<std::any>&) { return std::any(); }
 
-DebugReader::DebugReader(ReaderTablesPtr tables_in, std::ostream& os_in)
-    : Reader(tables_in), os(os_in) {}
+debug_reader::debug_reader(readerTablesPtr tables_in, std::ostream& os_in)
+    : reader(tables_in), os(os_in) {}
 
-    std::any DebugReader::at_shift(int token, std::string& text) {
+    std::any debug_reader::at_shift(int token, std::string& text) {
   std::string text_escaped;
   for (auto c : text) {
     switch (c) {
@@ -359,7 +359,7 @@ DebugReader::DebugReader(ReaderTablesPtr tables_in, std::ostream& os_in)
   return std::any(std::move(text_escaped));
 }
 
-std::any DebugReader::at_reduce(int prod_i, std::vector<std::any>& rhs) {
+std::any debug_reader::at_reduce(int prod_i, std::vector<std::any>& rhs) {
   os << "REDUCE";
   std::string lhs_text;
   auto& prod = at(grammar->productions, prod_i);

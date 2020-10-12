@@ -10,12 +10,12 @@
 
 namespace parsegen {
 
-class Reader {
+class reader {
  public:
-  Reader() = delete;
-  Reader(Reader const&) = default;
-  virtual ~Reader() = default;
-  Reader(ReaderTablesPtr tables_in);
+  reader() = delete;
+  reader(reader const&) = default;
+  virtual ~reader() = default;
+  reader(readerTablesPtr tables_in);
   std::any read_stream(std::istream& stream, std::string const& stream_name_in = "");
   std::any read_string(
       std::string const& string, std::string const& string_name = "");
@@ -26,7 +26,7 @@ class Reader {
   virtual std::any at_reduce(int token, std::vector<std::any>& rhs);
 
  protected:
-  ReaderTablesPtr tables;
+  readerTablesPtr tables;
   Parser const& parser;
   FiniteAutomaton const& lexer;
   GrammarPtr grammar;
@@ -75,11 +75,11 @@ class Reader {
   void error_print_line(std::istream& is, std::ostream& os);
 };
 
-class DebugReader : public Reader {
+class debug_reader : public reader {
  public:
-  DebugReader(ReaderTablesPtr tables_in, std::ostream& os_in);
-  DebugReader(DebugReader const& other) = default;
-  virtual ~DebugReader() override = default;
+  debug_reader(readerTablesPtr tables_in, std::ostream& os_in);
+  debug_reader(debug_reader const& other) = default;
+  virtual ~debug_reader() override = default;
 
  protected:
   virtual std::any at_shift(int token, std::string& text) override;

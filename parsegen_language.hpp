@@ -31,7 +31,7 @@ GrammarPtr build_grammar(Language const& language);
 
 FiniteAutomaton build_lexer(Language const& language);
 
-ReaderTablesPtr build_reader_tables(Language const& language);
+readerTablesPtr build_reader_tables(Language const& language);
 
 std::ostream& operator<<(std::ostream& os, Language const& lang);
 
