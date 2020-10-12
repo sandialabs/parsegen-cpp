@@ -10,8 +10,8 @@ template <typename T>
 struct table {
   std::vector<T> data;
   int ncols;
-  using Ref = typename std::vector<T>::reference;
-  using ConstRef = typename std::vector<T>::const_reference;
+  using reference = typename std::vector<T>::reference;
+  using const_reference = typename std::vector<T>::const_reference;
   table() = default;
   table(int ncols_init, int nrows_reserve) : ncols(ncols_init) {
     assert(0 <= ncols_init);
@@ -38,7 +38,7 @@ void resize(table<T>& t, int new_nrows, int new_ncols) {
 }
 
 template <typename T>
-typename table<T>::Ref at(table<T>& t, int row, int col) {
+typename table<T>::reference at(table<T>& t, int row, int col) {
   assert(0 <= col);
   assert(col < t.ncols);
   assert(0 <= row);
@@ -47,7 +47,7 @@ typename table<T>::Ref at(table<T>& t, int row, int col) {
 }
 
 template <typename T>
-typename table<T>::ConstRef at(table<T> const& t, int row, int col) {
+typename table<T>::const_reference at(table<T> const& t, int row, int col) {
   assert(0 <= col);
   assert(col < t.ncols);
   assert(0 <= row);
