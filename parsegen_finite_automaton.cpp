@@ -232,10 +232,10 @@ static state_set step(
   return next_ss;
 }
 
-using StateQueue = std::queue<int>;
+using state_queue = std::queue<int>;
 
 static state_set get_epsilon_closure(state_set ss, finite_automaton const& fa) {
-  StateQueue q;
+  state_queue q;
   for (auto state : ss) q.push(state);
   auto epsilon0 = get_epsilon0(fa);
   auto epsilon1 = get_epsilon1(fa);
@@ -330,10 +330,10 @@ struct state_row_compare {
   }
 };
 
-using StateRow2SimpleState = std::map<int, int, state_row_compare>;
+using state_row_to_simple_state_map = std::map<int, int, state_row_compare>;
 
 finite_automaton finite_automaton::simplify_once(finite_automaton const& fa) {
-  StateRow2SimpleState sr2ss({fa.table, fa.accepted_tokens});
+  state_row_to_simple_state_map sr2ss({fa.table, fa.accepted_tokens});
   int nsimple = 0;
   for (int state = 0; state < get_nstates(fa); ++state) {
     auto res = sr2ss.insert(std::make_pair(state, nsimple));
