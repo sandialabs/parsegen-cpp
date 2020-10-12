@@ -214,7 +214,7 @@ void reader::at_lexer_end(std::istream& stream) {
   reset_lexer_state();
 }
 
-reader::reader(readerTablesPtr tables_in)
+reader::reader(reader_tablesPtr tables_in)
     : tables(tables_in),
       parser(tables->parser),
       lexer(tables->lexer),
@@ -334,7 +334,7 @@ std::any reader::at_shift(int, std::string&) { return std::any(); }
 
 std::any reader::at_reduce(int, std::vector<std::any>&) { return std::any(); }
 
-debug_reader::debug_reader(readerTablesPtr tables_in, std::ostream& os_in)
+debug_reader::debug_reader(reader_tablesPtr tables_in, std::ostream& os_in)
     : reader(tables_in), os(os_in) {}
 
     std::any debug_reader::at_shift(int token, std::string& text) {

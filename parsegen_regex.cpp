@@ -65,7 +65,7 @@ http://www.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html */
   return out;
 }
 
-/* bootstrap ! This lexer is used to build the readerTables that read
+/* bootstrap ! This lexer is used to build the reader_tables that read
    regular expressions themselves, so it can't depend on that reader ! */
 FiniteAutomaton build_lexer() {
   std::string meta_chars_str = ".[]()|-^*+?";
@@ -95,12 +95,12 @@ FiniteAutomaton build_lexer() {
   return FiniteAutomaton::simplify(FiniteAutomaton::make_deterministic(out));
 }
 
-readerTablesPtr ask_reader_tables() {
+reader_tablesPtr ask_reader_tables() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static readerTablesPtr ptr;
+  static reader_tablesPtr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -113,7 +113,7 @@ readerTablesPtr ask_reader_tables() {
     indent_info.is_sensitive = false;
     indent_info.indent_token = -1;
     indent_info.dedent_token = -1;
-    ptr.reset(new readerTables{parser, lexer, indent_info});
+    ptr.reset(new reader_tables{parser, lexer, indent_info});
   }
   return ptr;
 }

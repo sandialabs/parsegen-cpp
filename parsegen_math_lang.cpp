@@ -92,12 +92,12 @@ LanguagePtr ask_language() {
   return ptr;
 }
 
-readerTablesPtr ask_reader_tables() {
+reader_tablesPtr ask_reader_tables() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static readerTablesPtr ptr;
+  static reader_tablesPtr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif

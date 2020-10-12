@@ -58,7 +58,7 @@ LanguagePtr ask_language();
 
 FiniteAutomaton build_lexer();
 
-readerTablesPtr ask_reader_tables();
+reader_tablesPtr ask_reader_tables();
 
 FiniteAutomaton build_dfa(
     std::string const& name, std::string const& regex, int token);

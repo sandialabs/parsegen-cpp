@@ -84,7 +84,7 @@ Language build_language();
 
 LanguagePtr ask_language();
 
-readerTablesPtr ask_reader_tables();
+reader_tablesPtr ask_reader_tables();
 
 std::set<std::string> get_variables_used(std::string const& expr);
 std::set<std::string> get_symbols_used(std::string const& expr);

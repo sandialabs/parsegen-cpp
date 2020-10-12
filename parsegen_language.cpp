@@ -149,12 +149,12 @@ static IndentInfo build_indent_info(Language const& language) {
   return out;
 }
 
-readerTablesPtr build_reader_tables(Language const& language) {
+reader_tablesPtr build_reader_tables(Language const& language) {
   auto lexer = build_lexer(language);
   auto indent_info = build_indent_info(language);
   auto grammar = build_grammar(language);
   auto parser = accept_parser(build_lalr1_parser(grammar));
-  return readerTablesPtr(new readerTables({parser, lexer, indent_info}));
+  return reader_tablesPtr(new reader_tables({parser, lexer, indent_info}));
 }
 
 }  // namespace parsegen

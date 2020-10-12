@@ -256,13 +256,13 @@ static StateSet get_epsilon_closure(StateSet ss, FiniteAutomaton const& fa) {
 
 using StateSetPtr = StateSet*;
 
-struct StateSetPtrLess {
+struct state_set_ptr_compare {
   bool operator()(StateSetPtr const& a, StateSetPtr const& b) const {
     return *a < *b;
   }
 };
 
-using StateSetPtr2State = std::map<StateSetPtr, int, StateSetPtrLess>;
+using StateSetPtr2State = std::map<StateSetPtr, int, state_set_ptr_compare>;
 using StateSetUniqPtrVector = std::vector<std::unique_ptr<StateSet>>;
 
 static void emplace_back(StateSetUniqPtrVector& ssupv, StateSet& ss) {
@@ -314,7 +314,7 @@ FiniteAutomaton FiniteAutomaton::make_deterministic(
   return out;
 }
 
-struct StateRowLess {
+struct state_row_compare {
   Table<int> const& table;
   std::vector<int> const& accepted;
   bool operator()(int const& a, int const& b) const {
@@ -330,7 +330,7 @@ struct StateRowLess {
   }
 };
 
-using StateRow2SimpleState = std::map<int, int, StateRowLess>;
+using StateRow2SimpleState = std::map<int, int, state_row_compare>;
 
 FiniteAutomaton FiniteAutomaton::simplify_once(FiniteAutomaton const& fa) {
   StateRow2SimpleState sr2ss({fa.table, fa.accepted_tokens});
