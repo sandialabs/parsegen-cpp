@@ -52,8 +52,8 @@ static parserGraph get_left_hand_sides_to_start_configs(
 }
 
 struct state_compare {
-  using Value = state_in_progress const*;
-  bool operator()(Value const& a, Value const& b) const {
+  using value_type = state_in_progress const*;
+  bool operator()(value_type const& a, value_type const& b) const {
     return a->configs < b->configs;
   }
 };
