@@ -181,6 +181,7 @@ void reader::backtrack_to_last_accept(std::istream& stream) {
   line_text = last_lexer_accept_line_text;
   while (lexer_text.size() > last_lexer_accept) {
     bool ok = !stream.unget().fail();
+    (void)ok;
     assert(ok);
     lexer_text.pop_back();
   }
