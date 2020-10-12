@@ -14,9 +14,9 @@ int get_nnodes(parserGraph const& g) { return size(g); }
 
 void add_edge(parserGraph& g, int i, int j) { at(g, i).push_back(j); }
 
-NodeEdges const& get_edges(parserGraph const& g, int i) { return at(g, i); }
+node_edges const& get_edges(parserGraph const& g, int i) { return at(g, i); }
 
-NodeEdges& get_edges(parserGraph& g, int i) { return at(g, i); }
+node_edges& get_edges(parserGraph& g, int i) { return at(g, i); }
 
 parserGraph make_transpose(parserGraph const& g) {
   auto nnodes = get_nnodes(g);
