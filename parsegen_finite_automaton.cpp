@@ -262,10 +262,10 @@ struct state_set_ptr_compare {
   }
 };
 
-using state_setPtr2State = std::map<state_setPtr, int, state_set_ptr_compare>;
-using state_setUniqPtrVector = std::vector<std::unique_ptr<state_set>>;
+using state_set_ptr_to_state_map = std::map<state_setPtr, int, state_set_ptr_compare>;
+using state_set_ptr_vector = std::vector<std::unique_ptr<state_set>>;
 
-static void emplace_back(state_setUniqPtrVector& ssupv, state_set& ss) {
+static void emplace_back(state_set_ptr_vector& ssupv, state_set& ss) {
   ssupv.push_back(std::unique_ptr<state_set>(new state_set(std::move(ss))));
 }
 
@@ -273,8 +273,8 @@ static void emplace_back(state_setUniqPtrVector& ssupv, state_set& ss) {
 finite_automaton finite_automaton::make_deterministic(
     finite_automaton const& nfa) {
   if (get_determinism(nfa)) return nfa;
-  state_setPtr2State ssp2s;
-  state_setUniqPtrVector ssupv;
+  state_set_ptr_to_state_map ssp2s;
+  state_set_ptr_vector ssupv;
   finite_automaton out(get_nsymbols(nfa), true, 0);
   state_set start_ss;
   start_ss.insert(0);
