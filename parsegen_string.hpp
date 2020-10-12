@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_STRING_HPP
-#define OMEGA_H_STRING_HPP
+#ifndef PARSEGEN_STRING_HPP
+#define PARSEGEN_STRING_HPP
 
 #include <string>
 

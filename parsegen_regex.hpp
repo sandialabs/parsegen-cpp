@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_REGEX_HPP
-#define OMEGA_H_REGEX_HPP
+#ifndef PARSEGEN_REGEX_HPP
+#define PARSEGEN_REGEX_HPP
 
 #include "parsegen_finite_automaton.hpp"
 #include "parsegen_language.hpp"

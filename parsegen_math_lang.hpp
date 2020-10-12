@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_MATH_LANG_HPP
-#define OMEGA_H_MATH_LANG_HPP
+#ifndef PARSEGEN_MATH_LANG_HPP
+#define PARSEGEN_MATH_LANG_HPP
 
 #include "parsegen_language.hpp"
 #include "parsegen_reader_tables.hpp"

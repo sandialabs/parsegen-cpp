@@ -405,7 +405,7 @@ struct is_symbol_helper<T, true> {
 template <typename T>
 struct is_symbol_helper<T, false> {
   static bool eval(T c) {
-    if (c >= OMEGA_H_CHARTAB_SIZE) return false;
+    if (c >= PARSEGEN_CHARTAB_SIZE) return false;
     return 0 <= parsegen::chartab[int(c)];
   }
 };

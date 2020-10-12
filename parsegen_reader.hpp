@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_READER_HPP
-#define OMEGA_H_READER_HPP
+#ifndef PARSEGEN_READER_HPP
+#define PARSEGEN_READER_HPP
 
 #include <functional>
 #include <iosfwd>

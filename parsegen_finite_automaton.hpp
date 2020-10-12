@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_FINITE_AUTOMATON_HPP
-#define OMEGA_H_FINITE_AUTOMATON_HPP
+#ifndef PARSEGEN_FINITE_AUTOMATON_HPP
+#define PARSEGEN_FINITE_AUTOMATON_HPP
 
 #include "parsegen_table.hpp"
 #include <iosfwd>

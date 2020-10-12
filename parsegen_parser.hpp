@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_PARSER_HPP
-#define OMEGA_H_PARSER_HPP
+#ifndef PARSEGEN_PARSER_HPP
+#define PARSEGEN_PARSER_HPP
 
 #include <stack>
 #include <stdexcept>

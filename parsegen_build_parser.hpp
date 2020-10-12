@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_BUILD_PARSER_HPP
-#define OMEGA_H_BUILD_PARSER_HPP
+#ifndef PARSEGEN_BUILD_PARSER_HPP
+#define PARSEGEN_BUILD_PARSER_HPP
 
 #include <memory>
 #include <set>

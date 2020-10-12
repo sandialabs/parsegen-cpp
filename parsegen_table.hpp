@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_TABLE_HPP
-#define OMEGA_H_TABLE_HPP
+#ifndef PARSEGEN_TABLE_HPP
+#define PARSEGEN_TABLE_HPP
 
 #include "parsegen_std_vector.hpp"
 

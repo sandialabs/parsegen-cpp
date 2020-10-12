@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_SET_HPP
-#define OMEGA_H_SET_HPP
+#ifndef PARSEGEN_SET_HPP
+#define PARSEGEN_SET_HPP
 
 #include <set>
 

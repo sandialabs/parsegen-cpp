@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_GRAMMAR_HPP
-#define OMEGA_H_GRAMMAR_HPP
+#ifndef PARSEGEN_GRAMMAR_HPP
+#define PARSEGEN_GRAMMAR_HPP
 
 #include <memory>
 #include <string>

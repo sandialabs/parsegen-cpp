@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_YAML_HPP
-#define OMEGA_H_YAML_HPP
+#ifndef PARSEGEN_YAML_HPP
+#define PARSEGEN_YAML_HPP
 
 #include "parsegen_language.hpp"
 #include "parsegen_reader_tables.hpp"

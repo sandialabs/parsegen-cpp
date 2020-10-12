@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_LANGUAGE_HPP
-#define OMEGA_H_LANGUAGE_HPP
+#ifndef PARSEGEN_LANGUAGE_HPP
+#define PARSEGEN_LANGUAGE_HPP
 
 #include <iosfwd>
 #include <map>

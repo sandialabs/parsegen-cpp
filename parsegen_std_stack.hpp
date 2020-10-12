@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_STD_STACK_HPP
-#define OMEGA_H_STD_STACK_HPP
+#ifndef PARSEGEN_STD_STACK_HPP
+#define PARSEGEN_STD_STACK_HPP
 
 #include <stack>
 

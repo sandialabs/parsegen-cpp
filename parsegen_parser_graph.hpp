@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_GRAPH_HPP
-#define OMEGA_H_GRAPH_HPP
+#ifndef PARSEGEN_GRAPH_HPP
+#define PARSEGEN_GRAPH_HPP
 
 #include <iosfwd>
 #include <vector>

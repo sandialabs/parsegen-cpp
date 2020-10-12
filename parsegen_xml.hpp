@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_XML_HPP
-#define OMEGA_H_XML_HPP
+#ifndef PARSEGEN_XML_HPP
+#define PARSEGEN_XML_HPP
 
 #include "parsegen_language.hpp"
 

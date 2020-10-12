@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_STD_VECTOR_HPP
-#define OMEGA_H_STD_VECTOR_HPP
+#ifndef PARSEGEN_STD_VECTOR_HPP
+#define PARSEGEN_STD_VECTOR_HPP
 
 #include <vector>
 
