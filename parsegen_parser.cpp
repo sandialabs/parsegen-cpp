@@ -2,19 +2,19 @@
 
 namespace parsegen {
 
-Parser::Parser(GrammarPtr g, int nstates_reserve)
+parser::parser(grammarPtr g, int nstates_reserve)
     : grammar(g),
       terminal_table(g->nterminals, nstates_reserve),
       nonterminal_table(get_nnonterminals(*g), nstates_reserve) {}
 
-int get_nstates(Parser const& p) { return get_nrows(p.terminal_table); }
+int get_nstates(parser const& p) { return get_nrows(p.terminal_table); }
 
-int add_state(Parser& p) {
+int add_state(parser& p) {
   auto state = get_nstates(p);
   resize(p.terminal_table, state + 1, get_ncols(p.terminal_table));
   resize(p.nonterminal_table, state + 1, get_ncols(p.nonterminal_table));
   for (int t = 0; t < p.grammar->nterminals; ++t) {
-    Action action;
+    action action;
     action.kind = ACTION_NONE;
     at(p.terminal_table, state, t) = action;
   }
@@ -24,7 +24,7 @@ int add_state(Parser& p) {
   return state;
 }
 
-void add_terminal_action(Parser& p, int state, int terminal, Action action) {
+void add_terminal_action(parser& p, int state, int terminal, action action) {
   assert(at(p.terminal_table, state, terminal).kind == ACTION_NONE);
   assert(action.kind != ACTION_NONE);
   if (action.kind == ACTION_SHIFT) {
@@ -38,19 +38,19 @@ void add_terminal_action(Parser& p, int state, int terminal, Action action) {
 }
 
 void add_nonterminal_action(
-    Parser& p, int state, int nonterminal, int next_state) {
+    parser& p, int state, int nonterminal, int next_state) {
   assert(0 <= next_state);
   assert(next_state < get_nstates(p));
   assert(at(p.nonterminal_table, state, nonterminal) == -1);
   at(p.nonterminal_table, state, nonterminal) = next_state;
 }
 
-Action const& get_action(Parser const& p, int state, int terminal) {
+action const& get_action(parser const& p, int state, int terminal) {
   return at(p.terminal_table, state, terminal);
 }
 
 int execute_action(
-    Parser const& p, std::vector<int>& stack, Action const& action) {
+    parser const& p, std::vector<int>& stack, action const& action) {
   assert(action.kind != ACTION_NONE);
   if (action.kind == ACTION_SHIFT) {
     stack.push_back(action.next_state);
@@ -67,7 +67,7 @@ int execute_action(
   return stack.back();
 }
 
-GrammarPtr const& get_grammar(Parser const& p) { return p.grammar; }
+grammarPtr const& get_grammar(parser const& p) { return p.grammar; }
 
 parse_error::parse_error(const std::string& msg) : std::invalid_argument(msg) {}
 

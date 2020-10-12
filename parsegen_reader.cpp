@@ -47,7 +47,7 @@ void reader::at_token(std::istream& stream) {
     auto parser_action = get_action(parser, parser_state, lexer_token);
     if (parser_action.kind == ACTION_NONE) {
       std::stringstream ss;
-      ss << "error: Parser failure at line " << line;
+      ss << "error: parser failure at line " << line;
       ss << " column " << column << " of " << stream_name << '\n';
       error_print_line(stream, ss);
       std::set<std::string> expect_names;
@@ -70,7 +70,7 @@ void reader::at_token(std::istream& stream) {
       ss << "}\n";
       ss << "Got: " << at(grammar->symbol_names, lexer_token) << '\n';
       ss << "Lexer text: \"" << lexer_text << "\"\n";
-      ss << "Parser was in state " << parser_state << '\n';
+      ss << "parser was in state " << parser_state << '\n';
       throw parse_error(ss.str());
     } else if (parser_action.kind == ACTION_SHIFT) {
       if (sensing_indent) {
@@ -98,7 +98,7 @@ void reader::at_token(std::istream& stream) {
             this->at_reduce(parser_action.production, reduction_rhs);
       } catch (const parse_error& e) {
         std::stringstream ss;
-        ss << "error: Parser failure at line " << line;
+        ss << "error: parser failure at line " << line;
         ss << " column " << column << " of " << stream_name << '\n';
         error_print_line(stream, ss);
         ss << '\n' << e.what();
@@ -114,7 +114,7 @@ void reader::at_token(std::istream& stream) {
         }
       }
     } else {
-      assert(!"SERIOUS BUG: Action::kind enum value not in range");
+      assert(!"SERIOUS BUG: action::kind enum value not in range");
     }
     parser_state = execute_action(parser, parser_stack, parser_action);
   }

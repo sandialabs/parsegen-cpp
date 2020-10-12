@@ -3,7 +3,7 @@
 namespace parsegen {
 namespace yaml {
 
-static void build_productions(std::vector<Language::Production>& prods) {
+static void build_productions(std::vector<language::Production>& prods) {
   prods.resize(NPRODS);
   prods[PROD_DOC] = {"doc", {"top_items"}};
   prods[PROD_DOC2] = {"doc", {"NEWLINE", "top_items"}};
@@ -151,8 +151,8 @@ static void build_productions(std::vector<Language::Production>& prods) {
   prods[PROD_SPACE_PLUS_NEXT] = {"WS+", {"WS+", "WS"}};
 }
 
-Language build_language() {
-  Language out;
+language build_language() {
+  language out;
   auto& prods = out.productions;
   auto& toks = out.tokens;
   build_productions(prods);
@@ -180,17 +180,17 @@ Language build_language() {
   return out;
 }
 
-LanguagePtr ask_language() {
+languagePtr ask_language() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static LanguagePtr ptr;
+  static languagePtr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
   if (ptr.use_count() == 0) {
-    ptr.reset(new Language(build_language()));
+    ptr.reset(new language(build_language()));
   }
   return ptr;
 }

@@ -11,7 +11,7 @@
 
 namespace parsegen {
 
-GrammarPtr build_grammar(Language const& language) {
+grammarPtr build_grammar(language const& language) {
   std::map<std::string, int> symbol_map;
   int nterminals = 0;
   for (auto& token : language.tokens) {
@@ -22,11 +22,11 @@ GrammarPtr build_grammar(Language const& language) {
     if (symbol_map.count(production.lhs)) continue;
     symbol_map[production.lhs] = nsymbols++;
   }
-  Grammar out;
+  grammar out;
   out.nsymbols = nsymbols;
   out.nterminals = nterminals;
   for (auto& lang_prod : language.productions) {
-    Grammar::Production gprod;
+    grammar::Production gprod;
     assert(symbol_map.count(lang_prod.lhs));
     gprod.lhs = symbol_map[lang_prod.lhs];
     for (auto& lang_symb : lang_prod.rhs) {
@@ -47,10 +47,10 @@ GrammarPtr build_grammar(Language const& language) {
   }
   add_end_terminal(out);
   add_accept_production(out);
-  return std::make_shared<Grammar>(std::move(out));
+  return std::make_shared<grammar>(std::move(out));
 }
 
-std::ostream& operator<<(std::ostream& os, Language const& lang) {
+std::ostream& operator<<(std::ostream& os, language const& lang) {
   for (auto& token : lang.tokens) {
     os << "token " << token.name << " regex \'" << token.regex << "\'\n";
   }
@@ -88,7 +88,7 @@ std::ostream& operator<<(std::ostream& os, Language const& lang) {
   return os;
 }
 
-finite_automaton build_lexer(Language const& language) {
+finite_automaton build_lexer(language const& language) {
   finite_automaton lexer;
   for (int i = 0; i < size(language.tokens); ++i) {
     auto& name = at(language.tokens, i).name;
@@ -103,7 +103,7 @@ finite_automaton build_lexer(Language const& language) {
   return lexer;
 }
 
-static indentation build_indent_info(Language const& language) {
+static indentation build_indent_info(language const& language) {
   indentation out;
   out.is_sensitive = false;
   out.indent_token = -1;
@@ -113,18 +113,18 @@ static indentation build_indent_info(Language const& language) {
     auto& token = at(language.tokens, tok_i);
     if (token.name == "INDENT") {
       if (out.indent_token != -1) {
-        throw parse_error("ERROR: Language has two or more INDENT tokens\n");
+        throw parse_error("ERROR: language has two or more INDENT tokens\n");
       }
       out.indent_token = tok_i;
       out.is_sensitive = true;
     } else if (token.name == "DEDENT") {
       if (out.dedent_token != -1) {
-        throw parse_error("ERROR: Language has two or more DEDENT tokens\n");
+        throw parse_error("ERROR: language has two or more DEDENT tokens\n");
       }
       out.dedent_token = tok_i;
     } else if (token.name == "NEWLINE") {
       if (out.newline_token != -1) {
-        throw parse_error("ERROR: Language has two or more NEWLINE tokens\n");
+        throw parse_error("ERROR: language has two or more NEWLINE tokens\n");
       }
       out.newline_token = tok_i;
     }
@@ -149,7 +149,7 @@ static indentation build_indent_info(Language const& language) {
   return out;
 }
 
-reader_tablesPtr build_reader_tables(Language const& language) {
+reader_tablesPtr build_reader_tables(language const& language) {
   auto lexer = build_lexer(language);
   auto indent_info = build_indent_info(language);
   auto grammar = build_grammar(language);

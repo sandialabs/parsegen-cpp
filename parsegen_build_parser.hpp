@@ -21,7 +21,7 @@ using Context = std::set<int>;
 /* nonterminal transitions will be stored as SHIFT
    actions while in progress */
 struct action_in_progress {
-  Action action;
+  action action;
   Context context;
 };
 
@@ -43,19 +43,19 @@ struct parser_in_progress {
   StatesInProgress states;
   configurations configs;
   state_configurations state_configs;
-  ParserGraph states2state_configs;
-  GrammarPtr grammar;
+  parserGraph states2state_configs;
+  grammarPtr grammar;
 };
 
 state_configurations form_state_configs(StatesInProgress const& states);
-ParserGraph form_states_to_state_configs(
+parserGraph form_states_to_state_configs(
     state_configurations const& scs, StatesInProgress const& states);
 
 void print_dot(std::string const& filepath, parser_in_progress const& pip);
 
-parser_in_progress build_lalr1_parser(GrammarPtr grammar, bool verbose = false);
+parser_in_progress build_lalr1_parser(grammarPtr grammar, bool verbose = false);
 
-Parser accept_parser(parser_in_progress const& pip);
+parser accept_parser(parser_in_progress const& pip);
 
 }  // namespace parsegen
 

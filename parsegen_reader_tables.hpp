@@ -16,7 +16,7 @@ struct indentation {
 };
 
 struct reader_tables {
-  Parser parser;
+  parser parser;
   finite_automaton lexer;
   indentation indent_info;
 };

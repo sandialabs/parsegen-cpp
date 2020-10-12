@@ -7,23 +7,23 @@
 
 namespace parsegen {
 
-int get_nnonterminals(Grammar const& g) { return g.nsymbols - g.nterminals; }
+int get_nnonterminals(grammar const& g) { return g.nsymbols - g.nterminals; }
 
-bool is_terminal(Grammar const& g, int symbol) {
+bool is_terminal(grammar const& g, int symbol) {
   assert(0 <= symbol);
   assert(symbol <= g.nsymbols);
   return symbol < g.nterminals;
 }
 
-bool is_nonterminal(Grammar const& g, int symbol) {
+bool is_nonterminal(grammar const& g, int symbol) {
   return !is_terminal(g, symbol);
 }
 
-int as_nonterminal(Grammar const& g, int symbol) {
+int as_nonterminal(grammar const& g, int symbol) {
   return symbol - g.nterminals;
 }
 
-int find_goal_symbol(Grammar const& g) {
+int find_goal_symbol(grammar const& g) {
   std::set<int> nonterminals_in_rhss;
   for (auto& p : g.productions) {
     for (auto s : p.rhs) {
@@ -49,7 +49,7 @@ int find_goal_symbol(Grammar const& g) {
   return result;
 }
 
-void add_end_terminal(Grammar& g) {
+void add_end_terminal(grammar& g) {
   for (auto& prod : g.productions) {
     if (is_nonterminal(g, prod.lhs)) prod.lhs++;
     for (auto& rhs_symb : prod.rhs) {
@@ -61,11 +61,11 @@ void add_end_terminal(Grammar& g) {
   g.nsymbols++;
 }
 
-int get_end_terminal(Grammar const& g) { return g.nterminals - 1; }
+int get_end_terminal(grammar const& g) { return g.nterminals - 1; }
 
-void add_accept_production(Grammar& g) {
+void add_accept_production(grammar& g) {
   auto goal_symbol = find_goal_symbol(g);
-  Grammar::Production p;
+  grammar::Production p;
   p.lhs = g.nsymbols;
   p.rhs = {goal_symbol};
   g.productions.push_back(p);
@@ -73,11 +73,11 @@ void add_accept_production(Grammar& g) {
   g.nsymbols++;
 }
 
-int get_accept_production(Grammar const& g) { return size(g.productions) - 1; }
+int get_accept_production(grammar const& g) { return size(g.productions) - 1; }
 
-int get_accept_nonterminal(Grammar const& g) { return g.nsymbols - 1; }
+int get_accept_nonterminal(grammar const& g) { return g.nsymbols - 1; }
 
-std::ostream& operator<<(std::ostream& os, Grammar const& g) {
+std::ostream& operator<<(std::ostream& os, grammar const& g) {
   os << "symbols:\n";
   for (int i = 0; i < size(g.symbol_names); ++i) {
     os << i << ": " << at(g.symbol_names, i) << "\n";

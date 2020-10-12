@@ -315,7 +315,7 @@ finite_automaton finite_automaton::make_deterministic(
 }
 
 struct state_row_compare {
-  Table<int> const& table;
+  table<int> const& table;
   std::vector<int> const& accepted;
   bool operator()(int const& a, int const& b) const {
     auto aa = at(accepted, a);

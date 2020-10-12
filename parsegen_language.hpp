@@ -12,7 +12,7 @@
 
 namespace parsegen {
 
-struct Language {
+struct language {
   struct Token {
     std::string name;
     std::string regex;
@@ -25,15 +25,15 @@ struct Language {
   std::vector<Production> productions;
 };
 
-using LanguagePtr = std::shared_ptr<Language>;
+using languagePtr = std::shared_ptr<language>;
 
-GrammarPtr build_grammar(Language const& language);
+grammarPtr build_grammar(language const& language);
 
-finite_automaton build_lexer(Language const& language);
+finite_automaton build_lexer(language const& language);
 
-reader_tablesPtr build_reader_tables(Language const& language);
+reader_tablesPtr build_reader_tables(language const& language);
 
-std::ostream& operator<<(std::ostream& os, Language const& lang);
+std::ostream& operator<<(std::ostream& os, language const& lang);
 
 }  // namespace parsegen
 

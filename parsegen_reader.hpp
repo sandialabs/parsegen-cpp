@@ -27,9 +27,9 @@ class reader {
 
  protected:
   reader_tablesPtr tables;
-  Parser const& parser;
+  parser const& parser;
   finite_automaton const& lexer;
-  GrammarPtr grammar;
+  grammarPtr grammar;
   std::size_t line;
   std::size_t column;
   int lexer_state;

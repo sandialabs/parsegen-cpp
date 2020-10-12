@@ -80,9 +80,9 @@ enum {
 
 enum { NTOKS = TOK_ASSIGN + 1 };
 
-Language build_language();
+language build_language();
 
-LanguagePtr ask_language();
+languagePtr ask_language();
 
 reader_tablesPtr ask_reader_tables();
 

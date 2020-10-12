@@ -13,7 +13,7 @@
 namespace parsegen {
 namespace regex {
 
-Language build_language() {
+language build_language() {
   /* The top produtions were from the "grep.y" YACC grammar in the source
      code for Plan 9's grep utility, see here:
 https://github.com/wangeguo/plan9/blob/master/sys/src/cmd/grep/grep.y
@@ -21,7 +21,7 @@ https://github.com/wangeguo/plan9/blob/master/sys/src/cmd/grep/grep.y
      are from a grammar intended to be used by ProLog to parse Perl's regular
      expressions, see here:
 http://www.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html */
-  Language out;
+  language out;
   auto& prods = out.productions;
   prods.resize(NPRODS);
   prods[PROD_REGEX] = {"regex", {"union"}};
@@ -118,17 +118,17 @@ reader_tablesPtr ask_reader_tables() {
   return ptr;
 }
 
-LanguagePtr ask_language() {
+languagePtr ask_language() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static LanguagePtr ptr;
+  static languagePtr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
   if (ptr.use_count() == 0) {
-    ptr.reset(new Language(build_language()));
+    ptr.reset(new language(build_language()));
   }
   return ptr;
 }

@@ -5,8 +5,8 @@ namespace parsegen {
 
 namespace math_lang {
 
-Language build_language() {
-  Language out;
+language build_language() {
+  language out;
   auto& prods = out.productions;
   prods.resize(NPRODS);
   prods[PROD_PROGRAM] = {"program", {"statements", "expr?"}};
@@ -77,17 +77,17 @@ Language build_language() {
   return out;
 }
 
-LanguagePtr ask_language() {
+languagePtr ask_language() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static LanguagePtr ptr;
+  static languagePtr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
   if (ptr.use_count() == 0) {
-    ptr.reset(new Language(build_language()));
+    ptr.reset(new language(build_language()));
   }
   return ptr;
 }
@@ -102,7 +102,7 @@ reader_tablesPtr ask_reader_tables() {
 #pragma clang diagnostic pop
 #endif
   if (ptr.use_count() == 0) {
-    LanguagePtr lang = ask_language();
+    languagePtr lang = ask_language();
     ptr = build_reader_tables(*lang);
   }
   return ptr;

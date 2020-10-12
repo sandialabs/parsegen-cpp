@@ -53,8 +53,8 @@ enum {
 
 enum { NTOKS = TOK_MAYBE + 1 };
 
-Language build_language();
-LanguagePtr ask_language();
+language build_language();
+languagePtr ask_language();
 
 finite_automaton build_lexer();
 

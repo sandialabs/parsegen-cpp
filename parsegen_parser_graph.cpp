@@ -6,19 +6,19 @@
 
 namespace parsegen {
 
-ParserGraph make_graph_with_nnodes(int nnodes) {
-  return ParserGraph(std::size_t(nnodes));
+parserGraph make_graph_with_nnodes(int nnodes) {
+  return parserGraph(std::size_t(nnodes));
 }
 
-int get_nnodes(ParserGraph const& g) { return size(g); }
+int get_nnodes(parserGraph const& g) { return size(g); }
 
-void add_edge(ParserGraph& g, int i, int j) { at(g, i).push_back(j); }
+void add_edge(parserGraph& g, int i, int j) { at(g, i).push_back(j); }
 
-NodeEdges const& get_edges(ParserGraph const& g, int i) { return at(g, i); }
+NodeEdges const& get_edges(parserGraph const& g, int i) { return at(g, i); }
 
-NodeEdges& get_edges(ParserGraph& g, int i) { return at(g, i); }
+NodeEdges& get_edges(parserGraph& g, int i) { return at(g, i); }
 
-ParserGraph make_transpose(ParserGraph const& g) {
+parserGraph make_transpose(parserGraph const& g) {
   auto nnodes = get_nnodes(g);
   auto transpose = make_graph_with_nnodes(nnodes);
   for (int i = 0; i < nnodes; ++i) {
@@ -29,9 +29,9 @@ ParserGraph make_transpose(ParserGraph const& g) {
   return transpose;
 }
 
-int at(ParserGraph const& g, int i, int j) { return at(at(g, i), j); }
+int at(parserGraph const& g, int i, int j) { return at(at(g, i), j); }
 
-std::ostream& operator<<(std::ostream& os, ParserGraph const& g) {
+std::ostream& operator<<(std::ostream& os, parserGraph const& g) {
   for (int i = 0; i < get_nnodes(g); ++i) {
     os << i << ":";
     for (auto j : get_edges(g, i)) os << " " << j;

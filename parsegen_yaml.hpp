@@ -155,8 +155,8 @@ enum {
 
 enum { NTOKS = TOK_OTHER + 1 };
 
-Language build_language();
-LanguagePtr ask_language();
+language build_language();
+languagePtr ask_language();
 reader_tablesPtr ask_reader_tables();
 
 }  // end namespace yaml

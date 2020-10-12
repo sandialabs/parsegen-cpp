@@ -9,39 +9,39 @@
 
 namespace parsegen {
 
-enum ActionKind {
+enum actionKind {
   ACTION_NONE,
   ACTION_SHIFT,
   ACTION_REDUCE,
 };
 
-struct Action {
-  ActionKind kind;
+struct action {
+  actionKind kind;
   union {
     int production;
     int next_state;
   };
 };
 
-struct Parser {
-  GrammarPtr grammar;
+struct parser {
+  grammarPtr grammar;
   /* (state x terminal) -> action */
-  Table<Action> terminal_table;
+  table<action> terminal_table;
   /* (state x non-terminal) -> new state */
-  Table<int> nonterminal_table;
-  Parser() = default;
-  Parser(GrammarPtr g, int nstates_reserve);
+  table<int> nonterminal_table;
+  parser() = default;
+  parser(grammarPtr g, int nstates_reserve);
 };
 
-int add_state(Parser& p);
-int get_nstates(Parser const& p);
-void add_terminal_action(Parser& p, int state, int terminal, Action action);
+int add_state(parser& p);
+int get_nstates(parser const& p);
+void add_terminal_action(parser& p, int state, int terminal, action action);
 void add_nonterminal_action(
-    Parser& p, int state, int nonterminal, int next_state);
-Action const& get_action(Parser const& p, int state, int terminal);
+    parser& p, int state, int nonterminal, int next_state);
+action const& get_action(parser const& p, int state, int terminal);
 int execute_action(
-    Parser const& p, std::vector<int>& stack, Action const& action);
-GrammarPtr const& get_grammar(Parser const& p);
+    parser const& p, std::vector<int>& stack, action const& action);
+grammarPtr const& get_grammar(parser const& p);
 
 class parse_error : public std::invalid_argument {
  public:
