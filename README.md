@@ -4,7 +4,7 @@ ParseGen
 ParseGen is a C++17 library for working with ASCII text formats.
 For example, it can parse subsets of formats like XML and YAML.
 ParseGen's utility is that it is a toolbox for defining new
-formal text format languages and parsing them.
+text languages and parsing them.
 
 Theory
 ------
