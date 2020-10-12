@@ -11,10 +11,10 @@ namespace parsegen {
    terminal symbols first, all non-terminal symbols after */
 
 struct grammar {
-  using RHS = std::vector<int>;
+  using right_hand_side = std::vector<int>;
   struct production {
     int lhs;
-    RHS rhs;
+    right_hand_side rhs;
   };
   using production_vector = std::vector<production>;
   int nsymbols;
