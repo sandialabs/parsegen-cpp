@@ -26,7 +26,7 @@ grammarPtr build_grammar(language const& language) {
   out.nsymbols = nsymbols;
   out.nterminals = nterminals;
   for (auto& lang_prod : language.productions) {
-    grammar::Production gprod;
+    grammar::production gprod;
     assert(symbol_map.count(lang_prod.lhs));
     gprod.lhs = symbol_map[lang_prod.lhs];
     for (auto& lang_symb : lang_prod.rhs) {

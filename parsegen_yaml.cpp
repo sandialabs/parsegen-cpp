@@ -3,7 +3,7 @@
 namespace parsegen {
 namespace yaml {
 
-static void build_productions(std::vector<language::Production>& prods) {
+static void build_productions(std::vector<language::production>& prods) {
   prods.resize(NPRODS);
   prods[PROD_DOC] = {"doc", {"top_items"}};
   prods[PROD_DOC2] = {"doc", {"NEWLINE", "top_items"}};

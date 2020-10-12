@@ -12,11 +12,11 @@ namespace parsegen {
 
 struct grammar {
   using RHS = std::vector<int>;
-  struct Production {
+  struct production {
     int lhs;
     RHS rhs;
   };
-  using production_vector = std::vector<Production>;
+  using production_vector = std::vector<production>;
   int nsymbols;
   int nterminals;
   production_vector productions;

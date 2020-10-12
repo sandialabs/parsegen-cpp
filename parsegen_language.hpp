@@ -18,11 +18,11 @@ struct language {
     std::string regex;
   };
   std::vector<Token> tokens;
-  struct Production {
+  struct production {
     std::string lhs;
     std::vector<std::string> rhs;
   };
-  std::vector<Production> productions;
+  std::vector<production> productions;
 };
 
 using languagePtr = std::shared_ptr<language>;

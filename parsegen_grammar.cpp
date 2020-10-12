@@ -65,7 +65,7 @@ int get_end_terminal(grammar const& g) { return g.nterminals - 1; }
 
 void add_accept_production(grammar& g) {
   auto goal_symbol = find_goal_symbol(g);
-  grammar::Production p;
+  grammar::production p;
   p.lhs = g.nsymbols;
   p.rhs = {goal_symbol};
   g.productions.push_back(p);
