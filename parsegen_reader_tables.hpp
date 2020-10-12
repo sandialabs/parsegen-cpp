@@ -8,7 +8,7 @@
 
 namespace parsegen {
 
-struct IndentInfo {
+struct indentation {
   bool is_sensitive;
   int indent_token;
   int dedent_token;
@@ -18,7 +18,7 @@ struct IndentInfo {
 struct reader_tables {
   Parser parser;
   finite_automaton lexer;
-  IndentInfo indent_info;
+  indentation indent_info;
 };
 
 using reader_tablesPtr = std::shared_ptr<reader_tables const>;

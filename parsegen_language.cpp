@@ -103,8 +103,8 @@ finite_automaton build_lexer(Language const& language) {
   return lexer;
 }
 
-static IndentInfo build_indent_info(Language const& language) {
-  IndentInfo out;
+static indentation build_indent_info(Language const& language) {
+  indentation out;
   out.is_sensitive = false;
   out.indent_token = -1;
   out.dedent_token = -1;

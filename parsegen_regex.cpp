@@ -109,7 +109,7 @@ reader_tablesPtr ask_reader_tables() {
     auto grammar = build_grammar(*lang);
     auto parser = accept_parser(build_lalr1_parser(grammar));
     auto lexer = regex::build_lexer();
-    IndentInfo indent_info;
+    indentation indent_info;
     indent_info.is_sensitive = false;
     indent_info.indent_token = -1;
     indent_info.dedent_token = -1;

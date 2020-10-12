@@ -9,12 +9,12 @@
 
 namespace parsegen {
 
-struct Config {
+struct configuration {
   int production;
   int dot;
 };
 
-using Configs = std::vector<Config>;
+using configurations = std::vector<configuration>;
 
 using Context = std::set<int>;
 
@@ -41,7 +41,7 @@ using state_configurations = std::vector<state_configuration>;
 
 struct parser_in_progress {
   StatesInProgress states;
-  Configs configs;
+  configurations configs;
   state_configurations state_configs;
   ParserGraph states2state_configs;
   GrammarPtr grammar;

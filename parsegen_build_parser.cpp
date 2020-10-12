@@ -27,8 +27,8 @@ namespace parsegen {
   Pager doesn't go into detail about. */
 
 // expand the grammar productions into marked productions
-static Configs make_configs(Grammar const& g) {
-  Configs configs;
+static configurations make_configs(Grammar const& g) {
+  configurations configs;
   for (int i = 0; i < size(g.productions); ++i) {
     auto& production = at(g.productions, i);
     for (int j = 0; j <= size(production.rhs); ++j) {
@@ -39,7 +39,7 @@ static Configs make_configs(Grammar const& g) {
 }
 
 static ParserGraph get_left_hand_sides_to_start_configs(
-    Configs const& cs, Grammar const& grammar) {
+    configurations const& cs, Grammar const& grammar) {
   auto lhs2sc = make_graph_with_nnodes(grammar.nsymbols);
   for (int c_i = 0; c_i < size(cs); ++c_i) {
     auto& c = at(cs, c_i);
@@ -60,7 +60,7 @@ struct state_compare {
 
 using StatePtr2StateIndex = std::map<state_in_progress const*, int, state_compare>;
 
-static void close(state_in_progress& state, Configs const& cs,
+static void close(state_in_progress& state, configurations const& cs,
     Grammar const& grammar, ParserGraph const& lhs2sc) {
   std::queue<int> config_q;
   std::set<int> config_set;
@@ -94,7 +94,7 @@ static void emplace_back(StatesInProgress& sips, state_in_progress& sip) {
 }
 
 static void add_reduction_actions(
-    StatesInProgress& states, Configs const& cs, Grammar const& grammar) {
+    StatesInProgress& states, configurations const& cs, Grammar const& grammar) {
   for (auto& state_uptr : states) {
     auto& state = *state_uptr;
     for (auto config_i : state.configs) {
@@ -127,7 +127,7 @@ static void set_lr0_contexts(StatesInProgress& states, Grammar const& grammar) {
 }
 
 static StatesInProgress build_lr0_parser(
-    Configs const& cs, Grammar const& grammar, ParserGraph const& lhs2sc) {
+    configurations const& cs, Grammar const& grammar, ParserGraph const& lhs2sc) {
   StatesInProgress states;
   StatePtr2StateIndex state_ptrs2idxs;
   std::queue<int> state_q;
@@ -460,7 +460,7 @@ void print_dot(std::string const& filepath, parser_in_progress const& pip) {
 
 static ParserGraph make_immediate_predecessor_graph(state_configurations const& scs,
     StatesInProgress const& states, ParserGraph const& states2scs,
-    Configs const& cs, GrammarPtr grammar) {
+    configurations const& cs, GrammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
   for (int s_i = 0; s_i < size(states); ++s_i) {
     auto& state = *at(states, s_i);
@@ -489,7 +489,7 @@ static ParserGraph make_immediate_predecessor_graph(state_configurations const& 
 
 static ParserGraph find_transition_predecessors(state_configurations const& scs,
     StatesInProgress const& states, ParserGraph const& states2scs,
-    Configs const& cs, GrammarPtr grammar) {
+    configurations const& cs, GrammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
   for (int state_i = 0; state_i < size(states); ++state_i) {
     auto& state = *at(states, state_i);
@@ -524,7 +524,7 @@ static ParserGraph find_transition_predecessors(state_configurations const& scs,
 
 static ParserGraph make_originator_graph(state_configurations const& scs,
     StatesInProgress const& states, ParserGraph const& states2scs,
-    Configs const& cs, GrammarPtr grammar) {
+    configurations const& cs, GrammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
   auto ipg =
       make_immediate_predecessor_graph(scs, states, states2scs, cs, grammar);
@@ -556,7 +556,7 @@ static ParserGraph make_originator_graph(state_configurations const& scs,
 }
 
 static std::vector<int> get_follow_string(int sc_addr, state_configurations const& scs,
-    StatesInProgress const& states, Configs const& cs, GrammarPtr grammar) {
+    StatesInProgress const& states, configurations const& cs, GrammarPtr grammar) {
   auto& sc = at(scs, sc_addr);
   auto& state = *at(states, sc.state);
   auto config_i = at(state.configs, sc.config_in_state);
@@ -738,7 +738,7 @@ static void deal_with_tests_failed(int& num_originators_failed,
 static void heuristic_propagation_of_context_sets(int tau_addr,
     Contexts& contexts, std::vector<bool>& complete, state_configurations const& scs,
     StatesInProgress const& states, ParserGraph const& states2scs,
-    Configs const& cs, GrammarPtr grammar) {
+    configurations const& cs, GrammarPtr grammar) {
   auto& tau = at(scs, tau_addr);
   auto& state = *at(states, tau.state);
   auto config_i = at(state.configs, tau.config_in_state);
@@ -763,7 +763,7 @@ static void heuristic_propagation_of_context_sets(int tau_addr,
 static void compute_context_set(int zeta_j_addr, Contexts& contexts,
     std::vector<bool>& complete, state_configurations const& scs,
     ParserGraph const& originator_graph, StatesInProgress const& states,
-    ParserGraph const& states2scs, Configs const& cs,
+    ParserGraph const& states2scs, configurations const& cs,
     std::vector<FirstSet> const& first_sets, GrammarPtr grammar, bool verbose) {
   if (verbose)
     std::cerr << "Computing context set for $\\zeta_j$ = " << zeta_j_addr
