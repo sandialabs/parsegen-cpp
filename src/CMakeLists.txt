@@ -1,6 +1,12 @@
 set(PARSEGEN_HEADERS
   parsegen_language.hpp
   parsegen_reader.hpp
+  parsegen_finite_automaton.hpp
+  parsegen_table.hpp
+  parsegen_std_vector.hpp
+  parsegen_grammar.hpp
+  parsegen_reader_tables.hpp
+  parsegen_parser.hpp
   )
 
 add_library(parsegen
