@@ -17,7 +17,7 @@ namespace parsegen {
    by convention, the start state is state 0
  */
 struct finite_automaton {
-  table<int> table;
+  parsegen::table<int> table;
   std::vector<int> accepted_tokens;
   bool is_deterministic;
   finite_automaton() = default;
