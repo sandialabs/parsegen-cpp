@@ -19,6 +19,12 @@ grammar_ptr build_grammar(language const& language) {
   }
   int nsymbols = nterminals;
   for (auto& production : language.productions) {
+    if (production.lhs.empty()) {
+      std::cerr << "ERROR: production "
+        << (&production - language.productions.data())
+        << " has empty left hand side\n";
+      abort();
+    }
     if (symbol_map.count(production.lhs)) continue;
     symbol_map[production.lhs] = nsymbols++;
   }
