@@ -2,6 +2,7 @@
 #define PARSEGEN_STD_VECTOR_HPP
 
 #include <vector>
+#include <cassert>
 
 namespace parsegen {
 

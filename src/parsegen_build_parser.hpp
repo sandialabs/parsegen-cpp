@@ -21,7 +21,7 @@ using context_type = std::set<int>;
 /* nonterminal transitions will be stored as SHIFT
    actions while in progress */
 struct action_in_progress {
-  action action;
+  parsegen::action action;
   context_type context;
 };
 
