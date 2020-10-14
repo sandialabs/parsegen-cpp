@@ -99,6 +99,16 @@ finite_automaton build_lexer(language const& language) {
   for (int i = 0; i < size(language.tokens); ++i) {
     auto& name = at(language.tokens, i).name;
     auto& regex = at(language.tokens, i).regex;
+    if (name.empty()) {
+      std::cerr << "ERROR: token "
+        << i << " has empty name\n";
+      abort();
+    }
+    if (regex.empty()) {
+      std::cerr << "ERROR: token "
+        << i << " has empty regex\n";
+      abort();
+    }
     if (i == 0) {
       lexer = regex::build_dfa(name, regex, i);
     } else {
