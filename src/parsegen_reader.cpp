@@ -321,14 +321,14 @@ std::any reader::read_string(
   return read_stream(stream, string_name);
 }
 
-std::any reader::read_file(std::string const& file_name) {
-  std::ifstream stream(file_name.c_str());
+std::any reader::read_file(std::filesystem::path const& file_path) {
+  std::ifstream stream(file_path);
   if (!stream.is_open()) {
     std::stringstream ss;
-    ss << "Could not open file " << file_name;
+    ss << "Could not open file " << file_path;
     throw parse_error(ss.str());
   }
-  return read_stream(stream, file_name);
+  return read_stream(stream, file_path.string());
 }
 
 std::any reader::at_shift(int, std::string&) { return std::any(); }

@@ -1,6 +1,7 @@
 #ifndef PARSEGEN_READER_HPP
 #define PARSEGEN_READER_HPP
 
+#include <filesystem>
 #include <functional>
 #include <iosfwd>
 #include <any>
@@ -19,7 +20,7 @@ class reader {
   std::any read_stream(std::istream& stream, std::string const& stream_name_in = "");
   std::any read_string(
       std::string const& string, std::string const& string_name = "");
-  std::any read_file(std::string const& file_name);
+  std::any read_file(std::filesystem::path const& file_path);
 
  protected:
   virtual std::any at_shift(int token, std::string& text);
