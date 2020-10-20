@@ -80,6 +80,9 @@ class reader : public parsegen::reader {
   int result_token;
 };
 
+std::string from_charset(std::set<char> const& s);
+std::string from_automaton(finite_automaton const& fa);
+
 }  // end namespace regex
 }  // end namespace parsegen
 

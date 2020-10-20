@@ -235,5 +235,188 @@ std::any regex::reader::at_reduce(int production, std::vector<std::any>& rhs) {
   abort();
 }
 
+bool has_range(std::set<char> const& s, char first, char last)
+{
+  for (char c = first; c <= last; ++c) {
+    if (s.count(c) == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void remove_range(std::set<char>& s, char first, char last)
+{
+  for (char c = first; c <= last; ++c) {
+    s.erase(c);
+  }
+}
+
+
+std::string internal_from_charset(std::set<char> s)
+{
+  std::string result;
+  if (has_range(s, 'a', 'z')) {
+    remove_range(s, 'a', 'z');
+    result += "a-z";
+  }
+  if (has_range(s, 'A', 'Z')) {
+    remove_range(s, 'A', 'Z');
+    result += "Z-Z";
+  }
+  if (has_range(s, '0', '9')) {
+    remove_range(s, '0', '9');
+    result += "0-9";
+  }
+  std::string const specials(".[]()|-^*+?");
+  for (char const c : s) {
+    if (specials.find(c) != std::string::npos) {
+      result += '\\';
+    }
+    result += c;
+  }
+  return result;
+}
+
+std::string from_charset(std::set<char> const& s)
+{
+  if (s.size() == 1) return std::string(1, *(s.begin()));
+  std::string const positive_contents =
+    internal_from_charset(s);
+  std::string const negative_contents =
+    internal_from_charset(negate_set(s));
+  if (positive_contents.size() <= negative_contents.size()) {
+    return std::string("[") + positive_contents + "]";
+  } else {
+    return std::string("[^") + negative_contents + "]";
+  }
+}
+
+/*
+ Brzozowski, Janusz A., and Edward J. McCluskey.
+ "Signal flow graph techniques for
+  sequential circuit state diagrams."
+  IEEE Transactions on Electronic Computers 2 (1963): 67-76.
+
+  Delgado, Manuel, and José Morais.
+  "Approximation to the smallest regular expression
+   for a given regular language."
+  International Conference on Implementation
+  and Application of Automata.
+  Springer, Berlin, Heidelberg, 2004.
+  */
+
+std::string from_automaton(finite_automaton const& fa)
+{
+  int const nstates = get_nstates(fa);
+  int const nsymbols = get_nstates(fa);
+  assert(is_deterministic(fa));
+  std::vector<std::vector<bool>> edge_exists(
+      nstates + 1, std::vector<bool>(nstates + 1, false));
+  std::vector<std::vector<std::set<char>>> charsets(
+      nstates, std::vector<std::set<char>>(nstates));
+  for (int i = 0; i < nstates; ++i) {
+    for (int s = 0; s < nsymbols; ++s) {
+      int const j = step(fa, i, s);
+      if (j < 0) continue;
+      edge_exists[i][j] = true;
+      charsets[i][j].insert(get_char(s));
+    }
+  }
+  std::vector<std::vector<std::string>> labels(
+      nstates + 1, std::vector<std::string>(nstates + 1));
+  for (int i = 0; i < nstates; ++i) {
+    for (int j = 0; j < nstates; ++j) {
+      if (!edge_exists[i][j]) continue;
+      // combine acceptable symbols into initial edges
+      labels[i][j] = from_charset(charsets[i][j]);
+    }
+  }
+  charsets.clear();
+  // create a single accepting state with epsilon transitions
+  for (int i = 0; i < nstates; ++i) {
+    if (accepts(fa, i) != -1) {
+      edge_exists[i][nstates] = true;
+    }
+  }
+  std::vector<bool> vertex_exists(nstates + 1, true);
+  for (int step = 0; step < (nstates - 1); ++step) {
+    // pick a vertex to remove based on the weight
+    // heuristic of Delgado and Morais
+    int min_weight_state = -1;
+    int min_weight = 0;
+    for (int i = 1; i < nstates; ++i) {
+      if (!vertex_exists[i]) continue;
+      int in = 0;
+      int out = 0;
+      for (int j = 0; j < (nstates + 1); ++j) {
+        if (edge_exists[i][j]) ++out;
+        if (edge_exists[j][i]) ++in;
+      }
+      int weight = 0;
+      if (edge_exists[i][i]) {
+        weight += labels[i][i].length() * (in * out - 1);
+      }
+      for (int j = 0; j < (nstates + 1); ++j) {
+        if (edge_exists[i][j]) {
+          weight += labels[i][j].length() * (in - 1);
+        }
+        if (edge_exists[j][i]) {
+          weight += labels[j][i].length() * (out - 1);
+        }
+      }
+      if (min_weight_state == -1 || weight < min_weight) {
+        min_weight_state = i;
+        min_weight = weight;
+      }
+    }
+    // remove the vertex k
+    int const k = min_weight_state;
+    for (int p = 0; p < (nstates + 1); ++p) {
+      if (edge_exists[p][k]) {
+        // predecessor p
+        for (int s = 0; s < (nstates + 1); ++s) {
+          if (edge_exists[k][s]) {
+            // successor s
+            // form new transition label
+            std::string new_label = labels[p][k];
+            if (edge_exists[k][k]) {
+              new_label += "(";
+              new_label += labels[k][k];
+              new_label += ")*";
+            }
+            new_label += labels[k][s];
+            assert(!new_label.empty());
+            if (!edge_exists[p][s]) {
+              edge_exists[p][s] = true;
+              labels[p][s] = new_label;
+            } else {
+              // combine the new label with the existing one
+              if (labels[p][s].empty()) {
+                labels[p][s] = "(";
+                labels[p][s] += new_label;
+                labels[p][s] += ")?";
+              } else {
+                labels[p][s] = std::string("(") + labels[p][s];
+                labels[p][s] += ")|(";
+                labels[p][s] += new_label;
+                labels[p][s] += ")";
+              }
+            }
+          }
+        }
+      }
+    }
+    for (int p = 0; p < (nstates + 1); ++p) {
+      edge_exists[p][k] = false;
+    }
+    for (int s = 0; s < (nstates + 1); ++s) {
+      edge_exists[k][s] = false;
+    }
+    vertex_exists[k] = false;
+  }
+  return labels[0][nstates];
+}
+
 }  // end namespace regex
 }  // end namespace parsegen
