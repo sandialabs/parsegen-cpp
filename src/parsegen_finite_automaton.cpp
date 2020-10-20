@@ -103,6 +103,16 @@ void append_states(finite_automaton& fa, finite_automaton const& other) {
   }
 }
 
+void negate_acceptance(finite_automaton& fa) {
+  for (auto& token : fa.accepted_tokens) {
+    if (token == -1) {
+      token = 0;
+    } else {
+      token = -1;
+    }
+  }
+}
+
 finite_automaton finite_automaton::make_single_nfa(
     int nsymbols, int symbol, int token) {
   return finite_automaton::make_range_nfa(nsymbols, symbol, symbol, token);
