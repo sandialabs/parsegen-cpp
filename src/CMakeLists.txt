@@ -7,6 +7,7 @@ set(PARSEGEN_HEADERS
   parsegen_grammar.hpp
   parsegen_reader_tables.hpp
   parsegen_parser.hpp
+  parsegen_regex.hpp
   parsegen_xml.hpp
   parsegen_yaml.hpp
   parsegen_math_lang.hpp

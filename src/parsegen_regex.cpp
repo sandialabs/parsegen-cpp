@@ -262,7 +262,7 @@ std::string internal_from_charset(std::set<char> s)
   }
   if (has_range(s, 'A', 'Z')) {
     remove_range(s, 'A', 'Z');
-    result += "Z-Z";
+    result += "A-Z";
   }
   if (has_range(s, '0', '9')) {
     remove_range(s, '0', '9');
@@ -309,7 +309,8 @@ std::string from_charset(std::set<char> const& s)
 std::string from_automaton(finite_automaton const& fa)
 {
   int const nstates = get_nstates(fa);
-  int const nsymbols = get_nstates(fa);
+  int const nsymbols = get_nsymbols(fa);
+  std::cout << "converting DFA with " << nstates << " states and " << nsymbols << " symbols\n";
   assert(is_deterministic(fa));
   std::vector<std::vector<bool>> edge_exists(
       nstates + 1, std::vector<bool>(nstates + 1, false));
@@ -319,6 +320,7 @@ std::string from_automaton(finite_automaton const& fa)
     for (int s = 0; s < nsymbols; ++s) {
       int const j = step(fa, i, s);
       if (j < 0) continue;
+      std::cout << "adding original transition from " << i << " to " << j << " on char '" << get_char(s) << "'\n";
       edge_exists[i][j] = true;
       charsets[i][j].insert(get_char(s));
     }
