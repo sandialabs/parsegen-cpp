@@ -56,6 +56,7 @@ int accepts(finite_automaton const& fa, int state);
 int get_nsymbols_eps(finite_automaton const& fa);
 void append_states(finite_automaton& fa, finite_automaton const& other);
 void negate_acceptance(finite_automaton& fa);
+finite_automaton add_death_state(finite_automaton const& a);
 
 finite_automaton make_char_nfa(bool is_deterministic_init, int nstates_reserve);
 void add_char_transition(
