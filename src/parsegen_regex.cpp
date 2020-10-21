@@ -293,20 +293,6 @@ std::string from_charset(std::set<char> const& s)
   }
 }
 
-/*
- Brzozowski, Janusz A., and Edward J. McCluskey.
- "Signal flow graph techniques for
-  sequential circuit state diagrams."
-  IEEE Transactions on Electronic Computers 2 (1963): 67-76.
-
-  Delgado, Manuel, and José Morais.
-  "Approximation to the smallest regular expression
-   for a given regular language."
-  International Conference on Implementation
-  and Application of Automata.
-  Springer, Berlin, Heidelberg, 2004.
-  */
-
 std::string either(std::string const& a, std::string const& b)
 {
   if (a == b) return a;
@@ -329,6 +315,22 @@ std::string concat(std::string const& a, std::string const& b)
   if ((a == "\b") || (b == "\b")) return "\b";
   return a + b;
 }
+
+/*
+ Brzozowski, Janusz A., and Edward J. McCluskey.
+ "Signal flow graph techniques for
+  sequential circuit state diagrams."
+  IEEE Transactions on Electronic Computers 2 (1963): 67-76.
+
+  Delgado, Manuel, and José Morais.
+  "Approximation to the smallest regular expression
+   for a given regular language."
+  International Conference on Implementation
+  and Application of Automata.
+  Springer, Berlin, Heidelberg, 2004.
+
+  https://cs.stackexchange.com/questions/2016/how-to-convert-finite-automata-to-regular-expressions
+  */
 
 std::string from_automaton(finite_automaton const& fa)
 {
