@@ -350,12 +350,17 @@ std::string from_automaton(finite_automaton const& fa)
   }
   std::vector<std::vector<std::string>> L(
       nstates + 1, std::vector<std::string>(nstates + 1));
-  for (int i = 0; i < nstates; ++i) {
-    for (int j = 0; j < nstates; ++j) {
+  for (int i = 0; i < (nstates + 1); ++i) {
+    for (int j = 0; j < (nstates + 1); ++j) {
       if (i == j) L[i][j] = "";
       else L[i][j] = "\b";
       // combine acceptable symbols into initial edges
-      L[i][j] = either(L[i][j], from_charset(charsets[i][j]));
+      if (i < nstates && j < nstates) {
+        L[i][j] = either(L[i][j], from_charset(charsets[i][j]));
+      }
+      if (L[i][j] != "\b") {
+        std::cout << "initial label from " << i << " to " << j << " is: " << L[i][j] << '\n';
+      }
     }
   }
   charsets.clear();
@@ -403,9 +408,21 @@ std::string from_automaton(finite_automaton const& fa)
     for (int i = 0; i < (nstates + 1); ++i) {
       for (int j = 0; j < (nstates + 1); ++j) {
         L[i][i] = either(L[i][i], concat(L[i][k], concat(star(L[k][k]), L[k][i])));
+        if (L[i][i] != "\b") std::cout << "L[" << i << "][" << i << "] is now: " << L[i][i] << '\n';
         L[j][j] = either(L[j][j], concat(L[j][k], concat(star(L[k][k]), L[k][j])));
+        if (L[j][j] != "\b") std::cout << "L[" << j << "][" << j << "] is now: " << L[j][j] << '\n';
+        if (i == 0 && j == 2) {
+          if (L[i][j] != "\b") std::cout << "L[" << i << "][" << j << "] was: " << L[i][j] << '\n';
+          if (L[i][k] != "\b") std::cout << "L[" << i << "][" << k << "] was: " << L[i][k] << '\n';
+          if (L[k][k] != "\b") std::cout << "L[" << k << "][" << k << "] was: " << L[k][k] << '\n';
+          if (L[k][j] != "\b") std::cout << "L[" << k << "][" << j << "] was: " << L[k][j] << '\n';
+        }
         L[i][j] = either(L[i][j], concat(L[i][k], concat(star(L[k][k]), L[k][j])));
+        if (L[i][j] != "\b") {
+          std::cout << "L[" << i << "][" << j << "] is now: " << L[i][j] << '\n';
+        }
         L[j][i] = either(L[j][i], concat(L[j][k], concat(star(L[k][k]), L[k][i])));
+        if (L[j][i] != "\b") std::cout << "L[" << j << "][" << i << "] is now: " << L[j][i] << '\n';
       }
     }
     std::cout << "removed vertex " << k << '\n';
@@ -413,6 +430,7 @@ std::string from_automaton(finite_automaton const& fa)
   }
   int const f = nstates;
   int const s = 0;
+  std::cout << "label from start to final is now: " << L[s][f] << '\n';
   return concat(star(L[s][s]), concat(L[s][f], star(either(concat(L[f][s], concat(star(L[s][s]), L[s][f])), L[f][f]))));
 }
 
