@@ -332,6 +332,13 @@ std::string concat(std::string const& a, std::string const& b)
   https://cs.stackexchange.com/questions/2016/how-to-convert-finite-automata-to-regular-expressions
   */
 
+void debug_print(int i, int j, std::string const& label)
+{
+  if (label == "\b") return;
+  if (i == j && label == "") return;
+  std::cout << "L[" << i << "][" << j << "] is now: " << label << '\n';
+}
+
 std::string from_automaton(finite_automaton const& fa)
 {
   int const nstates = get_nstates(fa);
@@ -408,21 +415,13 @@ std::string from_automaton(finite_automaton const& fa)
     for (int i = 0; i < (nstates + 1); ++i) {
       for (int j = 0; j < (nstates + 1); ++j) {
         L[i][i] = either(L[i][i], concat(L[i][k], concat(star(L[k][k]), L[k][i])));
-        if (L[i][i] != "\b") std::cout << "L[" << i << "][" << i << "] is now: " << L[i][i] << '\n';
+        debug_print(i, i, L[i][i]);
         L[j][j] = either(L[j][j], concat(L[j][k], concat(star(L[k][k]), L[k][j])));
-        if (L[j][j] != "\b") std::cout << "L[" << j << "][" << j << "] is now: " << L[j][j] << '\n';
-        if (i == 0 && j == 2) {
-          if (L[i][j] != "\b") std::cout << "L[" << i << "][" << j << "] was: " << L[i][j] << '\n';
-          if (L[i][k] != "\b") std::cout << "L[" << i << "][" << k << "] was: " << L[i][k] << '\n';
-          if (L[k][k] != "\b") std::cout << "L[" << k << "][" << k << "] was: " << L[k][k] << '\n';
-          if (L[k][j] != "\b") std::cout << "L[" << k << "][" << j << "] was: " << L[k][j] << '\n';
-        }
+        debug_print(j, j, L[j][j]);
         L[i][j] = either(L[i][j], concat(L[i][k], concat(star(L[k][k]), L[k][j])));
-        if (L[i][j] != "\b") {
-          std::cout << "L[" << i << "][" << j << "] is now: " << L[i][j] << '\n';
-        }
+        debug_print(i, j, L[i][j]);
         L[j][i] = either(L[j][i], concat(L[j][k], concat(star(L[k][k]), L[k][i])));
-        if (L[j][i] != "\b") std::cout << "L[" << j << "][" << i << "] is now: " << L[j][i] << '\n';
+        debug_print(j, i, L[j][i]);
       }
     }
     std::cout << "removed vertex " << k << '\n';
