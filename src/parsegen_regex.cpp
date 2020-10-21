@@ -280,6 +280,7 @@ std::string internal_from_charset(std::set<char> s)
 
 std::string from_charset(std::set<char> const& s)
 {
+  if (s.empty()) return "\b";
   if (s.size() == 1) return std::string(1, *(s.begin()));
   std::string const positive_contents =
     internal_from_charset(s);
@@ -306,14 +307,35 @@ std::string from_charset(std::set<char> const& s)
   Springer, Berlin, Heidelberg, 2004.
   */
 
+std::string either(std::string const& a, std::string const& b)
+{
+  if (a == b) return a;
+  if (a == "\b") return b;
+  if (b == "\b") return a;
+  if (a == "") return std::string("(") + b + ")?";
+  if (b == "") return std::string("(") + a + ")?";
+  return std::string("(") + a + ")|(" + b + ")";
+}
+
+std::string star(std::string const& a)
+{
+  if (a == "\b") return "\b";
+  if (a == "") return "";
+  return std::string("(") + a + ")*";
+}
+
+std::string concat(std::string const& a, std::string const& b)
+{
+  if ((a == "\b") || (b == "\b")) return "\b";
+  return a + b;
+}
+
 std::string from_automaton(finite_automaton const& fa)
 {
   int const nstates = get_nstates(fa);
   int const nsymbols = get_nsymbols(fa);
   std::cout << "converting DFA with " << nstates << " states and " << nsymbols << " symbols\n";
   assert(is_deterministic(fa));
-  std::vector<std::vector<bool>> edge_exists(
-      nstates + 1, std::vector<bool>(nstates + 1, false));
   std::vector<std::vector<std::set<char>>> charsets(
       nstates, std::vector<std::set<char>>(nstates));
   for (int i = 0; i < nstates; ++i) {
@@ -321,28 +343,29 @@ std::string from_automaton(finite_automaton const& fa)
       int const j = step(fa, i, s);
       if (j < 0) continue;
       std::cout << "adding original transition from " << i << " to " << j << " on char '" << get_char(s) << "'\n";
-      edge_exists[i][j] = true;
       charsets[i][j].insert(get_char(s));
     }
   }
-  std::vector<std::vector<std::string>> labels(
+  std::vector<std::vector<std::string>> L(
       nstates + 1, std::vector<std::string>(nstates + 1));
   for (int i = 0; i < nstates; ++i) {
     for (int j = 0; j < nstates; ++j) {
-      if (!edge_exists[i][j]) continue;
+      if (i == j) L[i][j] = "";
+      else L[i][j] = "\b";
       // combine acceptable symbols into initial edges
-      labels[i][j] = from_charset(charsets[i][j]);
+      L[i][j] = either(L[i][j], from_charset(charsets[i][j]));
     }
   }
   charsets.clear();
   // create a single accepting state with epsilon transitions
   for (int i = 0; i < nstates; ++i) {
     if (accepts(fa, i) != -1) {
-      edge_exists[i][nstates] = true;
+      L[i][nstates] = "";
     }
   }
   std::vector<bool> vertex_exists(nstates + 1, true);
   for (int step = 0; step < (nstates - 1); ++step) {
+    std::cout << "removal step " << step << " out of " << (nstates - 1) << '\n';
     // pick a vertex to remove based on the weight
     // heuristic of Delgado and Morais
     int min_weight_state = -1;
@@ -352,21 +375,22 @@ std::string from_automaton(finite_automaton const& fa)
       int in = 0;
       int out = 0;
       for (int j = 0; j < (nstates + 1); ++j) {
-        if (edge_exists[i][j]) ++out;
-        if (edge_exists[j][i]) ++in;
+        if (L[i][j] != "\b") ++out;
+        if (L[j][i] != "\b") ++in;
       }
       int weight = 0;
-      if (edge_exists[i][i]) {
-        weight += labels[i][i].length() * (in * out - 1);
+      if (L[i][i] != "\b") {
+        weight += L[i][i].length() * (in * out - 1);
       }
       for (int j = 0; j < (nstates + 1); ++j) {
-        if (edge_exists[i][j]) {
-          weight += labels[i][j].length() * (in - 1);
+        if (L[i][i] != "\b") {
+          weight += L[i][j].length() * (in - 1);
         }
-        if (edge_exists[j][i]) {
-          weight += labels[j][i].length() * (out - 1);
+        if (L[i][i] != "\b") {
+          weight += L[j][i].length() * (out - 1);
         }
       }
+      std::cout << "state " << i << " has weight " << weight << '\n';
       if (min_weight_state == -1 || weight < min_weight) {
         min_weight_state = i;
         min_weight = weight;
@@ -374,50 +398,20 @@ std::string from_automaton(finite_automaton const& fa)
     }
     // remove the vertex k
     int const k = min_weight_state;
-    for (int p = 0; p < (nstates + 1); ++p) {
-      if (edge_exists[p][k]) {
-        // predecessor p
-        for (int s = 0; s < (nstates + 1); ++s) {
-          if (edge_exists[k][s]) {
-            // successor s
-            // form new transition label
-            std::string new_label = labels[p][k];
-            if (edge_exists[k][k]) {
-              new_label += "(";
-              new_label += labels[k][k];
-              new_label += ")*";
-            }
-            new_label += labels[k][s];
-            assert(!new_label.empty());
-            if (!edge_exists[p][s]) {
-              edge_exists[p][s] = true;
-              labels[p][s] = new_label;
-            } else {
-              // combine the new label with the existing one
-              if (labels[p][s].empty()) {
-                labels[p][s] = "(";
-                labels[p][s] += new_label;
-                labels[p][s] += ")?";
-              } else {
-                labels[p][s] = std::string("(") + labels[p][s];
-                labels[p][s] += ")|(";
-                labels[p][s] += new_label;
-                labels[p][s] += ")";
-              }
-            }
-          }
-        }
+    for (int i = 0; i < (nstates + 1); ++i) {
+      for (int j = 0; j < (nstates + 1); ++j) {
+        L[i][i] = either(L[i][i], concat(L[i][k], concat(star(L[k][k]), L[k][i])));
+        L[j][j] = either(L[j][j], concat(L[j][k], concat(star(L[k][k]), L[k][j])));
+        L[i][j] = either(L[i][j], concat(L[i][k], concat(star(L[k][k]), L[k][j])));
+        L[j][i] = either(L[j][i], concat(L[j][k], concat(star(L[k][k]), L[k][i])));
       }
     }
-    for (int p = 0; p < (nstates + 1); ++p) {
-      edge_exists[p][k] = false;
-    }
-    for (int s = 0; s < (nstates + 1); ++s) {
-      edge_exists[k][s] = false;
-    }
+    std::cout << "removed vertex " << k << '\n';
     vertex_exists[k] = false;
   }
-  return labels[0][nstates];
+  int const f = nstates;
+  int const s = 0;
+  return concat(star(L[s][s]), concat(L[s][f], star(either(concat(L[f][s], concat(star(L[s][s]), L[s][f])), L[f][f]))));
 }
 
 }  // end namespace regex
