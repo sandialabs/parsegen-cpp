@@ -301,6 +301,13 @@ class regex_in_progress {
   virtual bool operator==(regex_in_progress const&) const = 0;
 };
 
+std::unique_ptr<regex_in_progress> concat(
+    std::unique_ptr<regex_in_progress> const& a,
+    std::unique_ptr<regex_in_progress> const& b);
+std::unique_ptr<regex_in_progress> either(
+    std::unique_ptr<regex_in_progress> const& a,
+    std::unique_ptr<regex_in_progress> const& b);
+
 class regex_null : public regex_in_progress {
  public:
   virtual std::string print() const override
@@ -339,13 +346,17 @@ class regex_either : public regex_in_progress {
   virtual std::string print() const override
   {
     bool has_epsilon = false;
+    bool had_non_epsilon = false;
     std::string result;
-    for (std::size_t i = 0; i < subexpressions.size(); ++i) {
-      if (i > 0) result += "|";
-      if (typeid(subexpressions[i]) == typeid(regex_epsilon)) {
+    for (auto& se_ptr : subexpressions) {
+      auto& se = *se_ptr;
+      if (typeid(se) == typeid(regex_epsilon)) {
         has_epsilon = true;
+      } else {
+        if (had_non_epsilon) result += "|";
+        result += se.print();
+        had_non_epsilon = true;
       }
-      result += subexpressions[i]->print();
     }
     result = std::string("(") + result + ")";
     if (has_epsilon) result += "?";
@@ -435,6 +446,109 @@ class regex_concat : public regex_in_progress {
       subexpressions.push_back(other.copy());
     }
   }
+  bool starts_with(regex_concat const& other) const
+  {
+    if (other.subexpressions.size() > subexpressions.size()) return false;
+    for (std::size_t i = 0; i < other.subexpressions.size(); ++i) {
+      if (!(*(subexpressions[i]) == *(other.subexpressions[i]))) {
+        return false;
+      }
+    }
+    return true;
+  }
+  bool ends_with(regex_concat const& other) const
+  {
+    if (other.subexpressions.size() > subexpressions.size()) return false;
+    std::size_t const offset = subexpressions.size() - other.subexpressions.size();
+    for (std::size_t i = 0; i < other.subexpressions.size(); ++i) {
+      if (!(*(subexpressions[offset + i]) == *(other.subexpressions[i]))) {
+        return false;
+      }
+    }
+    return true;
+  }
+  bool starts_with(regex_in_progress const& other) const
+  {
+    return *(subexpressions[0]) == other;
+  }
+  bool ends_with(regex_in_progress const& other) const
+  {
+    return *(subexpressions[subexpressions.size() - 1]) == other;
+  }
+  std::unique_ptr<regex_in_progress> either_with(std::unique_ptr<regex_in_progress> const& other_ptr) const {
+    auto& other = *other_ptr;
+    if (typeid(other) == typeid(regex_concat)) {
+      auto& other_concat = dynamic_cast<regex_concat const&>(other);
+      if (other_concat.subexpressions.size() > subexpressions.size()) {
+        return other_concat.either_with(this->copy());
+      }
+      if (ends_with(other_concat)) {
+        std::size_t const prefix_size = subexpressions.size() - other_concat.subexpressions.size();
+        std::unique_ptr<regex_in_progress> prefix;
+        if (prefix_size == 1) {
+          prefix = subexpressions[0]->copy();
+        } else {
+          auto prefix_concat = std::make_unique<regex_concat>();
+          for (std::size_t i = 0; i < prefix_size; ++i) {
+            prefix_concat->add(*(subexpressions[i]));
+          }
+          prefix = std::move(prefix_concat);
+        }
+        return concat(either(prefix, std::make_unique<regex_epsilon>()), other_ptr);
+      } else if (starts_with(other_concat)) {
+        std::size_t const suffix_size = subexpressions.size() - other_concat.subexpressions.size();
+        std::unique_ptr<regex_in_progress> suffix;
+        if (suffix_size == 1) {
+          suffix = subexpressions[subexpressions.size() - 1]->copy();
+        } else {
+          auto suffix_concat = std::make_unique<regex_concat>();
+          for (std::size_t i = 0; i < suffix_size; ++i) {
+            suffix_concat->add(*(subexpressions[other_concat.subexpressions.size() + i]));
+          }
+          suffix = std::move(suffix_concat);
+        }
+        return concat(other_ptr, either(suffix, std::make_unique<regex_epsilon>()));
+      } else {
+        auto result = std::make_unique<regex_either>();
+        result->insert(*this);
+        result->insert(other);
+        return result;
+      }
+    } else {
+      if (ends_with(other)) {
+        std::size_t const prefix_size = subexpressions.size() - 1;
+        std::unique_ptr<regex_in_progress> prefix;
+        if (prefix_size == 1) {
+          prefix = subexpressions[0]->copy();
+        } else {
+          auto prefix_concat = std::make_unique<regex_concat>();
+          for (std::size_t i = 0; i < prefix_size; ++i) {
+            prefix_concat->add(*(subexpressions[i]));
+          }
+          prefix = std::move(prefix_concat);
+        }
+        return concat(either(prefix, std::make_unique<regex_epsilon>()), other_ptr);
+      } else if (starts_with(other)) {
+        std::size_t const suffix_size = subexpressions.size() - 1;
+        std::unique_ptr<regex_in_progress> suffix;
+        if (suffix_size == 1) {
+          suffix = subexpressions[subexpressions.size() - 1]->copy();
+        } else {
+          auto suffix_concat = std::make_unique<regex_concat>();
+          for (std::size_t i = 0; i < suffix_size; ++i) {
+            suffix_concat->add(*(subexpressions[1 + i]));
+          }
+          suffix = std::move(suffix_concat);
+        }
+        return concat(other_ptr, either(suffix, std::make_unique<regex_epsilon>()));
+      } else {
+        auto result = std::make_unique<regex_either>();
+        result->insert(*this);
+        result->insert(other);
+        return result;
+      }
+    }
+  }
 };
 
 class regex_charset : public regex_in_progress {
@@ -506,6 +620,12 @@ std::unique_ptr<regex_in_progress> either(
   }
   if (typeid(b_ref) == typeid(regex_null)) {
     return a->copy();
+  }
+  if (typeid(a_ref) == typeid(regex_concat)) {
+    return dynamic_cast<regex_concat const&>(a_ref).either_with(b);
+  }
+  if (typeid(b_ref) == typeid(regex_concat)) {
+    return dynamic_cast<regex_concat const&>(b_ref).either_with(a);
   }
   if (typeid(a_ref) == typeid(regex_either)) {
     return dynamic_cast<regex_either const&>(a_ref).combine_with(b_ref);
@@ -649,21 +769,14 @@ std::string from_automaton(finite_automaton const& fa)
     int const k = min_weight_state;
     for (int i = 0; i < (nstates + 1); ++i) {
       for (int j = 0; j < (nstates + 1); ++j) {
-        bool now = (i == 2) && (j == 0) && (k == 1);
-        if (now) std::cout << "START i " << i << " j " << j << " k " << k << '\n';
         L[i][i] = either(L[i][i], concat(L[i][k], concat(star(L[k][k]), L[k][i])));
-        if (now) debug_print(i, i, L[i][i]);
+        debug_print(i, i, L[i][i]);
         L[j][j] = either(L[j][j], concat(L[j][k], concat(star(L[k][k]), L[k][j])));
-        if (now) debug_print(j, j, L[j][j]);
+        debug_print(j, j, L[j][j]);
         L[i][j] = either(L[i][j], concat(L[i][k], concat(star(L[k][k]), L[k][j])));
-        if (now) debug_print(i, j, L[i][j]);
-        if (now) std::cout << "L[" << j << "][" << i << "] was: " << L[j][i]->print() << '\n';
-        if (now) std::cout << "L[" << j << "][" << k << "] was: " << L[j][k]->print() << '\n';
-        if (now) std::cout << "L[" << k << "][" << k << "] was: " << L[k][k]->print() << '\n';
-        if (now) std::cout << "L[" << k << "][" << i << "] was: " << L[k][i]->print() << '\n';
+        debug_print(i, j, L[i][j]);
         L[j][i] = either(L[j][i], concat(L[j][k], concat(star(L[k][k]), L[k][i])));
-        if (now) debug_print(j, i, L[j][i]);
-        if (now) std::cout << "END i " << i << " j " << j << " k " << k << '\n';
+        debug_print(j, i, L[j][i]);
       }
     }
     std::cout << "removed vertex " << k << '\n';
