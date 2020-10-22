@@ -293,27 +293,244 @@ std::string from_charset(std::set<char> const& s)
   }
 }
 
-std::string either(std::string const& a, std::string const& b)
+class regex_in_progress {
+ public:
+  virtual ~regex_in_progress() = default;
+  virtual std::string print() const = 0;
+  virtual std::unique_ptr<regex_in_progress> copy() const = 0;
+  virtual bool operator==(regex_in_progress const&) const = 0;
+};
+
+class regex_null : public regex_in_progress {
+ public:
+  virtual std::string print() const override
+  {
+    return "\b";
+  }
+  virtual std::unique_ptr<regex_in_progress> copy() const override
+  {
+    return std::make_unique<regex_null>();
+  }
+  virtual bool operator==(regex_in_progress const& other) const override
+  {
+    return typeid(other) == typeid(regex_null);
+  }
+};
+
+class regex_epsilon : public regex_in_progress {
+ public:
+  virtual std::string print() const override
+  {
+    return "";
+  }
+  virtual std::unique_ptr<regex_in_progress> copy() const override
+  {
+    return std::make_unique<regex_epsilon>();
+  }
+  virtual bool operator==(regex_in_progress const& other) const override
+  {
+    return typeid(other) == typeid(regex_epsilon const);
+  }
+};
+
+class regex_either : public regex_in_progress {
+  std::vector<std::unique_ptr<regex_in_progress>> subexpressions;
+ public:
+  virtual std::string print() const override
+  {
+    bool has_epsilon = false;
+    std::string result;
+    for (std::size_t i = 0; i < subexpressions.size(); ++i) {
+      if (i > 0) result += "|";
+      if (typeid(subexpressions[i]) == typeid(regex_epsilon)) {
+        has_epsilon = true;
+      }
+      result += subexpressions[i]->print();
+    }
+    result = std::string("(") + result + ")";
+    if (has_epsilon) result += "?";
+    return result;
+  }
+  virtual std::unique_ptr<regex_in_progress> copy() const override
+  {
+    auto result = std::make_unique<regex_either>();
+    for (auto& ptr : subexpressions) {
+      result->subexpressions.push_back(ptr->copy());
+    }
+    return result;
+  }
+  void insert(regex_in_progress const& other)
+  {
+    for (auto& existing : subexpressions) {
+      if (*existing == other) return;
+    }
+    subexpressions.push_back(other.copy());
+  }
+  std::unique_ptr<regex_either> combine_with(regex_in_progress const& other) const
+  {
+    auto result = std::make_unique<regex_either>();
+    for (auto& se : subexpressions) {
+      result->insert(*se);
+    }
+    if (typeid(other) == typeid(regex_either const)) {
+      for (auto& se : dynamic_cast<regex_either const&>(other).subexpressions) {
+        result->insert(*se);
+      }
+    } else {
+      result->insert(other);
+    }
+    return result;
+  }
+  virtual bool operator==(regex_in_progress const& other) const override
+  {
+    if (typeid(other) != typeid(regex_either)) return false;
+    auto& other_either = dynamic_cast<regex_either const&>(other);
+    if (subexpressions.size() != other_either.subexpressions.size()) return false;
+    for (auto& a : other_either.subexpressions) {
+      bool found = false;
+      for (auto& b : subexpressions) {
+        if (*a == *b) found = true;
+      }
+      if (!found) return false;
+    }
+    return true;
+  }
+};
+
+class regex_concat : public regex_in_progress {
+  std::vector<std::unique_ptr<regex_in_progress>> subexpressions;
+ public:
+  virtual std::string print() const override
+  {
+    std::string result;
+    for (std::size_t i = 0; i < subexpressions.size(); ++i) {
+      result += subexpressions[i]->print();
+    }
+    return result;
+  }
+  virtual std::unique_ptr<regex_in_progress> copy() const override
+  {
+    auto result = std::make_unique<regex_concat>();
+    for (auto& ptr : subexpressions) {
+      result->subexpressions.push_back(ptr->copy());
+    }
+    return result;
+  }
+  virtual bool operator==(regex_in_progress const& other) const override
+  {
+    if (typeid(other) != typeid(regex_concat)) return false;
+    auto& other_concat = dynamic_cast<regex_concat const&>(other);
+    if (subexpressions.size() != other_concat.subexpressions.size()) return false;
+    for (std::size_t i = 0; i < subexpressions.size(); ++i) {
+      if (!(*subexpressions[i] == *other_concat.subexpressions[i])) return false;
+    }
+    return true;
+  }
+  void add(regex_in_progress const& other) {
+    if (typeid(other) == typeid(regex_concat)) {
+      for (auto& se : dynamic_cast<regex_concat const&>(other).subexpressions) {
+        subexpressions.push_back(se->copy());
+      }
+    } else {
+      subexpressions.push_back(other.copy());
+    }
+  }
+};
+
+class regex_charset : public regex_in_progress {
+  std::set<char> characters;
+ public:
+  regex_charset() = default;
+  explicit regex_charset(char c)
+  {
+    characters.insert(c);
+  }
+  virtual std::string print() const override
+  {
+    return from_charset(characters);
+  }
+  virtual std::unique_ptr<regex_in_progress> copy() const override
+  {
+    return std::make_unique<regex_charset>(*this);
+  }
+  std::unique_ptr<regex_charset> combine_with(regex_charset const& other) const
+  {
+    auto result = std::make_unique<regex_charset>();
+    for (auto c : characters) {
+      result->characters.insert(c);
+    }
+    for (auto c : other.characters) {
+      result->characters.insert(c);
+    }
+    return result;
+  }
+  virtual bool operator==(regex_in_progress const& other) const override
+  {
+    if (typeid(other) != typeid(regex_charset)) return false;
+    return dynamic_cast<regex_charset const&>(other).characters == characters;
+  }
+};
+
+class regex_star : public regex_in_progress {
+  std::unique_ptr<regex_in_progress> subexpression;
+ public:
+  regex_star() = default;
+  explicit regex_star(std::unique_ptr<regex_in_progress>&& se_in):subexpression(std::move(se_in)) {}
+  virtual std::string print() const override
+  {
+    return std::string("(") + subexpression->print() + ")*";
+  }
+  virtual std::unique_ptr<regex_in_progress> copy() const override
+  {
+    auto result = std::make_unique<regex_star>();
+    result->subexpression = subexpression->copy();
+    return result;
+  }
+  virtual bool operator==(regex_in_progress const& other) const override
+  {
+    if (typeid(other) != typeid(regex_star)) return false;
+    return *(dynamic_cast<regex_star const&>(other).subexpression) == *subexpression;
+  }
+};
+
+std::unique_ptr<regex_in_progress> either(
+    std::unique_ptr<regex_in_progress> const& a,
+    std::unique_ptr<regex_in_progress> const& b)
 {
-  if (a == b) return a;
-  if (a == "\b") return b;
-  if (b == "\b") return a;
-  if (a == "") return std::string("(") + b + ")?";
-  if (b == "") return std::string("(") + a + ")?";
-  return std::string("(") + a + ")|(" + b + ")";
+  auto& a_ref = *a;
+  auto& b_ref = *b;
+  if (typeid(a_ref) == typeid(regex_null)) return b->copy();
+  if (typeid(b_ref) == typeid(regex_null)) return a->copy();
+  if (typeid(a_ref) == typeid(regex_either)) return dynamic_cast<regex_either const&>(a_ref).combine_with(b_ref);
+  if (typeid(b_ref) == typeid(regex_either)) return dynamic_cast<regex_either const&>(b_ref).combine_with(a_ref);
+  if ((typeid(a_ref) == typeid(regex_charset)) && (typeid(b_ref) == typeid(regex_charset))) {
+    return dynamic_cast<regex_charset const&>(a_ref).combine_with(dynamic_cast<regex_charset const&>(b_ref));
+  }
+  auto result = std::make_unique<regex_either>();
+  result->combine_with(a_ref);
+  result->combine_with(b_ref);
+  return result;
 }
 
-std::string star(std::string const& a)
+std::unique_ptr<regex_in_progress> star(std::unique_ptr<regex_in_progress> const& a)
 {
-  if (a == "\b") return "\b";
-  if (a == "") return "";
-  return std::string("(") + a + ")*";
+  if (typeid(a.get()) == typeid(regex_null const*)) return std::make_unique<regex_null>();
+  if (typeid(a.get()) == typeid(regex_epsilon const*)) return std::make_unique<regex_epsilon>();
+  return std::make_unique<regex_star>(a->copy());
 }
 
-std::string concat(std::string const& a, std::string const& b)
+std::unique_ptr<regex_in_progress> concat(
+    std::unique_ptr<regex_in_progress> const& a,
+    std::unique_ptr<regex_in_progress> const& b)
 {
-  if ((a == "\b") || (b == "\b")) return "\b";
-  return a + b;
+  if (typeid(a.get()) == typeid(regex_null const*)) return std::make_unique<regex_null>();
+  if (typeid(b.get()) == typeid(regex_null const*)) return std::make_unique<regex_null>();
+  if (typeid(a.get()) == typeid(regex_epsilon const*)) return b->copy();
+  if (typeid(b.get()) == typeid(regex_epsilon const*)) return a->copy();
+  auto result = std::make_unique<regex_concat>(); 
+  result->add(*a);
+  result->add(*b);
+  return result;
 }
 
 /*
@@ -332,11 +549,12 @@ std::string concat(std::string const& a, std::string const& b)
   https://cs.stackexchange.com/questions/2016/how-to-convert-finite-automata-to-regular-expressions
   */
 
-void debug_print(int i, int j, std::string const& label)
+void debug_print(int i, int j, std::unique_ptr<regex_in_progress> const& label)
 {
-  if (label == "\b") return;
-  if (i == j && label == "") return;
-  std::cout << "L[" << i << "][" << j << "] is now: " << label << '\n';
+  auto& ref = *label;
+  if (typeid(ref) == typeid(regex_null)) return;
+  if (i == j && typeid(ref) == typeid(regex_epsilon)) return;
+  std::cout << "L[" << i << "][" << j << "] is now: " << ref.print() << '\n';
 }
 
 std::string from_automaton(finite_automaton const& fa)
@@ -345,36 +563,29 @@ std::string from_automaton(finite_automaton const& fa)
   int const nsymbols = get_nsymbols(fa);
   std::cout << "converting DFA with " << nstates << " states and " << nsymbols << " symbols\n";
   assert(is_deterministic(fa));
-  std::vector<std::vector<std::set<char>>> charsets(
-      nstates, std::vector<std::set<char>>(nstates));
+  std::vector<std::vector<std::unique_ptr<regex_in_progress>>> L(nstates + 1);
+  for (int i = 0; i < (nstates + 1); ++i) {
+    L[i].resize(nstates + 1);
+    for (int j = 0; j < (nstates + 1); ++j) {
+      if (i == j) L[i][j] = std::make_unique<regex_epsilon>();
+      else L[i][j] = std::make_unique<regex_null>();
+      if (typeid(L[i][j].get()) != typeid(regex_null*)) {
+        std::cout << "initial label from " << i << " to " << j << " is: " << L[i][j]->print() << '\n';
+      }
+    }
+  }
   for (int i = 0; i < nstates; ++i) {
     for (int s = 0; s < nsymbols; ++s) {
       int const j = step(fa, i, s);
       if (j < 0) continue;
       std::cout << "adding original transition from " << i << " to " << j << " on char '" << get_char(s) << "'\n";
-      charsets[i][j].insert(get_char(s));
+      L[i][j] = either(L[i][j], std::make_unique<regex_charset>(get_char(s)));
     }
   }
-  std::vector<std::vector<std::string>> L(
-      nstates + 1, std::vector<std::string>(nstates + 1));
-  for (int i = 0; i < (nstates + 1); ++i) {
-    for (int j = 0; j < (nstates + 1); ++j) {
-      if (i == j) L[i][j] = "";
-      else L[i][j] = "\b";
-      // combine acceptable symbols into initial edges
-      if (i < nstates && j < nstates) {
-        L[i][j] = either(L[i][j], from_charset(charsets[i][j]));
-      }
-      if (L[i][j] != "\b") {
-        std::cout << "initial label from " << i << " to " << j << " is: " << L[i][j] << '\n';
-      }
-    }
-  }
-  charsets.clear();
   // create a single accepting state with epsilon transitions
   for (int i = 0; i < nstates; ++i) {
     if (accepts(fa, i) != -1) {
-      L[i][nstates] = "";
+      L[i][nstates] = std::make_unique<regex_epsilon>();
     }
   }
   std::vector<bool> vertex_exists(nstates + 1, true);
@@ -389,19 +600,19 @@ std::string from_automaton(finite_automaton const& fa)
       int in = 0;
       int out = 0;
       for (int j = 0; j < (nstates + 1); ++j) {
-        if (L[i][j] != "\b") ++out;
-        if (L[j][i] != "\b") ++in;
+        if (typeid(L[i][j].get()) != typeid(regex_null*)) ++out;
+        if (typeid(L[j][i].get()) != typeid(regex_null*)) ++in;
       }
       int weight = 0;
-      if (L[i][i] != "\b") {
-        weight += L[i][i].length() * (in * out - 1);
+      if (typeid(L[i][i].get()) != typeid(regex_null*)) {
+        weight += L[i][i]->print().length() * (in * out - 1);
       }
       for (int j = 0; j < (nstates + 1); ++j) {
-        if (L[i][i] != "\b") {
-          weight += L[i][j].length() * (in - 1);
+        if (typeid(L[i][j].get()) != typeid(regex_null*)) {
+          weight += L[i][j]->print().length() * (in - 1);
         }
-        if (L[i][i] != "\b") {
-          weight += L[j][i].length() * (out - 1);
+        if (typeid(L[j][i].get()) != typeid(regex_null*)) {
+          weight += L[j][i]->print().length() * (out - 1);
         }
       }
       std::cout << "state " << i << " has weight " << weight << '\n';
@@ -430,7 +641,7 @@ std::string from_automaton(finite_automaton const& fa)
   int const f = nstates;
   int const s = 0;
   std::cout << "label from start to final is now: " << L[s][f] << '\n';
-  return concat(star(L[s][s]), concat(L[s][f], star(either(concat(L[f][s], concat(star(L[s][s]), L[s][f])), L[f][f]))));
+  return concat(star(L[s][s]), concat(L[s][f], star(either(concat(L[f][s], concat(star(L[s][s]), L[s][f])), L[f][f]))))->print();
 }
 
 }  // end namespace regex
