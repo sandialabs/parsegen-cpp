@@ -366,7 +366,7 @@ class regex_either : public regex_in_progress {
     }
     subexpressions.push_back(other.copy());
   }
-  std::unique_ptr<regex_either> combine_with(regex_in_progress const& other) const
+  [[nodiscard]] std::unique_ptr<regex_either> combine_with(regex_in_progress const& other) const
   {
     auto result = std::make_unique<regex_either>();
     for (auto& se : subexpressions) {
@@ -497,7 +497,7 @@ std::unique_ptr<regex_in_progress> either(
     std::unique_ptr<regex_in_progress> const& a,
     std::unique_ptr<regex_in_progress> const& b)
 {
-  std::cout << "either(" << a->print() << ", " << b->print() << ")\n";
+  std::cout << "either(" << a->print() << "," << b->print() << ")\n";
   auto& a_ref = *a;
   auto& b_ref = *b;
   if (typeid(a_ref) == typeid(regex_null)) {
@@ -515,14 +515,18 @@ std::unique_ptr<regex_in_progress> either(
   if ((typeid(a_ref) == typeid(regex_charset)) && (typeid(b_ref) == typeid(regex_charset))) {
     return dynamic_cast<regex_charset const&>(a_ref).combine_with(dynamic_cast<regex_charset const&>(b_ref));
   }
+  if ((typeid(a_ref) == typeid(regex_epsilon)) && (typeid(b_ref) == typeid(regex_epsilon))) {
+    return std::make_unique<regex_epsilon>();
+  }
   auto result = std::make_unique<regex_either>();
-  result->combine_with(a_ref);
-  result->combine_with(b_ref);
+  result->insert(a_ref);
+  result->insert(b_ref);
   return result;
 }
 
 std::unique_ptr<regex_in_progress> star(std::unique_ptr<regex_in_progress> const& a)
 {
+  std::cout << "star(" << a->print() << ")\n";
   auto& a_ref = *a;
   if (typeid(a_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
   if (typeid(a_ref) == typeid(regex_epsilon)) return std::make_unique<regex_epsilon>();
@@ -533,6 +537,7 @@ std::unique_ptr<regex_in_progress> concat(
     std::unique_ptr<regex_in_progress> const& a,
     std::unique_ptr<regex_in_progress> const& b)
 {
+  std::cout << "concat(" << a->print() << "," << b->print() << ")\n";
   auto& a_ref = *a;
   auto& b_ref = *b;
   if (typeid(a_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
@@ -587,7 +592,6 @@ std::string from_automaton(finite_automaton const& fa)
     for (int s = 0; s < nsymbols; ++s) {
       int const j = step(fa, i, s);
       if (j < 0) continue;
-      std::cout << "adding original transition from " << i << " to " << j << " on char '" << get_char(s) << "'\n";
       L[i][j] = either(L[i][j], std::make_unique<regex_charset>(get_char(s)));
     }
   }
@@ -597,11 +601,13 @@ std::string from_automaton(finite_automaton const& fa)
       L[i][nstates] = std::make_unique<regex_epsilon>();
     }
   }
+  std::cout << "START INITIAL STATE\n";
   for (int i = 0; i < (nstates + 1); ++i) {
     for (int j = 0; j < (nstates + 1); ++j) {
       debug_print(i, j, L[i][j]);
     }
   }
+  std::cout << "END INITIAL STATE\n";
   std::vector<bool> vertex_exists(nstates + 1, true);
   for (int step = 0; step < (nstates - 1); ++step) {
     std::cout << "removal step " << step << " out of " << (nstates - 1) << '\n';
@@ -639,15 +645,22 @@ std::string from_automaton(finite_automaton const& fa)
     int const k = min_weight_state;
     for (int i = 0; i < (nstates + 1); ++i) {
       for (int j = 0; j < (nstates + 1); ++j) {
+        std::cout << "START [" << i << "][" << j << "] UPDATE\n";
         L[i][i] = either(L[i][i], concat(L[i][k], concat(star(L[k][k]), L[k][i])));
         debug_print(i, i, L[i][i]);
+        std::cout << "BEFORE L[" << j << "][" << j << "] UPDATE\n";
+        std::cout << "L[" << j << "][" << j << "] was: " << L[j][j]->print() << '\n';
+        std::cout << "L[" << j << "][" << k << "] was: " << L[j][k]->print() << '\n';
+        std::cout << "L[" << k << "][" << k << "] was: " << L[k][k]->print() << '\n';
+        std::cout << "L[" << k << "][" << j << "] was: " << L[k][j]->print() << '\n';
         L[j][j] = either(L[j][j], concat(L[j][k], concat(star(L[k][k]), L[k][j])));
         debug_print(j, j, L[j][j]);
+        if (i==0 && j==1) std::exit(1);
         L[i][j] = either(L[i][j], concat(L[i][k], concat(star(L[k][k]), L[k][j])));
         debug_print(i, j, L[i][j]);
         L[j][i] = either(L[j][i], concat(L[j][k], concat(star(L[k][k]), L[k][i])));
         debug_print(j, i, L[j][i]);
-        std::exit(1);
+        std::cout << "END [" << i << "][" << j << "] UPDATE\n";
       }
     }
     std::cout << "removed vertex " << k << '\n';
