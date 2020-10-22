@@ -497,9 +497,10 @@ std::unique_ptr<regex_in_progress> either(
     std::unique_ptr<regex_in_progress> const& a,
     std::unique_ptr<regex_in_progress> const& b)
 {
-//std::cout << "either(" << a->print() << "," << b->print() << ")\n";
+  std::cout << "either(" << a->print() << "," << b->print() << ")\n";
   auto& a_ref = *a;
   auto& b_ref = *b;
+  if (a_ref == b_ref) return a_ref.copy();
   if (typeid(a_ref) == typeid(regex_null)) {
     return b->copy();
   }
@@ -526,7 +527,6 @@ std::unique_ptr<regex_in_progress> either(
 
 std::unique_ptr<regex_in_progress> star(std::unique_ptr<regex_in_progress> const& a)
 {
-//std::cout << "star(" << a->print() << ")\n";
   auto& a_ref = *a;
   if (typeid(a_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
   if (typeid(a_ref) == typeid(regex_epsilon)) return std::make_unique<regex_epsilon>();
@@ -537,7 +537,6 @@ std::unique_ptr<regex_in_progress> concat(
     std::unique_ptr<regex_in_progress> const& a,
     std::unique_ptr<regex_in_progress> const& b)
 {
-//std::cout << "concat(" << a->print() << "," << b->print() << ")\n";
   auto& a_ref = *a;
   auto& b_ref = *b;
   if (typeid(a_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
@@ -620,19 +619,24 @@ std::string from_automaton(finite_automaton const& fa)
       int in = 0;
       int out = 0;
       for (int j = 0; j < (nstates + 1); ++j) {
-        if (typeid(L[i][j].get()) != typeid(regex_null*)) ++out;
-        if (typeid(L[j][i].get()) != typeid(regex_null*)) ++in;
+        auto& ij_ref = *L[i][j];
+        auto& ji_ref = *L[j][i];
+        if (typeid(ij_ref) != typeid(regex_null)) ++out;
+        if (typeid(ji_ref) != typeid(regex_null)) ++in;
       }
       int weight = 0;
-      if (typeid(L[i][i].get()) != typeid(regex_null*)) {
-        weight += L[i][i]->print().length() * (in * out - 1);
+      auto& ii_ref = *L[i][i];
+      if (typeid(ii_ref) != typeid(regex_null)) {
+        weight += ii_ref.print().length() * (in * out - 1);
       }
       for (int j = 0; j < (nstates + 1); ++j) {
-        if (typeid(L[i][j].get()) != typeid(regex_null*)) {
-          weight += L[i][j]->print().length() * (in - 1);
+        auto& ij_ref = *L[i][j];
+        auto& ji_ref = *L[j][i];
+        if (typeid(ij_ref) != typeid(regex_null)) {
+          weight += ij_ref.print().length() * (in - 1);
         }
-        if (typeid(L[j][i].get()) != typeid(regex_null*)) {
-          weight += L[j][i]->print().length() * (out - 1);
+        if (typeid(ji_ref) != typeid(regex_null)) {
+          weight += ji_ref.print().length() * (out - 1);
         }
       }
       std::cout << "state " << i << " has weight " << weight << '\n';
@@ -645,16 +649,21 @@ std::string from_automaton(finite_automaton const& fa)
     int const k = min_weight_state;
     for (int i = 0; i < (nstates + 1); ++i) {
       for (int j = 0; j < (nstates + 1); ++j) {
-        std::cout << "START [" << i << "][" << j << "] UPDATE\n";
+        bool now = (i == 2) && (j == 0) && (k == 1);
+        if (now) std::cout << "START i " << i << " j " << j << " k " << k << '\n';
         L[i][i] = either(L[i][i], concat(L[i][k], concat(star(L[k][k]), L[k][i])));
-        debug_print(i, i, L[i][i]);
+        if (now) debug_print(i, i, L[i][i]);
         L[j][j] = either(L[j][j], concat(L[j][k], concat(star(L[k][k]), L[k][j])));
-        debug_print(j, j, L[j][j]);
+        if (now) debug_print(j, j, L[j][j]);
         L[i][j] = either(L[i][j], concat(L[i][k], concat(star(L[k][k]), L[k][j])));
-        debug_print(i, j, L[i][j]);
+        if (now) debug_print(i, j, L[i][j]);
+        if (now) std::cout << "L[" << j << "][" << i << "] was: " << L[j][i]->print() << '\n';
+        if (now) std::cout << "L[" << j << "][" << k << "] was: " << L[j][k]->print() << '\n';
+        if (now) std::cout << "L[" << k << "][" << k << "] was: " << L[k][k]->print() << '\n';
+        if (now) std::cout << "L[" << k << "][" << i << "] was: " << L[k][i]->print() << '\n';
         L[j][i] = either(L[j][i], concat(L[j][k], concat(star(L[k][k]), L[k][i])));
-        debug_print(j, i, L[j][i]);
-        std::cout << "END [" << i << "][" << j << "] UPDATE\n";
+        if (now) debug_print(j, i, L[j][i]);
+        if (now) std::cout << "END i " << i << " j " << j << " k " << k << '\n';
       }
     }
     std::cout << "removed vertex " << k << '\n';
@@ -662,7 +671,7 @@ std::string from_automaton(finite_automaton const& fa)
   }
   int const f = nstates;
   int const s = 0;
-  std::cout << "label from start to final is now: " << L[s][f] << '\n';
+  std::cout << "label from start to final is now: " << L[s][f]->print() << '\n';
   return concat(star(L[s][s]), concat(L[s][f], star(either(concat(L[f][s], concat(star(L[s][s]), L[s][f])), L[f][f]))))->print();
 }
 
