@@ -497,7 +497,7 @@ std::unique_ptr<regex_in_progress> either(
     std::unique_ptr<regex_in_progress> const& a,
     std::unique_ptr<regex_in_progress> const& b)
 {
-  std::cout << "either(" << a->print() << "," << b->print() << ")\n";
+//std::cout << "either(" << a->print() << "," << b->print() << ")\n";
   auto& a_ref = *a;
   auto& b_ref = *b;
   if (typeid(a_ref) == typeid(regex_null)) {
@@ -526,7 +526,7 @@ std::unique_ptr<regex_in_progress> either(
 
 std::unique_ptr<regex_in_progress> star(std::unique_ptr<regex_in_progress> const& a)
 {
-  std::cout << "star(" << a->print() << ")\n";
+//std::cout << "star(" << a->print() << ")\n";
   auto& a_ref = *a;
   if (typeid(a_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
   if (typeid(a_ref) == typeid(regex_epsilon)) return std::make_unique<regex_epsilon>();
@@ -537,7 +537,7 @@ std::unique_ptr<regex_in_progress> concat(
     std::unique_ptr<regex_in_progress> const& a,
     std::unique_ptr<regex_in_progress> const& b)
 {
-  std::cout << "concat(" << a->print() << "," << b->print() << ")\n";
+//std::cout << "concat(" << a->print() << "," << b->print() << ")\n";
   auto& a_ref = *a;
   auto& b_ref = *b;
   if (typeid(a_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
@@ -648,14 +648,8 @@ std::string from_automaton(finite_automaton const& fa)
         std::cout << "START [" << i << "][" << j << "] UPDATE\n";
         L[i][i] = either(L[i][i], concat(L[i][k], concat(star(L[k][k]), L[k][i])));
         debug_print(i, i, L[i][i]);
-        std::cout << "BEFORE L[" << j << "][" << j << "] UPDATE\n";
-        std::cout << "L[" << j << "][" << j << "] was: " << L[j][j]->print() << '\n';
-        std::cout << "L[" << j << "][" << k << "] was: " << L[j][k]->print() << '\n';
-        std::cout << "L[" << k << "][" << k << "] was: " << L[k][k]->print() << '\n';
-        std::cout << "L[" << k << "][" << j << "] was: " << L[k][j]->print() << '\n';
         L[j][j] = either(L[j][j], concat(L[j][k], concat(star(L[k][k]), L[k][j])));
         debug_print(j, j, L[j][j]);
-        if (i==0 && j==1) std::exit(1);
         L[i][j] = either(L[i][j], concat(L[i][k], concat(star(L[k][k]), L[k][j])));
         debug_print(i, j, L[i][j]);
         L[j][i] = either(L[j][i], concat(L[j][k], concat(star(L[k][k]), L[k][i])));
