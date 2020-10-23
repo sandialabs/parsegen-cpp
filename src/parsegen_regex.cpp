@@ -446,26 +446,26 @@ class regex_concat : public regex_in_progress {
       subexpressions.push_back(other.copy());
     }
   }
-  bool starts_with(regex_concat const& other) const
+  std::size_t get_common_prefix_size(regex_concat const& other) const
   {
-    if (other.subexpressions.size() > subexpressions.size()) return false;
-    for (std::size_t i = 0; i < other.subexpressions.size(); ++i) {
-      if (!(*(subexpressions[i]) == *(other.subexpressions[i]))) {
-        return false;
-      }
+    std::size_t const max_size = other.subexpressions.size();
+    std::size_t size;
+    for (size = 0; size < max_size; ++size) {
+      if (!(*(subexpressions[size]) == *(other.subexpressions[size]))) break;
     }
-    return true;
+    return size;
   }
-  bool ends_with(regex_concat const& other) const
+  std::size_t get_common_suffix_size(regex_concat const& other) const
   {
-    if (other.subexpressions.size() > subexpressions.size()) return false;
-    std::size_t const offset = subexpressions.size() - other.subexpressions.size();
-    for (std::size_t i = 0; i < other.subexpressions.size(); ++i) {
-      if (!(*(subexpressions[offset + i]) == *(other.subexpressions[i]))) {
-        return false;
+    std::size_t const max_size = other.subexpressions.size();
+    std::size_t size;
+    for (size = 0; size < max_size; ++size) {
+      if (!(*(subexpressions[subexpressions.size() - 1 - size]) ==
+            *(other.subexpressions[other.subexpressions.size() - 1 - size]))) {
+        break;
       }
     }
-    return true;
+    return size;
   }
   bool starts_with(regex_in_progress const& other) const
   {
@@ -475,39 +475,59 @@ class regex_concat : public regex_in_progress {
   {
     return *(subexpressions[subexpressions.size() - 1]) == other;
   }
+  std::unique_ptr<regex_in_progress> get_first_n(std::size_t n) const
+  {
+    if (n == 0) {
+      return std::make_unique<regex_epsilon>();
+    } else if (n == 1) {
+      return subexpressions[0]->copy();
+    } else {
+      auto prefix_concat = std::make_unique<regex_concat>();
+      for (std::size_t i = 0; i < n; ++i) {
+        prefix_concat->add(*(subexpressions[i]));
+      }
+      return prefix_concat;
+    }
+  }
+  std::unique_ptr<regex_in_progress> get_last_n(std::size_t n) const
+  {
+    if (n == 0) {
+      return std::make_unique<regex_epsilon>();
+    } else if (n == 1) {
+      return subexpressions[subexpressions.size() - 1]->copy();
+    } else {
+      auto suffix_concat = std::make_unique<regex_concat>();
+      std::size_t const offset = subexpressions.size() - n;
+      for (std::size_t i = 0; i < n; ++i) {
+        suffix_concat->add(*(subexpressions[offset + i]));
+      }
+      return suffix_concat;
+    }
+  }
   std::unique_ptr<regex_in_progress> either_with(std::unique_ptr<regex_in_progress> const& other_ptr) const {
+    std::cout << "either({concat}" << print() << "," << other_ptr->print() << ")\n";
     auto& other = *other_ptr;
     if (typeid(other) == typeid(regex_concat)) {
       auto& other_concat = dynamic_cast<regex_concat const&>(other);
+      std::cout << "either({concat}" << print() << ",{concat}" << other_concat.print() << ")\n";
       if (other_concat.subexpressions.size() > subexpressions.size()) {
         return other_concat.either_with(this->copy());
       }
-      if (ends_with(other_concat)) {
-        std::size_t const prefix_size = subexpressions.size() - other_concat.subexpressions.size();
-        std::unique_ptr<regex_in_progress> prefix;
-        if (prefix_size == 1) {
-          prefix = subexpressions[0]->copy();
-        } else {
-          auto prefix_concat = std::make_unique<regex_concat>();
-          for (std::size_t i = 0; i < prefix_size; ++i) {
-            prefix_concat->add(*(subexpressions[i]));
-          }
-          prefix = std::move(prefix_concat);
-        }
-        return concat(either(prefix, std::make_unique<regex_epsilon>()), other_ptr);
-      } else if (starts_with(other_concat)) {
-        std::size_t const suffix_size = subexpressions.size() - other_concat.subexpressions.size();
-        std::unique_ptr<regex_in_progress> suffix;
-        if (suffix_size == 1) {
-          suffix = subexpressions[subexpressions.size() - 1]->copy();
-        } else {
-          auto suffix_concat = std::make_unique<regex_concat>();
-          for (std::size_t i = 0; i < suffix_size; ++i) {
-            suffix_concat->add(*(subexpressions[other_concat.subexpressions.size() + i]));
-          }
-          suffix = std::move(suffix_concat);
-        }
-        return concat(other_ptr, either(suffix, std::make_unique<regex_epsilon>()));
+      std::size_t const common_suffix_size = get_common_suffix_size(other_concat);
+      if (common_suffix_size > 0) {
+        std::cout << "ends with!\n";
+        auto my_prefix = get_first_n(subexpressions.size() - common_suffix_size);
+        auto other_prefix = other_concat.get_first_n(other_concat.subexpressions.size() - common_suffix_size);
+        auto suffix = get_last_n(common_suffix_size);
+        return concat(either(my_prefix, other_prefix), suffix);
+      }
+      std::size_t const common_prefix_size = get_common_prefix_size(other_concat);
+      if (common_prefix_size > 0) {
+        std::cout << "starts with!\n";
+        auto my_suffix = get_last_n(subexpressions.size() - common_prefix_size);
+        auto other_suffix = other_concat.get_last_n(other_concat.subexpressions.size() - common_prefix_size);
+        auto prefix = get_first_n(common_prefix_size);
+        return concat(prefix, either(my_suffix, other_suffix));
       } else {
         auto result = std::make_unique<regex_either>();
         result->insert(*this);
@@ -516,31 +536,13 @@ class regex_concat : public regex_in_progress {
       }
     } else {
       if (ends_with(other)) {
+        std::cout << "ends with!\n";
         std::size_t const prefix_size = subexpressions.size() - 1;
-        std::unique_ptr<regex_in_progress> prefix;
-        if (prefix_size == 1) {
-          prefix = subexpressions[0]->copy();
-        } else {
-          auto prefix_concat = std::make_unique<regex_concat>();
-          for (std::size_t i = 0; i < prefix_size; ++i) {
-            prefix_concat->add(*(subexpressions[i]));
-          }
-          prefix = std::move(prefix_concat);
-        }
-        return concat(either(prefix, std::make_unique<regex_epsilon>()), other_ptr);
+        return concat(either(this->get_first_n(prefix_size), std::make_unique<regex_epsilon>()), other_ptr);
       } else if (starts_with(other)) {
+        std::cout << "starts with!\n";
         std::size_t const suffix_size = subexpressions.size() - 1;
-        std::unique_ptr<regex_in_progress> suffix;
-        if (suffix_size == 1) {
-          suffix = subexpressions[subexpressions.size() - 1]->copy();
-        } else {
-          auto suffix_concat = std::make_unique<regex_concat>();
-          for (std::size_t i = 0; i < suffix_size; ++i) {
-            suffix_concat->add(*(subexpressions[1 + i]));
-          }
-          suffix = std::move(suffix_concat);
-        }
-        return concat(other_ptr, either(suffix, std::make_unique<regex_epsilon>()));
+        return concat(other_ptr, either(this->get_last_n(suffix_size), std::make_unique<regex_epsilon>()));
       } else {
         auto result = std::make_unique<regex_either>();
         result->insert(*this);
