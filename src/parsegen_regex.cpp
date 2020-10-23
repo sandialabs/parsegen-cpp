@@ -673,6 +673,29 @@ class regex_star : public regex_in_progress {
   {
     return false;
   }
+  std::unique_ptr<regex_in_progress> const& get_subexpression() const
+  {
+    return subexpression;
+  }
+  std::unique_ptr<regex_in_progress> concat_with(regex_in_progress const& other) const
+  {
+    if (typeid(other) == typeid(regex_star)) {
+      auto& other_star = dynamic_cast<regex_star const&>(other);
+      if (*subexpression == *(other_star.subexpression)) {
+        return copy();
+      }
+    }
+    if (typeid(other) == typeid(regex_either)) {
+      auto& other_either = dynamic_cast<regex_either const&>(other);
+      if (other_either.is_question()) {
+        auto question_subexpression = other_either.only_subexpression();
+        if (*subexpression == *question_subexpression) {
+          return std::make_unique<regex_star>(std::move(question_subexpression));
+        }
+      }
+    }
+    return nullptr;
+  }
 };
 
 std::unique_ptr<regex_in_progress> either(
@@ -739,6 +762,14 @@ std::unique_ptr<regex_in_progress> concat(
   if (typeid(b_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
   if (typeid(a_ref) == typeid(regex_epsilon)) return b->copy();
   if (typeid(b_ref) == typeid(regex_epsilon)) return a->copy();
+  if (typeid(a_ref) == typeid(regex_star)) {
+    auto result = dynamic_cast<regex_star const&>(a_ref).concat_with(b_ref);
+    if (result) return result;
+  }
+  if (typeid(b_ref) == typeid(regex_star)) {
+    auto result = dynamic_cast<regex_star const&>(b_ref).concat_with(a_ref);
+    if (result) return result;
+  }
   auto result = std::make_unique<regex_concat>(); 
   result->add(a_ref);
   result->add(b_ref);
