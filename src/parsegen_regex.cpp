@@ -299,6 +299,7 @@ class regex_in_progress {
   virtual std::string print() const = 0;
   virtual std::unique_ptr<regex_in_progress> copy() const = 0;
   virtual bool operator==(regex_in_progress const&) const = 0;
+  virtual bool needs_parentheses() const = 0;
 };
 
 std::unique_ptr<regex_in_progress> concat(
@@ -322,6 +323,10 @@ class regex_null : public regex_in_progress {
   {
     return typeid(other) == typeid(regex_null);
   }
+  virtual bool needs_parentheses() const override
+  {
+    return false;
+  }
 };
 
 class regex_epsilon : public regex_in_progress {
@@ -338,6 +343,10 @@ class regex_epsilon : public regex_in_progress {
   {
     return typeid(other) == typeid(regex_epsilon const);
   }
+  virtual bool needs_parentheses() const override
+  {
+    return true;
+  }
 };
 
 class regex_either : public regex_in_progress {
@@ -345,8 +354,8 @@ class regex_either : public regex_in_progress {
  public:
   virtual std::string print() const override
   {
-    bool has_epsilon = false;
     bool had_non_epsilon = false;
+    bool has_epsilon = false;
     std::string result;
     for (auto& se_ptr : subexpressions) {
       auto& se = *se_ptr;
@@ -358,8 +367,12 @@ class regex_either : public regex_in_progress {
         had_non_epsilon = true;
       }
     }
-    result = std::string("(") + result + ")";
-    if (has_epsilon) result += "?";
+    if (has_epsilon) {
+      if (internal_needs_parentheses()) {
+        result = std::string("(") + result + ")";
+      }
+      result += "?";
+    }
     return result;
   }
   virtual std::unique_ptr<regex_in_progress> copy() const override
@@ -406,6 +419,29 @@ class regex_either : public regex_in_progress {
     }
     return true;
   }
+  bool internal_needs_parentheses() const
+  {
+    std::size_t non_epsilon_count = 0;
+    bool single_needs_parens = false;
+    for (auto& se_ptr : subexpressions) {
+      auto& se = *se_ptr;
+      if (typeid(se) != typeid(regex_epsilon)) {
+        single_needs_parens = se.needs_parentheses();
+        ++non_epsilon_count;
+      }
+    }
+    return (non_epsilon_count > 1) || single_needs_parens;
+  }
+  virtual bool needs_parentheses() const override
+  {
+    for (auto& se_ptr : subexpressions) {
+      auto& se = *se_ptr;
+      if (typeid(se) == typeid(regex_epsilon)) {
+        return false;
+      }
+    }
+    return internal_needs_parentheses();
+  }
 };
 
 class regex_concat : public regex_in_progress {
@@ -415,7 +451,11 @@ class regex_concat : public regex_in_progress {
   {
     std::string result;
     for (std::size_t i = 0; i < subexpressions.size(); ++i) {
-      result += subexpressions[i]->print();
+      if (subexpressions[i]->needs_parentheses()) {
+        result += std::string("(") + subexpressions[i]->print() + ")";
+      } else {
+        result += subexpressions[i]->print();
+      }
     }
     return result;
   }
@@ -505,17 +545,14 @@ class regex_concat : public regex_in_progress {
     }
   }
   std::unique_ptr<regex_in_progress> either_with(std::unique_ptr<regex_in_progress> const& other_ptr) const {
-    std::cout << "either({concat}" << print() << "," << other_ptr->print() << ")\n";
     auto& other = *other_ptr;
     if (typeid(other) == typeid(regex_concat)) {
       auto& other_concat = dynamic_cast<regex_concat const&>(other);
-      std::cout << "either({concat}" << print() << ",{concat}" << other_concat.print() << ")\n";
       if (other_concat.subexpressions.size() > subexpressions.size()) {
         return other_concat.either_with(this->copy());
       }
       std::size_t const common_suffix_size = get_common_suffix_size(other_concat);
       if (common_suffix_size > 0) {
-        std::cout << "ends with!\n";
         auto my_prefix = get_first_n(subexpressions.size() - common_suffix_size);
         auto other_prefix = other_concat.get_first_n(other_concat.subexpressions.size() - common_suffix_size);
         auto suffix = get_last_n(common_suffix_size);
@@ -523,7 +560,6 @@ class regex_concat : public regex_in_progress {
       }
       std::size_t const common_prefix_size = get_common_prefix_size(other_concat);
       if (common_prefix_size > 0) {
-        std::cout << "starts with!\n";
         auto my_suffix = get_last_n(subexpressions.size() - common_prefix_size);
         auto other_suffix = other_concat.get_last_n(other_concat.subexpressions.size() - common_prefix_size);
         auto prefix = get_first_n(common_prefix_size);
@@ -536,11 +572,9 @@ class regex_concat : public regex_in_progress {
       }
     } else {
       if (ends_with(other)) {
-        std::cout << "ends with!\n";
         std::size_t const prefix_size = subexpressions.size() - 1;
         return concat(either(this->get_first_n(prefix_size), std::make_unique<regex_epsilon>()), other_ptr);
       } else if (starts_with(other)) {
-        std::cout << "starts with!\n";
         std::size_t const suffix_size = subexpressions.size() - 1;
         return concat(other_ptr, either(this->get_last_n(suffix_size), std::make_unique<regex_epsilon>()));
       } else {
@@ -550,6 +584,10 @@ class regex_concat : public regex_in_progress {
         return result;
       }
     }
+  }
+  virtual bool needs_parentheses() const override
+  {
+    return true;
   }
 };
 
@@ -585,6 +623,10 @@ class regex_charset : public regex_in_progress {
     if (typeid(other) != typeid(regex_charset)) return false;
     return dynamic_cast<regex_charset const&>(other).characters == characters;
   }
+  virtual bool needs_parentheses() const override
+  {
+    return false;
+  }
 };
 
 class regex_star : public regex_in_progress {
@@ -594,7 +636,12 @@ class regex_star : public regex_in_progress {
   explicit regex_star(std::unique_ptr<regex_in_progress>&& se_in):subexpression(std::move(se_in)) {}
   virtual std::string print() const override
   {
-    return std::string("(") + subexpression->print() + ")*";
+    std::string result = subexpression->print();
+    if (subexpression->needs_parentheses()) {
+      result = std::string("(") + result + ")";
+    }
+    result += "*";
+    return result;
   }
   virtual std::unique_ptr<regex_in_progress> copy() const override
   {
@@ -607,13 +654,16 @@ class regex_star : public regex_in_progress {
     if (typeid(other) != typeid(regex_star)) return false;
     return *(dynamic_cast<regex_star const&>(other).subexpression) == *subexpression;
   }
+  virtual bool needs_parentheses() const override
+  {
+    return false;
+  }
 };
 
 std::unique_ptr<regex_in_progress> either(
     std::unique_ptr<regex_in_progress> const& a,
     std::unique_ptr<regex_in_progress> const& b)
 {
-  std::cout << "either(" << a->print() << "," << b->print() << ")\n";
   auto& a_ref = *a;
   auto& b_ref = *b;
   if (a_ref == b_ref) return a_ref.copy();
