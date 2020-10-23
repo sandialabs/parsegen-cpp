@@ -737,19 +737,10 @@ std::unique_ptr<regex_in_progress> concat(
   https://cs.stackexchange.com/questions/2016/how-to-convert-finite-automata-to-regular-expressions
   */
 
-void debug_print(int i, int j, std::unique_ptr<regex_in_progress> const& label)
-{
-  auto& ref = *label;
-  if (typeid(ref) == typeid(regex_null)) return;
-  if (i == j && typeid(ref) == typeid(regex_epsilon)) return;
-  std::cout << "L[" << i << "][" << j << "] is now: " << ref.print() << '\n';
-}
-
 std::string from_automaton(finite_automaton const& fa)
 {
   int const nstates = get_nstates(fa);
   int const nsymbols = get_nsymbols(fa);
-  std::cout << "converting DFA with " << nstates << " states and " << nsymbols << " symbols\n";
   assert(is_deterministic(fa));
   std::vector<std::vector<std::unique_ptr<regex_in_progress>>> L(nstates + 1);
   for (int i = 0; i < (nstates + 1); ++i) {
@@ -772,16 +763,8 @@ std::string from_automaton(finite_automaton const& fa)
       L[i][nstates] = std::make_unique<regex_epsilon>();
     }
   }
-  std::cout << "START INITIAL STATE\n";
-  for (int i = 0; i < (nstates + 1); ++i) {
-    for (int j = 0; j < (nstates + 1); ++j) {
-      debug_print(i, j, L[i][j]);
-    }
-  }
-  std::cout << "END INITIAL STATE\n";
   std::vector<bool> vertex_exists(nstates + 1, true);
   for (int step = 0; step < (nstates - 1); ++step) {
-    std::cout << "removal step " << step << " out of " << (nstates - 1) << '\n';
     // pick a vertex to remove based on the weight
     // heuristic of Delgado and Morais
     int min_weight_state = -1;
@@ -811,7 +794,6 @@ std::string from_automaton(finite_automaton const& fa)
           weight += ji_ref.print().length() * (out - 1);
         }
       }
-      std::cout << "state " << i << " has weight " << weight << '\n';
       if (min_weight_state == -1 || weight < min_weight) {
         min_weight_state = i;
         min_weight = weight;
@@ -822,21 +804,15 @@ std::string from_automaton(finite_automaton const& fa)
     for (int i = 0; i < (nstates + 1); ++i) {
       for (int j = 0; j < (nstates + 1); ++j) {
         L[i][i] = either(L[i][i], concat(L[i][k], concat(star(L[k][k]), L[k][i])));
-        debug_print(i, i, L[i][i]);
         L[j][j] = either(L[j][j], concat(L[j][k], concat(star(L[k][k]), L[k][j])));
-        debug_print(j, j, L[j][j]);
         L[i][j] = either(L[i][j], concat(L[i][k], concat(star(L[k][k]), L[k][j])));
-        debug_print(i, j, L[i][j]);
         L[j][i] = either(L[j][i], concat(L[j][k], concat(star(L[k][k]), L[k][i])));
-        debug_print(j, i, L[j][i]);
       }
     }
-    std::cout << "removed vertex " << k << '\n';
     vertex_exists[k] = false;
   }
   int const f = nstates;
   int const s = 0;
-  std::cout << "label from start to final is now: " << L[s][f]->print() << '\n';
   return concat(star(L[s][s]), concat(L[s][f], star(either(concat(L[f][s], concat(star(L[s][s]), L[s][f])), L[f][f]))))->print();
 }
 
