@@ -442,6 +442,27 @@ class regex_either : public regex_in_progress {
     }
     return internal_needs_parentheses();
   }
+  bool is_question() const
+  {
+    if (subexpressions.size() != 2) return false;
+    for (auto& se_ptr : subexpressions) {
+      auto& se = *se_ptr;
+      if (typeid(se) == typeid(regex_epsilon)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  std::unique_ptr<regex_in_progress> only_subexpression() const
+  {
+    for (auto& se_ptr : subexpressions) {
+      auto& se = *se_ptr;
+      if (typeid(se) != typeid(regex_epsilon)) {
+        return se.copy();
+      }
+    }
+    return nullptr;
+  }
 };
 
 class regex_concat : public regex_in_progress {
@@ -699,6 +720,12 @@ std::unique_ptr<regex_in_progress> star(std::unique_ptr<regex_in_progress> const
   auto& a_ref = *a;
   if (typeid(a_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
   if (typeid(a_ref) == typeid(regex_epsilon)) return std::make_unique<regex_epsilon>();
+  if (typeid(a_ref) == typeid(regex_either)) {
+    auto& either_ref = dynamic_cast<regex_either const&>(a_ref);
+    if (either_ref.is_question()) {
+      return star(either_ref.only_subexpression());
+    }
+  }
   return std::make_unique<regex_star>(a_ref.copy());
 }
 
@@ -828,7 +855,7 @@ std::string from_automaton(finite_automaton const& fa)
         L[j][i] = either(L[j][i], concat(L[j][k], concat(star(L[k][k]), L[k][i])));
         debug_print(j, i, L[j][i]);
         std::cout << "END i " << i << " j " << j << " k " << k << '\n';
-        if (i == 1 && j == 0 && k == 2) std::exit(1);
+        if (i == 0 && j == 1 && k == 1) std::exit(1);
       }
     }
     std::cout << "removed vertex " << k << '\n';
