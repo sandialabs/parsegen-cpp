@@ -565,10 +565,7 @@ class regex_concat : public regex_in_progress {
         auto prefix = get_first_n(common_prefix_size);
         return concat(prefix, either(my_suffix, other_suffix));
       } else {
-        auto result = std::make_unique<regex_either>();
-        result->insert(*this);
-        result->insert(other);
-        return result;
+        return nullptr;
       }
     } else {
       if (ends_with(other)) {
@@ -578,10 +575,7 @@ class regex_concat : public regex_in_progress {
         std::size_t const suffix_size = subexpressions.size() - 1;
         return concat(other_ptr, either(this->get_last_n(suffix_size), std::make_unique<regex_epsilon>()));
       } else {
-        auto result = std::make_unique<regex_either>();
-        result->insert(*this);
-        result->insert(other);
-        return result;
+        return nullptr;
       }
     }
   }
@@ -664,6 +658,7 @@ std::unique_ptr<regex_in_progress> either(
     std::unique_ptr<regex_in_progress> const& a,
     std::unique_ptr<regex_in_progress> const& b)
 {
+  std::cout << "either(" << a->print() << "," << b->print() << ")\n";
   auto& a_ref = *a;
   auto& b_ref = *b;
   if (a_ref == b_ref) return a_ref.copy();
@@ -674,10 +669,12 @@ std::unique_ptr<regex_in_progress> either(
     return a->copy();
   }
   if (typeid(a_ref) == typeid(regex_concat)) {
-    return dynamic_cast<regex_concat const&>(a_ref).either_with(b);
+    auto result = dynamic_cast<regex_concat const&>(a_ref).either_with(b);
+    if (result) return result;
   }
   if (typeid(b_ref) == typeid(regex_concat)) {
-    return dynamic_cast<regex_concat const&>(b_ref).either_with(a);
+    auto result = dynamic_cast<regex_concat const&>(b_ref).either_with(a);
+    if (result) return result;
   }
   if (typeid(a_ref) == typeid(regex_either)) {
     return dynamic_cast<regex_either const&>(a_ref).combine_with(b_ref);
@@ -821,6 +818,7 @@ std::string from_automaton(finite_automaton const& fa)
     int const k = min_weight_state;
     for (int i = 0; i < (nstates + 1); ++i) {
       for (int j = 0; j < (nstates + 1); ++j) {
+        std::cout << "START i " << i << " j " << j << " k " << k << '\n';
         L[i][i] = either(L[i][i], concat(L[i][k], concat(star(L[k][k]), L[k][i])));
         debug_print(i, i, L[i][i]);
         L[j][j] = either(L[j][j], concat(L[j][k], concat(star(L[k][k]), L[k][j])));
@@ -829,6 +827,8 @@ std::string from_automaton(finite_automaton const& fa)
         debug_print(i, j, L[i][j]);
         L[j][i] = either(L[j][i], concat(L[j][k], concat(star(L[k][k]), L[k][i])));
         debug_print(j, i, L[j][i]);
+        std::cout << "END i " << i << " j " << j << " k " << k << '\n';
+        if (i == 1 && j == 0 && k == 2) std::exit(1);
       }
     }
     std::cout << "removed vertex " << k << '\n';
