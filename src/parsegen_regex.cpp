@@ -698,6 +698,9 @@ class regex_star : public regex_in_progress {
   }
   std::unique_ptr<regex_in_progress> either_with(regex_in_progress const& other) const
   {
+    if (typeid(other) == typeid(regex_epsilon)) {
+      return copy();
+    }
     if (typeid(other) == typeid(regex_star)) {
       regex_star const& other_star = dynamic_cast<regex_star const&>(other);
       if (*subexpression == *(other_star.subexpression)) {
