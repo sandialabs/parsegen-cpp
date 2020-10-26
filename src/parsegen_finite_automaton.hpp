@@ -36,6 +36,7 @@ struct finite_automaton {
   static finite_automaton plus(finite_automaton const& a, int token = 0);
   static finite_automaton maybe(finite_automaton const& a, int token = 0);
   static finite_automaton star(finite_automaton const& a, int token = 0);
+  static finite_automaton make_rolling(finite_automaton const& a);
   static finite_automaton make_deterministic(finite_automaton const& nfa);
   static finite_automaton simplify_once(finite_automaton const& fa);
   static finite_automaton simplify(finite_automaton const& fa);

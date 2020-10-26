@@ -243,6 +243,20 @@ finite_automaton finite_automaton::star(finite_automaton const& a, int token) {
   return maybe(plus(a, token), token);
 }
 
+finite_automaton finite_automaton::make_rolling(finite_automaton const& a) {
+  assert(get_determinism(a));
+  finite_automaton out(get_nsymbols(a), false, get_nstates(a));
+  append_states(out, a);
+  auto epsilon0 = get_epsilon0(out);
+  /* every non-accepting state epsilon-transitions back to the start state */
+  for (int i = 0; i < get_nstates(a); ++i) {
+    if (accepts(a, i) == -1) {
+      add_transition(out, i, epsilon0, 0);
+    }
+  }
+  return out;
+}
+
 using state_set = std::set<int>;
 
 static state_set step(
