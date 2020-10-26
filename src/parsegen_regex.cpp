@@ -770,6 +770,7 @@ std::unique_ptr<regex_in_progress> star(std::unique_ptr<regex_in_progress> const
   auto& a_ref = *a;
   if (typeid(a_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
   if (typeid(a_ref) == typeid(regex_epsilon)) return std::make_unique<regex_epsilon>();
+  if (typeid(a_ref) == typeid(regex_star)) return a_ref.copy();
   if (typeid(a_ref) == typeid(regex_either)) {
     auto& either_ref = dynamic_cast<regex_either const&>(a_ref);
     if (either_ref.is_question()) {
