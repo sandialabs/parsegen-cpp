@@ -116,6 +116,7 @@ void negate_acceptance(finite_automaton& fa) {
 finite_automaton add_death_state(finite_automaton const& a) {
   finite_automaton out(get_nsymbols(a), false, get_nstates(a) + 1);
   append_states(out, a);
+  add_state(out);
   for (int i = 0; i < (get_nstates(a) + 1); ++i) {
     for (int s = 0; s < get_nsymbols(a); ++s) {
       if (step(out, i, s) == -1) {
