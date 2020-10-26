@@ -600,6 +600,57 @@ class regex_concat : public regex_in_progress {
       }
     }
   }
+  std::unique_ptr<regex_in_progress> append_with(std::unique_ptr<regex_in_progress> const& other_ptr) const
+  {
+    auto& other = *other_ptr;
+    if (typeid(other) == typeid(regex_concat)) {
+      auto result = copy();
+      for (auto& se_ptr : dynamic_cast<regex_concat const&>(other).subexpressions) {
+        result = concat(result, se_ptr);
+      }
+      return result;
+    }
+    // try to combine the last term with the incoming term
+    auto all_but_last = get_first_n(subexpressions.size() - 1);
+    auto last = get_last_n(1);
+    auto combined_ptr = concat(last, other_ptr);
+    auto& combined_ref = *combined_ptr;
+    if (typeid(combined_ref) == typeid(regex_concat)) {
+      // it failed to combine into anything
+      auto result = std::make_unique<regex_concat>();
+      result->add(*all_but_last);
+      result->add(combined_ref);
+      return result;
+    } else {
+      return concat(all_but_last, combined_ptr);
+    }
+  }
+  std::unique_ptr<regex_in_progress> prepend_with(std::unique_ptr<regex_in_progress> const& other_ptr) const
+  {
+    auto& other = *other_ptr;
+    if (typeid(other) == typeid(regex_concat)) {
+      auto result = copy();
+      auto& ses = dynamic_cast<regex_concat const&>(other).subexpressions;
+      for (std::size_t i = 0; i < ses.size(); ++i) {
+        result = concat(ses[ses.size() - 1 - i], result);
+      }
+      return result;
+    }
+    // try to combine the last term with the incoming term
+    auto all_but_first = get_last_n(subexpressions.size() - 1);
+    auto first = get_first_n(1);
+    auto combined_ptr = concat(other_ptr, first);
+    auto& combined_ref = *combined_ptr;
+    if (typeid(combined_ref) == typeid(regex_concat)) {
+      // it failed to combine into anything
+      auto result = std::make_unique<regex_concat>();
+      result->add(combined_ref);
+      result->add(*all_but_first);
+      return result;
+    } else {
+      return concat(combined_ptr, all_but_first);
+    }
+  }
   virtual bool needs_parentheses() const override
   {
     return true;
@@ -787,6 +838,7 @@ std::unique_ptr<regex_in_progress> concat(
     std::unique_ptr<regex_in_progress> const& a,
     std::unique_ptr<regex_in_progress> const& b)
 {
+  std::cout << "concat(" << a->print() << "," << b->print() << ")\n";
   auto& a_ref = *a;
   auto& b_ref = *b;
   if (typeid(a_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
@@ -800,6 +852,12 @@ std::unique_ptr<regex_in_progress> concat(
   if (typeid(b_ref) == typeid(regex_star)) {
     auto result = dynamic_cast<regex_star const&>(b_ref).concat_with(a_ref);
     if (result) return result;
+  }
+  if (typeid(a_ref) == typeid(regex_concat)) {
+    return dynamic_cast<regex_concat const&>(a_ref).append_with(b);
+  }
+  if (typeid(b_ref) == typeid(regex_concat)) {
+    return dynamic_cast<regex_concat const&>(b_ref).prepend_with(a);
   }
   auto result = std::make_unique<regex_concat>(); 
   result->add(a_ref);
@@ -829,6 +887,14 @@ void debug_print(int i, int j, std::unique_ptr<regex_in_progress> const& label)
   if (typeid(ref) == typeid(regex_null)) return;
   if (i == j && typeid(ref) == typeid(regex_epsilon)) return;
   std::cout << "L[" << i << "][" << j << "] is now: " << ref.print() << '\n';
+}
+
+void update_path(int i, int j, int k, std::vector<std::vector<std::unique_ptr<regex_in_progress>>>& L)
+{
+  std::cout << "path update either(" << L[i][j]->print() << ",concat(" << L[i][k]->print() << ",concat(star("
+    << L[k][k]->print() << ")," << L[k][j]->print() << ")))\n";
+  L[i][j] = either(L[i][j], concat(L[i][k], concat(star(L[k][k]), L[k][j])));
+  debug_print(i, j, L[i][j]);
 }
 
 std::string from_automaton(finite_automaton const& fa)
@@ -906,18 +972,16 @@ std::string from_automaton(finite_automaton const& fa)
     // remove the vertex k
     int const k = min_weight_state;
     for (int i = 0; i < (nstates + 1); ++i) {
+      if (!vertex_exists[i]) continue;
       for (int j = 0; j < (nstates + 1); ++j) {
+        if (!vertex_exists[j]) continue;
         std::cout << "START i " << i << " j " << j << " k " << k << '\n';
-        L[i][i] = either(L[i][i], concat(L[i][k], concat(star(L[k][k]), L[k][i])));
-        debug_print(i, i, L[i][i]);
-        L[j][j] = either(L[j][j], concat(L[j][k], concat(star(L[k][k]), L[k][j])));
-        debug_print(j, j, L[j][j]);
-        L[i][j] = either(L[i][j], concat(L[i][k], concat(star(L[k][k]), L[k][j])));
-        debug_print(i, j, L[i][j]);
-        L[j][i] = either(L[j][i], concat(L[j][k], concat(star(L[k][k]), L[k][i])));
-        debug_print(j, i, L[j][i]);
+        update_path(i, i, k, L);
+        update_path(j, j, k, L);
+        update_path(i, j, k, L);
+        update_path(j, i, k, L);
         std::cout << "END i " << i << " j " << j << " k " << k << '\n';
-        if (i == 0 && j == 1 && k == 1) std::exit(1);
+//      if (i == 0 && j == 1 && k == 1) std::exit(1);
       }
     }
     std::cout << "removed vertex " << k << '\n';
