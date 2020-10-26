@@ -390,7 +390,7 @@ class regex_either : public regex_in_progress {
     }
     subexpressions.push_back(other.copy());
   }
-  [[nodiscard]] std::unique_ptr<regex_either> combine_with(regex_in_progress const& other) const
+  [[nodiscard]] std::unique_ptr<regex_either> either_with(regex_in_progress const& other) const
   {
     auto result = std::make_unique<regex_either>();
     for (auto& se : subexpressions) {
@@ -622,7 +622,7 @@ class regex_charset : public regex_in_progress {
   {
     return std::make_unique<regex_charset>(*this);
   }
-  std::unique_ptr<regex_charset> combine_with(regex_charset const& other) const
+  std::unique_ptr<regex_charset> either_with(regex_charset const& other) const
   {
     auto result = std::make_unique<regex_charset>();
     for (auto c : characters) {
@@ -696,6 +696,25 @@ class regex_star : public regex_in_progress {
     }
     return nullptr;
   }
+  std::unique_ptr<regex_in_progress> either_with(regex_in_progress const& other) const
+  {
+    if (typeid(other) == typeid(regex_star)) {
+      regex_star const& other_star = dynamic_cast<regex_star const&>(other);
+      if (*subexpression == *(other_star.subexpression)) {
+        return copy();
+      }
+    }
+    if (typeid(other) == typeid(regex_either)) {
+      regex_either const& other_either = dynamic_cast<regex_either const&>(other);
+      if (other_either.is_question()) {
+        auto se_ptr = other_either.only_subexpression();
+        if (*se_ptr == *subexpression) {
+          return copy();
+        }
+      }
+    }
+    return nullptr;
+  }
 };
 
 std::unique_ptr<regex_in_progress> either(
@@ -712,6 +731,14 @@ std::unique_ptr<regex_in_progress> either(
   if (typeid(b_ref) == typeid(regex_null)) {
     return a->copy();
   }
+  if (typeid(a_ref) == typeid(regex_star)) {
+    auto result = dynamic_cast<regex_star const&>(a_ref).either_with(b_ref);
+    if (result) return result;
+  }
+  if (typeid(b_ref) == typeid(regex_star)) {
+    auto result = dynamic_cast<regex_star const&>(b_ref).either_with(a_ref);
+    if (result) return result;
+  }
   if (typeid(a_ref) == typeid(regex_concat)) {
     auto result = dynamic_cast<regex_concat const&>(a_ref).either_with(b);
     if (result) return result;
@@ -721,13 +748,13 @@ std::unique_ptr<regex_in_progress> either(
     if (result) return result;
   }
   if (typeid(a_ref) == typeid(regex_either)) {
-    return dynamic_cast<regex_either const&>(a_ref).combine_with(b_ref);
+    return dynamic_cast<regex_either const&>(a_ref).either_with(b_ref);
   }
   if (typeid(b_ref) == typeid(regex_either)) {
-    return dynamic_cast<regex_either const&>(b_ref).combine_with(a_ref);
+    return dynamic_cast<regex_either const&>(b_ref).either_with(a_ref);
   }
   if ((typeid(a_ref) == typeid(regex_charset)) && (typeid(b_ref) == typeid(regex_charset))) {
-    return dynamic_cast<regex_charset const&>(a_ref).combine_with(dynamic_cast<regex_charset const&>(b_ref));
+    return dynamic_cast<regex_charset const&>(a_ref).either_with(dynamic_cast<regex_charset const&>(b_ref));
   }
   if ((typeid(a_ref) == typeid(regex_epsilon)) && (typeid(b_ref) == typeid(regex_epsilon))) {
     return std::make_unique<regex_epsilon>();
