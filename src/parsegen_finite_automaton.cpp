@@ -249,10 +249,22 @@ finite_automaton finite_automaton::make_rolling(finite_automaton const& a) {
   finite_automaton out(get_nsymbols(a), false, get_nstates(a));
   append_states(out, a);
   auto epsilon0 = get_epsilon0(out);
-  /* every non-accepting state epsilon-transitions back to the start state */
+  for (int i = 1; i < get_nstates(a); ++i) {
+    add_transition(out, i, epsilon0, 0);
+  }
+  return out;
+}
+
+finite_automaton remove_transitions_from_accepting(finite_automaton const& a) {
+  assert(get_determinism(a));
+  finite_automaton out(get_nsymbols(a), false, get_nstates(a));
+  append_states(out, a);
   for (int i = 0; i < get_nstates(a); ++i) {
-    if (accepts(a, i) == -1) {
-      add_transition(out, i, epsilon0, 0);
+    if (accepts(out, i) == -1) continue;
+    for (int s = 0; s < get_nsymbols(a); ++s) {
+      if (step(out, i, s) != -1) {
+        add_transition(out, i, s, -1);
+      }
     }
   }
   return out;
@@ -325,9 +337,9 @@ finite_automaton finite_automaton::make_deterministic(
     auto& ss = *at(ssupv, front);
     ++front;
     for (int symbol = 0; symbol < get_nsymbols(nfa); ++symbol) {
-      auto next_ss = parsegen::step(ss, symbol, nfa);
-      if (next_ss.empty()) continue;
-      next_ss = get_epsilon_closure(next_ss, nfa);
+      auto unclosed_next_ss = parsegen::step(ss, symbol, nfa);
+      if (unclosed_next_ss.empty()) continue;
+      auto next_ss = get_epsilon_closure(unclosed_next_ss, nfa);
       int next_state;
       auto it = ssp2s.find(&next_ss);
       if (it == ssp2s.end()) {
