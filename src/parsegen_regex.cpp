@@ -357,6 +357,10 @@ class regex_charset : public regex_in_progress {
   {
     characters.insert(c);
   }
+  explicit regex_charset(std::set<char> const& s)
+  {
+    characters = s;
+  }
   virtual std::string print() const override
   {
     return from_charset(characters);
@@ -998,6 +1002,20 @@ std::string from_automaton(finite_automaton const& fa)
   int const f = nstates;
   int const s = 0;
   return concat(star(L[s][s]), concat(L[s][f], star(either(concat(L[f][s], concat(star(L[s][s]), L[s][f])), L[f][f]))))->print();
+}
+
+std::string for_first_occurrence_of(std::string const& s)
+{
+  std::unique_ptr<regex_in_progress> ends_with_regex;
+  std::set<char> cs;
+  cs.insert(s[0]);
+  ends_with_regex = std::make_unique<regex_charset>(negate_set(cs));
+  ends_with_regex = concat(star(ends_with_regex), std::make_unique<regex_charset>(cs));
+  for (std::size_t i = 1; i < s.size(); ++i) {
+    ends_with_regex = concat(ends_with_regex, star(ends_with_regex));
+    ends_with_regex = concat(ends_with_regex, std::make_unique<regex_charset>(s[i]));
+  }
+  return ends_with_regex->print();
 }
 
 }  // end namespace regex

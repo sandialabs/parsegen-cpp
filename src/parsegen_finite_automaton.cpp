@@ -527,8 +527,9 @@ std::ostream& operator<<(std::ostream& os, finite_automaton const& fa) {
   for (int state = 0; state < get_nstates(fa); ++state) {
     for (int symbol = 0; symbol < get_nsymbols(fa); ++symbol) {
       auto next_state = step(fa, state, symbol);
-      if (next_state != -1)
-        os << "(" << state << ", " << symbol << ") -> " << next_state << '\n';
+      if (next_state != -1) {
+        os << "(" << state << ", " << get_char(symbol) << ") -> " << next_state << '\n';
+      }
     }
     if (!get_determinism(fa)) {
       for (int symbol = get_epsilon0(fa); symbol <= get_epsilon1(fa);
@@ -557,6 +558,19 @@ bool accepts(
     if (state == -1) return false;
   }
   return accepts(fa, state) == token;
+}
+
+finite_automaton for_string_ending_with(std::string const& s)
+{
+  finite_automaton result;
+  std::set<char> cs;
+  cs.insert(s[0]);
+  result = make_char_set_nfa(negate_set(cs));
+  result = finite_automaton::concat(finite_automaton::star(result), make_char_set_nfa(cs));
+  for (std::size_t i = 1; i < s.size(); ++i) {
+    result = finite_automaton::concat(finite_automaton::plus(result), make_char_single_nfa(s[i]));
+  }
+  return finite_automaton::simplify(finite_automaton::make_deterministic(result));
 }
 
 }  // end namespace parsegen

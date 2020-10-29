@@ -60,7 +60,8 @@ void negate_acceptance(finite_automaton& fa);
 finite_automaton add_death_state(finite_automaton const& a);
 finite_automaton remove_transitions_from_accepting(finite_automaton const& a);
 
-finite_automaton make_char_nfa(bool is_deterministic_init, int nstates_reserve);
+finite_automaton make_char_nfa(
+    bool is_deterministic_init, int nstates_reserve);
 void add_char_transition(
     finite_automaton& fa, int from_state, char at_char, int to_state);
 bool is_symbol(char c);
@@ -70,12 +71,15 @@ finite_automaton make_char_set_nfa(
     std::set<char> const& accepted, int token = 0);
 finite_automaton make_char_range_nfa(
     char range_start, char range_end, int token = 0);
-finite_automaton make_char_single_nfa(char symbol_char, int token = 0);
+finite_automaton make_char_single_nfa(
+    char symbol_char, int token = 0);
 std::set<char> negate_set(std::set<char> const& s);
 
 std::ostream& operator<<(std::ostream& os, finite_automaton const& fa);
 bool accepts(
     finite_automaton const& fa, std::string const& s, int token = 0);
+
+finite_automaton for_string_ending_with(std::string const& s);
 
 }  // namespace parsegen
 
