@@ -545,4 +545,18 @@ std::ostream& operator<<(std::ostream& os, finite_automaton const& fa) {
   return os;
 }
 
+bool accepts(
+    finite_automaton const& fa, std::string const& s, int token) {
+  int state = 0;
+  for (auto c : s) {
+    if (!is_symbol(c)) {
+      return false;
+    }
+    auto symbol = get_symbol(c);
+    state = step(fa, state, symbol);
+    if (state == -1) return false;
+  }
+  return accepts(fa, state) == token;
+}
+
 }  // end namespace parsegen

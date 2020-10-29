@@ -74,6 +74,8 @@ finite_automaton make_char_single_nfa(char symbol_char, int token = 0);
 std::set<char> negate_set(std::set<char> const& s);
 
 std::ostream& operator<<(std::ostream& os, finite_automaton const& fa);
+bool accepts(
+    finite_automaton const& fa, std::string const& s, int token = 0);
 
 }  // namespace parsegen
 
