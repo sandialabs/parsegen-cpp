@@ -568,7 +568,7 @@ bool accepts(
   return accepts(fa, state) == token;
 }
 
-finite_automaton for_string_ending_with(std::string const& s)
+finite_automaton finite_automaton::for_string_ending_with(std::string const& s)
 {
   finite_automaton result;
   std::set<char> cs;
