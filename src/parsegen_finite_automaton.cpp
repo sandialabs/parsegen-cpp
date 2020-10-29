@@ -518,6 +518,14 @@ std::set<char> negate_set(std::set<char> const& s) {
   return out;
 }
 
+std::string escape_char(char c)
+{
+  if (c == '\t') return "\\t";
+  if (c == '\n') return "\\n";
+  if (c == '\r') return "\\r";
+  return std::string(1, c);
+}
+
 std::ostream& operator<<(std::ostream& os, finite_automaton const& fa) {
   if (get_determinism(fa))
     os << "dfa ";
@@ -528,7 +536,7 @@ std::ostream& operator<<(std::ostream& os, finite_automaton const& fa) {
     for (int symbol = 0; symbol < get_nsymbols(fa); ++symbol) {
       auto next_state = step(fa, state, symbol);
       if (next_state != -1) {
-        os << "(" << state << ", " << get_char(symbol) << ") -> " << next_state << '\n';
+        os << "(" << state << ", " << escape_char(get_char(symbol)) << ") -> " << next_state << '\n';
       }
     }
     if (!get_determinism(fa)) {
