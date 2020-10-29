@@ -333,7 +333,7 @@ class regex_epsilon : public regex_in_progress {
  public:
   virtual std::string print() const override
   {
-    return "";
+    return "epsilon";
   }
   virtual std::unique_ptr<regex_in_progress> copy() const override
   {
@@ -346,6 +346,44 @@ class regex_epsilon : public regex_in_progress {
   virtual bool needs_parentheses() const override
   {
     return true;
+  }
+};
+
+class regex_charset : public regex_in_progress {
+  std::set<char> characters;
+ public:
+  regex_charset() = default;
+  explicit regex_charset(char c)
+  {
+    characters.insert(c);
+  }
+  virtual std::string print() const override
+  {
+    return from_charset(characters);
+  }
+  virtual std::unique_ptr<regex_in_progress> copy() const override
+  {
+    return std::make_unique<regex_charset>(*this);
+  }
+  std::unique_ptr<regex_charset> either_with(regex_charset const& other) const
+  {
+    auto result = std::make_unique<regex_charset>();
+    for (auto c : characters) {
+      result->characters.insert(c);
+    }
+    for (auto c : other.characters) {
+      result->characters.insert(c);
+    }
+    return result;
+  }
+  virtual bool operator==(regex_in_progress const& other) const override
+  {
+    if (typeid(other) != typeid(regex_charset)) return false;
+    return dynamic_cast<regex_charset const&>(other).characters == characters;
+  }
+  virtual bool needs_parentheses() const override
+  {
+    return false;
   }
 };
 
@@ -390,17 +428,37 @@ class regex_either : public regex_in_progress {
     }
     subexpressions.push_back(other.copy());
   }
-  [[nodiscard]] std::unique_ptr<regex_either> either_with(regex_in_progress const& other) const
+  void insert(std::unique_ptr<regex_in_progress> const& other)
   {
-    auto result = std::make_unique<regex_either>();
-    for (auto& se : subexpressions) {
-      result->insert(*se);
+    for (auto& existing : subexpressions) {
+      if (*existing == *other) return;
     }
-    if (typeid(other) == typeid(regex_either const)) {
-      for (auto& se : dynamic_cast<regex_either const&>(other).subexpressions) {
-        result->insert(*se);
+    subexpressions.push_back(other->copy());
+  }
+  [[nodiscard]] std::unique_ptr<regex_in_progress> either_with(std::unique_ptr<regex_in_progress> const& other) const
+  {
+    auto& other_ref = *other;
+    if (typeid(other) == typeid(regex_either)) {
+      auto& other_either = dynamic_cast<regex_either const&>(other_ref);
+      std::unique_ptr<regex_in_progress> result = copy();
+      for (auto& other_se : other_either.subexpressions) {
+        result = either(result, other_se);
       }
-    } else {
+      return result;
+    }
+    auto result = std::make_unique<regex_either>();
+    bool did_combine = false;
+    for (auto& se : subexpressions) {
+      auto combined_ptr = either(se, other);
+      auto& combined_ref = *combined_ptr;
+      if (typeid(combined_ref) != typeid(regex_either)) {
+        result->insert(combined_ptr);
+        did_combine = true;
+      } else {
+        result->insert(se);
+      }
+    }
+    if (!did_combine) {
       result->insert(other);
     }
     return result;
@@ -442,9 +500,8 @@ class regex_either : public regex_in_progress {
     }
     return internal_needs_parentheses();
   }
-  bool is_question() const
+  bool has_epsilon() const
   {
-    if (subexpressions.size() != 2) return false;
     for (auto& se_ptr : subexpressions) {
       auto& se = *se_ptr;
       if (typeid(se) == typeid(regex_epsilon)) {
@@ -452,6 +509,10 @@ class regex_either : public regex_in_progress {
       }
     }
     return false;
+  }
+  bool is_question() const {
+    if (subexpressions.size() != 2) return false;
+    return has_epsilon();
   }
   std::unique_ptr<regex_in_progress> only_subexpression() const
   {
@@ -462,6 +523,18 @@ class regex_either : public regex_in_progress {
       }
     }
     return nullptr;
+  }
+  std::unique_ptr<regex_in_progress> remove_epsilon() const
+  {
+    if (subexpressions.size() == 2) return only_subexpression();
+    auto result = std::make_unique<regex_either>();
+    for (auto& se_ptr : subexpressions) {
+      auto& se = *se_ptr;
+      if (typeid(se) != typeid(regex_epsilon)) {
+        result->insert(se);
+      }
+    }
+    return result;
   }
 };
 
@@ -657,44 +730,6 @@ class regex_concat : public regex_in_progress {
   }
 };
 
-class regex_charset : public regex_in_progress {
-  std::set<char> characters;
- public:
-  regex_charset() = default;
-  explicit regex_charset(char c)
-  {
-    characters.insert(c);
-  }
-  virtual std::string print() const override
-  {
-    return from_charset(characters);
-  }
-  virtual std::unique_ptr<regex_in_progress> copy() const override
-  {
-    return std::make_unique<regex_charset>(*this);
-  }
-  std::unique_ptr<regex_charset> either_with(regex_charset const& other) const
-  {
-    auto result = std::make_unique<regex_charset>();
-    for (auto c : characters) {
-      result->characters.insert(c);
-    }
-    for (auto c : other.characters) {
-      result->characters.insert(c);
-    }
-    return result;
-  }
-  virtual bool operator==(regex_in_progress const& other) const override
-  {
-    if (typeid(other) != typeid(regex_charset)) return false;
-    return dynamic_cast<regex_charset const&>(other).characters == characters;
-  }
-  virtual bool needs_parentheses() const override
-  {
-    return false;
-  }
-};
-
 class regex_star : public regex_in_progress {
   std::unique_ptr<regex_in_progress> subexpression;
  public:
@@ -775,7 +810,7 @@ std::unique_ptr<regex_in_progress> either(
     std::unique_ptr<regex_in_progress> const& a,
     std::unique_ptr<regex_in_progress> const& b)
 {
-  std::cout << "either(" << a->print() << "," << b->print() << ")\n";
+//std::cout << "either(" << a->print() << "," << b->print() << ")\n";
   auto& a_ref = *a;
   auto& b_ref = *b;
   if (a_ref == b_ref) return a_ref.copy();
@@ -802,10 +837,10 @@ std::unique_ptr<regex_in_progress> either(
     if (result) return result;
   }
   if (typeid(a_ref) == typeid(regex_either)) {
-    return dynamic_cast<regex_either const&>(a_ref).either_with(b_ref);
+    return dynamic_cast<regex_either const&>(a_ref).either_with(b);
   }
   if (typeid(b_ref) == typeid(regex_either)) {
-    return dynamic_cast<regex_either const&>(b_ref).either_with(a_ref);
+    return dynamic_cast<regex_either const&>(b_ref).either_with(a);
   }
   if ((typeid(a_ref) == typeid(regex_charset)) && (typeid(b_ref) == typeid(regex_charset))) {
     return dynamic_cast<regex_charset const&>(a_ref).either_with(dynamic_cast<regex_charset const&>(b_ref));
@@ -821,14 +856,15 @@ std::unique_ptr<regex_in_progress> either(
 
 std::unique_ptr<regex_in_progress> star(std::unique_ptr<regex_in_progress> const& a)
 {
+  std::cout << "star(" << a->print() << ")\n";
   auto& a_ref = *a;
   if (typeid(a_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
   if (typeid(a_ref) == typeid(regex_epsilon)) return std::make_unique<regex_epsilon>();
   if (typeid(a_ref) == typeid(regex_star)) return a_ref.copy();
   if (typeid(a_ref) == typeid(regex_either)) {
     auto& either_ref = dynamic_cast<regex_either const&>(a_ref);
-    if (either_ref.is_question()) {
-      return star(either_ref.only_subexpression());
+    if (either_ref.has_epsilon()) {
+      return star(either_ref.remove_epsilon());
     }
   }
   return std::make_unique<regex_star>(a_ref.copy());
@@ -838,7 +874,7 @@ std::unique_ptr<regex_in_progress> concat(
     std::unique_ptr<regex_in_progress> const& a,
     std::unique_ptr<regex_in_progress> const& b)
 {
-  std::cout << "concat(" << a->print() << "," << b->print() << ")\n";
+//std::cout << "concat(" << a->print() << "," << b->print() << ")\n";
   auto& a_ref = *a;
   auto& b_ref = *b;
   if (typeid(a_ref) == typeid(regex_null)) return std::make_unique<regex_null>();
@@ -970,7 +1006,10 @@ std::string from_automaton(finite_automaton const& fa)
       }
     }
     // remove the vertex k
-    int const k = min_weight_state;
+    int k = min_weight_state;
+    if (step == 0) k = 2;
+    if (step == 1) k = 1;
+    if (step == 2) k = 3;
     for (int i = 0; i < (nstates + 1); ++i) {
       if (!vertex_exists[i]) continue;
       for (int j = 0; j < (nstates + 1); ++j) {
@@ -990,7 +1029,9 @@ std::string from_automaton(finite_automaton const& fa)
   int const f = nstates;
   int const s = 0;
   std::cout << "label from start to final is now: " << L[s][f]->print() << '\n';
-  return concat(star(L[s][s]), concat(L[s][f], star(either(concat(L[f][s], concat(star(L[s][s]), L[s][f])), L[f][f]))))->print();
+  auto star_Lss = star(L[s][s]);
+  std::cout << "after star_Lss: " << star_Lss->print() << '\n';
+  return concat(star_Lss, concat(L[s][f], star(either(concat(L[f][s], concat(star(L[s][s]), L[s][f])), L[f][f]))))->print();
 }
 
 }  // end namespace regex
