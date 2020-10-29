@@ -40,7 +40,6 @@ struct finite_automaton {
   static finite_automaton make_deterministic(finite_automaton const& nfa);
   static finite_automaton simplify_once(finite_automaton const& fa);
   static finite_automaton simplify(finite_automaton const& fa);
-  static finite_automaton for_string_ending_with(std::string const& s);
 };
 
 int get_nstates(finite_automaton const& fa);

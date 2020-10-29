@@ -1006,7 +1006,7 @@ std::string from_automaton(finite_automaton const& fa)
 
 std::string for_first_occurrence_of(std::string const& s)
 {
-  auto fa = parsegen::finite_automaton::for_string_ending_with(s);
+  auto fa = parsegen::regex::build_dfa("ends-with", std::string(".*") + s, 0);
   fa = parsegen::remove_transitions_from_accepting(fa);
   return parsegen::regex::from_automaton(fa);
 }

@@ -568,17 +568,4 @@ bool accepts(
   return accepts(fa, state) == token;
 }
 
-finite_automaton finite_automaton::for_string_ending_with(std::string const& s)
-{
-  finite_automaton result;
-  std::set<char> cs;
-  cs.insert(s[0]);
-  result = make_char_set_nfa(negate_set(cs));
-  result = finite_automaton::concat(finite_automaton::star(result), make_char_set_nfa(cs));
-  for (std::size_t i = 1; i < s.size(); ++i) {
-    result = finite_automaton::concat(finite_automaton::plus(result), make_char_single_nfa(s[i]));
-  }
-  return finite_automaton::simplify(finite_automaton::make_deterministic(result));
-}
-
 }  // end namespace parsegen
