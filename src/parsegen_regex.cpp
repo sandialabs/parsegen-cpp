@@ -1007,11 +1007,11 @@ std::string from_automaton(finite_automaton const& fa)
     }
     // remove the vertex k
     int k = min_weight_state;
-    if (step == (nstates - 2)) {
-      k = nstates - 1;
-    } else {
-      k = nstates - 2 - step;
-    }
+//  if (step == (nstates - 2)) {
+//    k = nstates - 1;
+//  } else {
+//    k = nstates - 2 - step;
+//  }
     for (int i = 0; i < (nstates + 1); ++i) {
       if (!vertex_exists[i]) continue;
       for (int j = 0; j < (nstates + 1); ++j) {
