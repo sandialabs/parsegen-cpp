@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <cctype>
 
 #include "parsegen_build_parser.hpp"
 #include "parsegen_chartab.hpp"
@@ -1009,6 +1010,27 @@ std::string for_first_occurrence_of(std::string const& s)
   auto fa = parsegen::regex::build_dfa("ends-with", std::string(".*") + s, 0);
   fa = parsegen::remove_transitions_from_accepting(fa);
   return parsegen::regex::from_automaton(fa);
+}
+
+std::string for_case_insensitive(std::string const& s)
+{
+  std::string result;
+  for (auto c : s) {
+    if (std::islower(c)) {
+      result += '[';
+      result += c;
+      result += char(std::toupper(c));
+      result += ']';
+    } else if (std::isupper(c)) {
+      result += '[';
+      result += char(std::tolower(c));
+      result += c;
+      result += ']';
+    } else {
+      result += c;
+    }
+  }
+  return result;
 }
 
 }  // end namespace regex

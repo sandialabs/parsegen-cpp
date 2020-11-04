@@ -84,6 +84,7 @@ std::string from_charset(std::set<char> const& s);
 std::string from_automaton(finite_automaton const& fa);
 
 std::string for_first_occurrence_of(std::string const& s);
+std::string for_case_insensitive(std::string const& s);
 
 }  // end namespace regex
 }  // end namespace parsegen
