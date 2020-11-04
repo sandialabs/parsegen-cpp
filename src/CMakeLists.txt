@@ -28,21 +28,17 @@ add_library(parsegen
   parsegen_yaml.cpp
   )
 
-set_property(TARGET parsegen PROPERTY CXX_STANDARD "17")
-set_property(TARGET parsegen PROPERTY CXX_STANDARD_REQUIRED ON)
-set_property(TARGET parsegen PROPERTY CXX_EXTENSIONS OFF)
+target_compile_features(parsegen PUBLIC cxx_std_17)
 set_target_properties(parsegen PROPERTIES
   PUBLIC_HEADER "${PARSEGEN_HEADERS}")
 target_include_directories(parsegen
-    INTERFACE $<INSTALL_INTERFACE:include>)
+  INTERFACE $<INSTALL_INTERFACE:include>)
 
 add_executable(parsegen-calc
   parsegen_calc.cpp
   )
 
-set_property(TARGET parsegen-calc PROPERTY CXX_STANDARD "17")
-set_property(TARGET parsegen-calc PROPERTY CXX_STANDARD_REQUIRED ON)
-set_property(TARGET parsegen-calc PROPERTY CXX_EXTENSIONS OFF)
+target_compile_features(parsegen-calc PUBLIC cxx_std_17)
 
 target_link_libraries(parsegen-calc parsegen)
 
