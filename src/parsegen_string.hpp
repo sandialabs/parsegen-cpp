@@ -22,6 +22,8 @@ inline typename std::string::const_reference at(std::string const& s, int i) {
   return s[std::size_t(i)];
 }
 
+std::string escape_for_c_string(std::string const& s);
+
 }  // namespace parsegen
 
 #endif

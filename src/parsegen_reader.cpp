@@ -338,26 +338,11 @@ std::any reader::at_reduce(int, std::vector<std::any>&) { return std::any(); }
 debug_reader::debug_reader(reader_tables_ptr tables_in, std::ostream& os_in)
     : reader(tables_in), os(os_in) {}
 
-    std::any debug_reader::at_shift(int token, std::string& text) {
-  std::string text_escaped;
-  for (auto c : text) {
-    switch (c) {
-      case '\n':
-        text_escaped.append("\\n");
-        break;
-      case '\t':
-        text_escaped.append("\\t");
-        break;
-      case '\r':
-        text_escaped.append("\\r");
-        break;
-      default:
-        text_escaped.push_back(c);
-    }
-  }
-  os << "SHIFT (" << at(grammar->symbol_names, token) << ")[" << text_escaped
-     << "]\n";
-  return std::any(std::move(text_escaped));
+std::any debug_reader::at_shift(int token, std::string& text) {
+  auto escaped_text = escape_for_c_string(text);
+  os << "SHIFT (" << at(grammar->symbol_names, token) << ")["
+    << escaped_text << "]\n";
+  return escaped_text;
 }
 
 std::any debug_reader::at_reduce(int prod_i, std::vector<std::any>& rhs) {

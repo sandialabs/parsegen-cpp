@@ -15,6 +15,7 @@ set(PARSEGEN_HEADERS
 
 add_library(parsegen
   parsegen_chartab.cpp
+  parsegen_string.cpp
   parsegen_build_parser.cpp
   parsegen_finite_automaton.cpp
   parsegen_grammar.cpp

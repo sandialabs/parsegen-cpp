@@ -8,6 +8,7 @@
 #include "parsegen_build_parser.hpp"
 #include "parsegen_regex.hpp"
 #include "parsegen_std_vector.hpp"
+#include "parsegen_string.hpp"
 
 namespace parsegen {
 
@@ -58,7 +59,8 @@ grammar_ptr build_grammar(language const& language) {
 
 std::ostream& operator<<(std::ostream& os, language const& lang) {
   for (auto& token : lang.tokens) {
-    os << "token " << token.name << " regex \'" << token.regex << "\'\n";
+    os << "token " << token.name << " regex \'"
+      << escape_for_c_string(token.regex) << "\'\n";
   }
   std::set<std::string> nonterminal_set;
   std::vector<std::string> nonterminal_list;
