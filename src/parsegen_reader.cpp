@@ -96,7 +96,7 @@ void reader::at_token(std::istream& stream) {
       try {
         reduce_result =
             this->at_reduce(parser_action.production, reduction_rhs);
-      } catch (const parse_error& e) {
+      } catch (const std::exception& e) {
         std::stringstream ss;
         ss << "error: parser failure at line " << line;
         ss << " column " << column << " of " << stream_name << '\n';
