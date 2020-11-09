@@ -420,14 +420,11 @@ finite_automaton finite_automaton::simplify(finite_automaton const& fa) {
   finite_automaton out = fa;
   int nstates_new = get_nstates(fa);
   int nstates;
-  int i = 0;
   do {
     nstates = nstates_new;
     out = finite_automaton::simplify_once(out);
-    ++i;
     nstates_new = get_nstates(out);
   } while (nstates_new < nstates);
-  if (i > 2) std::cerr << "simplify() actually took multiple steps!\n";
   return out;
 }
 
