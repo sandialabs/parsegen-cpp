@@ -2,6 +2,7 @@
 #define PARSEGEN_STRING_HPP
 
 #include <string>
+#include <cassert>
 
 namespace parsegen {
 
