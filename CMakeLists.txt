@@ -12,6 +12,8 @@ else()
   set(INSTALL_LIB_DIR "lib")
 endif()
 
+option(ParseGen_WORKAROUND_GCC_FILESYSTEM "link to stdc++fs" OFF)
+
 add_subdirectory(src)
 
 configure_file(ParseGenConfig.cmake.in

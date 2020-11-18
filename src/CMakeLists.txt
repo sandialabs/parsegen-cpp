@@ -35,6 +35,10 @@ set_target_properties(parsegen PROPERTIES
 target_include_directories(parsegen
   INTERFACE $<INSTALL_INTERFACE:include>)
 
+if (ParseGen_WORKAROUND_GCC_FILESYSTEM)
+  target_link_libraries(parsegen stdc++fs)
+endif()
+
 add_executable(parsegen-calc
   parsegen_calc.cpp
   )
