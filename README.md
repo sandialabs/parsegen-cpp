@@ -67,7 +67,7 @@ users to return any object as the result of parsing some text.
 
 5. Why ASCII only, why not Unicode?
 
-Dealing with Unicode is
-hard, and ParseGen's objects are table-based which means their
-memory use is proportional to the number of possible characters,
-which would be infeasible for Unicode code points.
+So far avoiding Unicode support has allowed a simple design
+and none of the formats we target really need Unicode.
+However, we welcome any contributions that move us towards
+Unicode support.
