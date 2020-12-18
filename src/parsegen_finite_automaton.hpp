@@ -4,6 +4,7 @@
 #include "parsegen_table.hpp"
 #include <iosfwd>
 #include <set>
+#include <string>
 
 namespace parsegen {
 
