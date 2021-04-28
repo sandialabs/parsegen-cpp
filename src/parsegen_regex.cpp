@@ -10,6 +10,7 @@
 #include "parsegen_set.hpp"
 #include "parsegen_std_vector.hpp"
 #include "parsegen_string.hpp"
+#include "parsegen_finite_automaton.hpp"
 
 namespace parsegen {
 namespace regex {
@@ -928,7 +929,7 @@ std::string from_automaton(finite_automaton const& fa)
 {
   int const nstates = get_nstates(fa);
   int const nsymbols = get_nsymbols(fa);
-  assert(is_deterministic(fa));
+  assert(fa.is_deterministic);
   std::vector<std::vector<std::unique_ptr<regex_in_progress>>> L(nstates + 1);
   for (int i = 0; i < (nstates + 1); ++i) {
     L[i].resize(nstates + 1);
