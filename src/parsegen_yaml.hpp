@@ -160,7 +160,21 @@ language build_language();
 language_ptr ask_language();
 reader_tables_ptr ask_reader_tables();
 
+class object;
+class scalar;
+class map;
+class sequence;
+
 class object {
+ public:
+  virtual ~object() = default;
+  bool is_scalar() const;
+  bool is_map() const;
+  bool is_sequence() const;
+  scalar const& as_scalar() const;
+  map const& as_map() const;
+  sequence const& as_sequence() const;
+  virtual void print(std::ostream& s, std::string const& indent = "") const = 0;
 };
 
 class scalar : public object {
@@ -170,6 +184,7 @@ class scalar : public object {
   scalar(std::string const& string_arg);
   bool operator<(scalar const& other) const;
   std::string const& string() const { return m_value; }
+  void print(std::ostream& s, std::string const& indent = "") const override;
 };
 
 class map : public object {
@@ -184,6 +199,7 @@ class map : public object {
   object const& operator[](std::string const& key) const;
   const_iterator begin() const;
   const_iterator end() const;
+  void print(std::ostream& s, std::string const& indent = "") const override;
 };
 
 class sequence : public object {
@@ -198,6 +214,7 @@ class sequence : public object {
   const_iterator end() const;
   int size() const;
   object const& operator[](int i) const;
+  void print(std::ostream& s, std::string const& indent = "") const override;
 };
 
 class reader_impl : public parsegen::reader {

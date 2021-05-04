@@ -210,6 +210,36 @@ reader_tables_ptr ask_reader_tables() {
   return ptr;
 }
 
+bool object::is_scalar() const
+{
+  return dynamic_cast<scalar const*>(this) != nullptr;
+}
+
+bool object::is_map() const
+{
+  return dynamic_cast<map const*>(this) != nullptr;
+}
+
+bool object::is_sequence() const
+{
+  return dynamic_cast<sequence const*>(this) != nullptr;
+}
+
+scalar const& object::as_scalar() const
+{
+  return dynamic_cast<scalar const&>(*this);
+}
+
+map const& object::as_map() const
+{
+  return dynamic_cast<map const&>(*this);
+}
+
+sequence const& object::as_sequence() const
+{
+  return dynamic_cast<sequence const&>(*this);
+}
+
 scalar::scalar(std::string&& string_arg)
   :m_value(std::move(string_arg))
 {
@@ -223,6 +253,11 @@ scalar::scalar(std::string const& string_arg)
 bool scalar::operator<(scalar const& other) const
 {
   return m_value < other.m_value;
+}
+
+void scalar::print(std::ostream& s, std::string const&) const
+{
+  s << m_value;
 }
 
 void map::insert(item&& item_arg)
@@ -252,6 +287,27 @@ map::const_iterator map::end() const
   return m_impl.end();
 }
 
+void map::print(std::ostream& s, std::string const& indent) const
+{
+  for (map::item const& item : *this) {
+    scalar const& scalar_key = item.first;
+    object const& value = *(item.second);
+    s << indent;
+    scalar_key.print(s);
+    if (value.is_scalar()) {
+      scalar const& scalar_value = value.as_scalar();
+      std::string const& string_value = scalar_value.string();
+      s << ": " << string_value << '\n';
+    } else if (value.is_map()) {
+      s << ": \n";
+      value.as_map().print(s, indent + "  ");
+    } else if (value.is_sequence()) {
+      s << ": \n";
+      value.as_sequence().print(s, indent + "  ");
+    }
+  }
+}
+
 void sequence::append(
     std::shared_ptr<object>&& item)
 {
@@ -276,6 +332,25 @@ int sequence::size() const
 object const& sequence::operator[](int i) const
 {
   return *(m_impl[std::size_t(i)]);
+}
+
+void sequence::print(std::ostream& s, std::string const& indent) const
+{
+  for (std::shared_ptr<parsegen::yaml::object> const& obj_ptr : *this) {
+    parsegen::yaml::object const& item = *obj_ptr;
+    s << indent << "- ";
+    if (item.is_scalar()) {
+      parsegen::yaml::scalar const& scalar_value = item.as_scalar();
+      scalar_value.print(s);
+      s << '\n';
+    } else if (item.is_map()) {
+      s << '\n';
+      item.as_map().print(s, indent + "  ");
+    } else if (item.is_sequence()) {
+      s << '\n';
+      item.as_sequence().print(s, indent + "  ");
+    }
+  }
 }
 
 reader_impl::reader_impl()
@@ -571,7 +646,7 @@ std::any reader_impl::at_reduce(
         std::any_cast<std::string&>(rhs.at(2));
       std::string scalar_string(std::move(quoted_star));
       scalar_string += escaped_star;
-      return scalar_string;
+      return scalar(scalar_string);
     }
     case PROD_SCALAR_HEAD_OTHER: {
       char otherchar = std::any_cast<char>(rhs.at(0));
