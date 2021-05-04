@@ -169,6 +169,7 @@ class scalar : public object {
   scalar(std::string&& string_arg);
   scalar(std::string const& string_arg);
   bool operator<(scalar const& other) const;
+  std::string const& string() const { return m_value; }
 };
 
 class map : public object {
