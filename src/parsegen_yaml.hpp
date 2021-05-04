@@ -196,6 +196,7 @@ class map : public object {
   std::map<scalar, std::shared_ptr<object>> m_impl;
  public:
   void insert(item&& item_arg);
+  bool has(std::string const& key) const;
   object const& operator[](std::string const& key) const;
   const_iterator begin() const;
   const_iterator end() const;

@@ -265,6 +265,17 @@ void map::insert(item&& item_arg)
   m_impl.insert(std::move(item_arg));
 }
 
+bool map::has(
+    std::string const& key) const
+{
+  scalar scalar_key(key);
+  auto it = m_impl.find(scalar_key);
+  if (it == m_impl.end()) {
+    return false;
+  }
+  return true;
+}
+
 object const& map::operator[](
     std::string const& key) const
 {
