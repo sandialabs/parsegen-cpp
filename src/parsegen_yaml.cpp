@@ -210,6 +210,74 @@ reader_tables_ptr ask_reader_tables() {
   return ptr;
 }
 
+scalar::scalar(std::string&& string_arg)
+  :m_value(std::move(string_arg))
+{
+}
+
+scalar::scalar(std::string const& string_arg)
+  :m_value(string_arg)
+{
+}
+
+bool scalar::operator<(scalar const& other) const
+{
+  return m_value < other.m_value;
+}
+
+void map::insert(item&& item_arg)
+{
+  m_impl.insert(std::move(item_arg));
+}
+
+object const& map::operator[](
+    std::string const& key) const
+{
+  scalar scalar_key(key);
+  auto it = m_impl.find(scalar_key);
+  if (it == m_impl.end()) {
+    throw std::invalid_argument(
+        "yaml::map key not found: " + key);
+  }
+  return *(it->second);
+}
+
+map::const_iterator map::begin() const
+{
+  return m_impl.begin();
+}
+
+map::const_iterator map::end() const
+{
+  return m_impl.end();
+}
+
+void sequence::append(
+    std::shared_ptr<object>&& item)
+{
+  m_impl.push_back(std::move(item));
+}
+
+sequence::const_iterator sequence::begin() const
+{
+  return m_impl.begin();
+}
+
+sequence::const_iterator sequence::end() const
+{
+  return m_impl.end();
+}
+
+int sequence::size() const
+{
+  return int(m_impl.size());
+}
+
+object const& sequence::operator[](int i) const
+{
+  return *(m_impl[std::size_t(i)]);
+}
+
 reader_impl::reader_impl()
   :parsegen::reader(ask_reader_tables())
 {}
