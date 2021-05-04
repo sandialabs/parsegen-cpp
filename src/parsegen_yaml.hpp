@@ -3,6 +3,7 @@
 
 #include "parsegen_language.hpp"
 #include "parsegen_reader_tables.hpp"
+#include "parsegen_reader.hpp"
 
 namespace parsegen {
 namespace yaml {
@@ -158,6 +159,67 @@ enum { NTOKS = TOK_OTHER + 1 };
 language build_language();
 language_ptr ask_language();
 reader_tables_ptr ask_reader_tables();
+
+class object {
+};
+
+class scalar : public object {
+  std::string m_value;
+ public:
+  scalar(std::string&& string_arg);
+  scalar(std::string const& string_arg);
+  bool operator<(scalar const& other) const;
+};
+
+class map : public object {
+ public:
+  using item = std::pair<scalar, std::shared_ptr<object>>;
+  using impl_t = std::map<scalar, std::shared_ptr<object>>;
+  using const_iterator = impl_t::const_iterator;
+ private:
+  std::map<scalar, std::shared_ptr<object>> m_impl;
+ public:
+  void insert(item&& item_arg);
+  object const& operator[](std::string const& key) const;
+  const_iterator begin() const;
+  const_iterator end() const;
+};
+
+class sequence : public object {
+ public:
+  using impl_t = std::vector<std::shared_ptr<object>>;
+  using const_iterator = impl_t::const_iterator;
+ private:
+  impl_t m_impl;
+ public:
+  void append(std::shared_ptr<object>&& item);
+  const_iterator begin() const;
+  const_iterator end() const;
+  int size() const;
+  object const& operator[](int i) const;
+};
+
+class reader_impl : public parsegen::reader {
+ public:
+  reader_impl();
+  std::any at_shift(int token, std::string& text) override;
+  std::any at_reduce(
+      int production,
+      std::vector<std::any>& rhs) override;
+};
+
+class reader {
+  reader_impl m_impl;
+ public:
+  map read_stream(
+      std::istream& stream,
+      std::string const& stream_name_in = "");
+  map read_string(
+      std::string const& string,
+      std::string const& string_name = "");
+  map read_file(
+      std::filesystem::path const& file_path);
+};
 
 }  // end namespace yaml
 }  // end namespace parsegen

@@ -210,5 +210,541 @@ reader_tables_ptr ask_reader_tables() {
   return ptr;
 }
 
+reader_impl::reader_impl()
+  :parsegen::reader(ask_reader_tables())
+{}
+
+std::any reader_impl::at_shift(
+    int token, std::string& text)
+{
+  switch (token) {
+    case TOK_OTHER:
+    case TOK_SPACE:
+      return text[0];
+  }
+  return std::any();
+}
+
+std::any reader_impl::at_reduce(
+    int production,
+    std::vector<std::any>& rhs)
+{
+  switch (production) {
+    case PROD_DOC:
+    case PROD_TOP_BMAP: {
+      return std::move(rhs.at(0));
+    }
+    case PROD_DOC2: {
+      return std::move(rhs.at(1));
+    }
+    case PROD_TOP_FIRST: {
+      map result;
+      if (rhs.at(0).type() == typeid(map::item)) {
+        map::item& item = std::any_cast<map::item&>(
+            rhs.at(0));
+        result.insert(std::move(item));
+      }
+      return result;
+    }
+    case PROD_TOP_NEXT: {
+      map& result = std::any_cast<map&>(rhs.at(0));
+      if (rhs.at(1).type() == typeid(map::item)) {
+        map::item& item = std::any_cast<map::item&>(
+            rhs.at(1));
+        result.insert(std::move(item));
+      }
+      return std::move(result);
+    }
+    case PROD_BMAP_FIRST: {
+      map result;
+      map::item& item = std::any_cast<map::item&>(
+          rhs.at(0));
+      result.insert(std::move(item));
+      return result;
+    }
+    case PROD_BMAP_NEXT: {
+      map& result = std::any_cast<map&>(rhs.at(0));
+      map::item& item = std::any_cast<map::item&>(
+          rhs.at(1));
+      result.insert(std::move(item));
+      return std::move(result);
+    }
+    case PROD_BMAP_SCALAR: {
+      scalar& key = std::any_cast<scalar&>(rhs.at(0));
+      scalar& scalar_value =
+        std::any_cast<scalar&>(rhs.at(4));
+      std::shared_ptr<object> value(
+          new scalar(std::move(scalar_value)));
+      return map::item(
+          std::move(key), std::move(value));
+    }
+    case PROD_BMAP_BSCALAR: {
+      scalar& key = std::any_cast<scalar&>(rhs.at(0));
+      scalar& scalar_value =
+        std::any_cast<scalar&>(rhs.at(3));
+      std::shared_ptr<object> value(
+          new scalar(std::move(scalar_value)));
+      return map::item(
+          std::move(key), std::move(value));
+    }
+    case PROD_BMAP_BVALUE: {
+      scalar& key = std::any_cast<scalar&>(rhs.at(0));
+      std::shared_ptr<object>& value =
+        std::any_cast<std::shared_ptr<object>&>(rhs.at(4));
+      return map::item(
+          std::move(key), std::move(value));
+    }
+    case PROD_BVALUE_BMAP: {
+      map& map_value = std::any_cast<map&>(rhs.at(1));
+      std::shared_ptr<object> value(
+          new map(std::move(map_value)));
+      return value;
+    }
+    case PROD_BVALUE_BSEQ: {
+      sequence& sequence_value =
+        std::any_cast<sequence&>(rhs.at(1));
+      std::shared_ptr<object> value(
+          new sequence(std::move(sequence_value)));
+      return value;
+    }
+    case PROD_BMAP_FMAP: {
+      scalar& key = std::any_cast<scalar&>(rhs.at(0));
+      map& map_value =
+        std::any_cast<map&>(rhs.at(4));
+      std::shared_ptr<object> value(
+          new map(std::move(map_value)));
+      return map::item(
+          std::move(key), std::move(value));
+    }
+    case PROD_BMAP_FSEQ: {
+      scalar& key = std::any_cast<scalar&>(rhs.at(0));
+      sequence& sequence_value =
+        std::any_cast<sequence&>(rhs.at(4));
+      std::shared_ptr<object> value(
+          new sequence(std::move(sequence_value)));
+      return map::item(
+          std::move(key), std::move(value));
+    }
+    case PROD_BSEQ_FIRST: {
+      sequence result;
+      std::shared_ptr<object>& value =
+        std::any_cast<std::shared_ptr<object>&>(rhs.at(0));
+      result.append(std::move(value));
+      return result;
+    }
+    case PROD_BSEQ_NEXT: {
+      sequence& result =
+        std::any_cast<sequence&>(rhs.at(0));
+      std::shared_ptr<object>& value =
+        std::any_cast<std::shared_ptr<object>&>(rhs.at(1));
+      result.append(std::move(value));
+      return std::move(result);
+    }
+    case PROD_BSEQ_SCALAR: {
+      scalar& scalar_value =
+        std::any_cast<scalar&>(rhs.at(3));
+      std::shared_ptr<object> value(
+          new scalar(std::move(scalar_value)));
+      return value;
+    }
+    case PROD_BSEQ_BSCALAR: {
+      scalar& scalar_value =
+        std::any_cast<scalar&>(rhs.at(2));
+      std::shared_ptr<object> value(
+          new scalar(std::move(scalar_value)));
+      return value;
+    }
+    case PROD_BSEQ_BMAP:
+    case PROD_BSEQ_FMAP: {
+      map& map_value =
+        std::any_cast<map&>(rhs.at(3));
+      std::shared_ptr<object> value(
+          new map(std::move(map_value)));
+      return value;
+    }
+    case PROD_BSEQ_BMAP_TRAIL: {
+      map& map_value =
+        std::any_cast<map&>(rhs.at(4));
+      std::shared_ptr<object> value(
+          new map(std::move(map_value)));
+      return value;
+    }
+    case PROD_BSEQ_BSEQ:
+    case PROD_BSEQ_FSEQ: {
+      sequence& sequence_value =
+        std::any_cast<sequence&>(rhs.at(3));
+      std::shared_ptr<object> value(
+          new sequence(std::move(sequence_value)));
+      return value;
+    }
+    case PROD_BSEQ_BSEQ_TRAIL: {
+      sequence& sequence_value =
+        std::any_cast<sequence&>(rhs.at(4));
+      std::shared_ptr<object> value(
+          new sequence(std::move(sequence_value)));
+      return value;
+    }
+    case PROD_FMAP:
+    case PROD_FSEQ: {
+      return std::move(rhs.at(2));
+    }
+    case PROD_FMAP_EMPTY: {
+      return map();
+    }
+    case PROD_FMAP_FIRST: {
+      map::item& item = std::any_cast<map::item&>(rhs.at(0));
+      map result;
+      result.insert(std::move(item));
+      return result;
+    }
+    case PROD_FMAP_NEXT: {
+      map& result = std::any_cast<map&>(rhs.at(0));
+      map::item& item =
+        std::any_cast<map::item&>(rhs.at(3));
+      result.insert(std::move(item));
+      return std::move(result);
+    }
+    case PROD_FMAP_SCALAR: {
+      scalar& key = std::any_cast<scalar&>(rhs.at(0));
+      scalar& scalar_value =
+        std::any_cast<scalar&>(rhs.at(4));
+      std::shared_ptr<object> value(
+          new scalar(std::move(scalar_value)));
+      return map::item(
+          std::move(key), std::move(value));
+    }
+    case PROD_FMAP_FMAP: {
+      scalar& key = std::any_cast<scalar&>(rhs.at(0));
+      map& map_value =
+        std::any_cast<map&>(rhs.at(4));
+      std::shared_ptr<object> value(
+          new map(std::move(map_value)));
+      return map::item(
+          std::move(key), std::move(value));
+    }
+    case PROD_FMAP_FSEQ: {
+      scalar& key = std::any_cast<scalar&>(rhs.at(0));
+      sequence& sequence_value =
+        std::any_cast<sequence&>(rhs.at(4));
+      std::shared_ptr<object> value(
+          new sequence(std::move(sequence_value)));
+      return map::item(
+          std::move(key), std::move(value));
+    }
+    case PROD_FSEQ_EMPTY: {
+      return sequence();
+    }
+    case PROD_FSEQ_FIRST: {
+      std::shared_ptr<object>& value =
+        std::any_cast<std::shared_ptr<object>&>(rhs.at(0));
+      sequence result;
+      result.append(std::move(value));
+      return result;
+    }
+    case PROD_FSEQ_NEXT: {
+      sequence& result =
+        std::any_cast<sequence&>(rhs.at(0));
+      std::shared_ptr<object>& value =
+        std::any_cast<std::shared_ptr<object>&>(rhs.at(3));
+      result.append(std::move(value));
+      return std::move(result);
+    }
+    case PROD_FSEQ_SCALAR: {
+      scalar& scalar_value =
+        std::any_cast<scalar&>(rhs.at(1));
+      std::shared_ptr<object> value(
+          new scalar(std::move(scalar_value)));
+      return value;
+    }
+    case PROD_FSEQ_FMAP: {
+      map& map_value =
+        std::any_cast<map&>(rhs.at(1));
+      std::shared_ptr<object> value(
+          new map(std::move(map_value)));
+      return value;
+    }
+    case PROD_FSEQ_FSEQ: {
+      sequence& sequence_value =
+        std::any_cast<sequence&>(rhs.at(1));
+      std::shared_ptr<object> value(
+          new sequence(std::move(sequence_value)));
+      return value;
+    }
+    case PROD_SCALAR_RAW: {
+      std::string& head =
+        std::any_cast<std::string&>(rhs.at(0));
+      std::string& tail_star =
+        std::any_cast<std::string&>(rhs.at(1));
+      std::string scalar_string(std::move(head));
+      scalar_string += tail_star;
+      return scalar(scalar_string);
+    }
+    case PROD_SCALAR_QUOTED:
+    case PROD_MAP_SCALAR_QUOTED: {
+      return std::move(rhs.at(0));
+    }
+    case PROD_MAP_SCALAR_RAW: {
+      std::string& head =
+        std::any_cast<std::string&>(rhs.at(0));
+      std::string& tail_star =
+        std::any_cast<std::string&>(rhs.at(1));
+      std::string& map_escaped_star =
+        std::any_cast<std::string&>(rhs.at(2));
+      std::string scalar_string(std::move(head));
+      scalar_string += tail_star;
+      scalar_string += map_escaped_star;
+      return scalar(scalar_string);
+    }
+    case PROD_SCALAR_DQUOTED:
+    case PROD_SCALAR_SQUOTED: {
+      std::string& quoted_star =
+        std::any_cast<std::string&>(rhs.at(1));
+      std::string& escaped_star =
+        std::any_cast<std::string&>(rhs.at(2));
+      std::string scalar_string(std::move(quoted_star));
+      scalar_string += escaped_star;
+      return scalar_string;
+    }
+    case PROD_SCALAR_HEAD_OTHER: {
+      char otherchar = std::any_cast<char>(rhs.at(0));
+      std::string head;
+      head.push_back(otherchar);
+      return head;
+    }
+    case PROD_SCALAR_HEAD_DOT: {
+      char otherchar = std::any_cast<char>(rhs.at(1));
+      std::string head;
+      head.push_back('.');
+      head.push_back(otherchar);
+      return head;
+    }
+    case PROD_SCALAR_HEAD_DASH: {
+      char otherchar = std::any_cast<char>(rhs.at(1));
+      std::string head;
+      head.push_back('-');
+      head.push_back(otherchar);
+      return head;
+    }
+    case PROD_SCALAR_HEAD_DOT_DOT: {
+      char otherchar = std::any_cast<char>(rhs.at(2));
+      std::string head;
+      head.push_back('.');
+      head.push_back('.');
+      head.push_back(otherchar);
+      return head;
+    }
+    case PROD_MAP_SCALAR_ESCAPED_EMPTY: {
+      return std::string();
+    }
+    case PROD_MAP_SCALAR_ESCAPED_NEXT: {
+      std::string& result =
+        std::any_cast<std::string&>(rhs.at(0));
+      result.push_back(',');
+      std::string& tail =
+        std::any_cast<std::string&>(rhs.at(2));
+      result += tail;
+      return std::move(result);
+    }
+    case PROD_BSCALAR: {
+      std::string& header =
+        std::any_cast<std::string&>(rhs.at(0));
+      std::string& rest =
+        std::any_cast<std::string&>(rhs.at(4));
+      std::string result(std::move(header));
+      result.push_back('\n');
+      result += rest;
+      return result;
+    }
+    case PROD_BSCALAR_FIRST: {
+      return std::move(rhs.at(0));
+    }
+    case PROD_BSCALAR_NEXT: {
+      std::string& result =
+        std::any_cast<std::string&>(rhs.at(0));
+      std::string& item =
+        std::any_cast<std::string&>(rhs.at(1));
+      result += item;
+      return std::move(result);
+    }
+    case PROD_BSCALAR_LINE: {
+      std::string& any_star =
+        std::any_cast<std::string&>(rhs.at(0));
+      std::string result(std::move(any_star));
+      result.push_back('\n');
+      return result;
+    }
+    case PROD_BSCALAR_INDENT: {
+      std::string const& indentation =
+        std::any_cast<std::string const&>(rhs.at(0));
+      std::string& content =
+        std::any_cast<std::string&>(rhs.at(1));
+      content.insert(0, indentation);
+      for (std::size_t i = 0; i < content.size(); ++i) {
+        if (content[i] == '\n') {
+          content.insert(i + 1, indentation);
+        }
+      }
+      return std::move(content);
+    }
+    case PROD_BSCALAR_HEADER_LITERAL:
+    case PROD_BSCALAR_HEADER_FOLDED: {
+      return std::move(rhs.at(1));
+    }
+    case PROD_BSCALAR_HEAD_EMPTY:
+    case PROD_DQUOTED_EMPTY:
+    case PROD_SQUOTED_EMPTY:
+    case PROD_ANY_EMPTY:
+    case PROD_DESCAPE_EMPTY:
+    case PROD_SESCAPE_EMPTY:
+    case PROD_SCALAR_TAIL_EMPTY: {
+      return std::string();
+    }
+    case PROD_BSCALAR_HEAD_NEXT:
+    case PROD_DQUOTED_NEXT:
+    case PROD_SQUOTED_NEXT:
+    case PROD_ANY_NEXT:
+    case PROD_SCALAR_TAIL_NEXT: {
+      std::string& result =
+        std::any_cast<std::string&>(rhs.at(0));
+      char c =
+        std::any_cast<char>(rhs.at(1));
+      result.push_back(c);
+      return std::move(result);
+    }
+    case PROD_DESCAPE_NEXT:
+    case PROD_SESCAPE_NEXT: {
+      std::string& result =
+        std::any_cast<std::string&>(rhs.at(0));
+      std::string& next =
+        std::any_cast<std::string&>(rhs.at(1));
+      result += next;
+      return std::move(result);
+    }
+    case PROD_BSCALAR_HEAD_OTHER: {
+      return rhs.at(0);
+    }
+    case PROD_BSCALAR_HEAD_DASH: {
+      return '-';
+    }
+    case PROD_DESCAPE: {
+      char c =
+        std::any_cast<char>(rhs.at(1));
+      if (c == 't') c = '\t';
+      if (c == 'n') c = '\n';
+      std::string result;
+      result.push_back(c);
+      std::string& rest =
+        std::any_cast<std::string&>(rhs.at(2));
+      result += rest;
+      return result;
+    }
+    case PROD_SESCAPE: {
+      std::string result;
+      result.push_back('\'');
+      std::string& rest =
+        std::any_cast<std::string&>(rhs.at(2));
+      result += rest;
+      return result;
+    }
+    case PROD_SCALAR_TAIL_SPACE:
+    case PROD_SCALAR_TAIL_OTHER: {
+      return rhs.at(0);
+    }
+    case PROD_SCALAR_TAIL_DOT: {
+      return '.';
+    }
+    case PROD_SCALAR_TAIL_DASH: {
+      return '-';
+    }
+    case PROD_SCALAR_TAIL_SQUOT:
+    case PROD_DQUOTED_SQUOT:
+    case PROD_ANY_SQUOT: {
+      return '\'';
+    }
+    case PROD_DESCAPED_DQUOT:
+    case PROD_SQUOTED_DQUOT:
+    case PROD_ANY_DQUOT: {
+      return '"';
+    }
+    case PROD_DESCAPED_SLASH:
+    case PROD_SQUOTED_SLASH:
+    case PROD_ANY_SLASH: {
+      return '\\';
+    }
+    case PROD_DESCAPED_DQUOTED:
+    case PROD_DQUOTED_COMMON:
+    case PROD_SQUOTED_COMMON:
+    case PROD_ANY_COMMON: {
+      return rhs.at(0);
+    }
+    case PROD_COMMON_SPACE: {
+      return rhs.at(0);
+    }
+    case PROD_COMMON_COLON: {
+      return ':';
+    }
+    case PROD_COMMON_DOT: {
+      return '.';
+    }
+    case PROD_COMMON_DASH: {
+      return '-';
+    }
+    case PROD_COMMON_PIPE: {
+      return '|';
+    }
+    case PROD_COMMON_LSQUARE: {
+      return '[';
+    }
+    case PROD_COMMON_RSQUARE: {
+      return ']';
+    }
+    case PROD_COMMON_LCURLY: {
+      return '{';
+    }
+    case PROD_COMMON_RCURLY: {
+      return '}';
+    }
+    case PROD_COMMON_RANGLE: {
+      return '>';
+    }
+    case PROD_COMMON_COMMA: {
+      return ',';
+    }
+    case PROD_COMMON_PERCENT: {
+      return '%';
+    }
+    case PROD_COMMON_EXCL: {
+      return '!';
+    }
+    case PROD_COMMON_OTHER: {
+      return rhs.at(0);
+    }
+  }
+  return std::any();
+}
+
+map reader::read_stream(
+    std::istream& stream,
+    std::string const& stream_name_in)
+{
+  return std::any_cast<map&&>(
+      m_impl.read_stream(stream, stream_name_in));
+}
+
+map reader::read_string(
+    std::string const& string,
+    std::string const& string_name)
+{
+  return std::any_cast<map&&>(
+      m_impl.read_string(string, string_name));
+}
+
+map reader::read_file(
+      std::filesystem::path const& file_path)
+{
+  return std::any_cast<map&&>(
+      m_impl.read_file(file_path));
+}
+
 }  // end namespace yaml
 }  // end namespace parsegen

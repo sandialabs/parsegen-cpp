@@ -17,14 +17,18 @@ class reader {
   reader(reader const&) = default;
   virtual ~reader() = default;
   reader(reader_tables_ptr tables_in);
-  std::any read_stream(std::istream& stream, std::string const& stream_name_in = "");
+  std::any read_stream(
+      std::istream& stream,
+      std::string const& stream_name_in = "");
   std::any read_string(
-      std::string const& string, std::string const& string_name = "");
-  std::any read_file(std::filesystem::path const& file_path);
+      std::string const& string,
+      std::string const& string_name = "");
+  std::any read_file(
+      std::filesystem::path const& file_path);
 
  protected:
   virtual std::any at_shift(int token, std::string& text);
-  virtual std::any at_reduce(int token, std::vector<std::any>& rhs);
+  virtual std::any at_reduce(int production, std::vector<std::any>& rhs);
 
  protected:
   reader_tables_ptr tables;
@@ -84,7 +88,7 @@ class debug_reader : public reader {
 
  protected:
   virtual std::any at_shift(int token, std::string& text) override;
-  virtual std::any at_reduce(int token, std::vector<std::any>& rhs) override;
+  virtual std::any at_reduce(int production, std::vector<std::any>& rhs) override;
 
  private:
   std::ostream& os;
