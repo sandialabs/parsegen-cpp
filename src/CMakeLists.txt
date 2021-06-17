@@ -36,7 +36,7 @@ target_include_directories(parsegen
   INTERFACE $<INSTALL_INTERFACE:include>)
 
 if (ParseGen_WORKAROUND_GCC_FILESYSTEM)
-  target_link_libraries(parsegen stdc++fs)
+  target_link_libraries(parsegen PUBLIC stdc++fs)
 endif()
 
 add_executable(parsegen-calc
@@ -45,7 +45,7 @@ add_executable(parsegen-calc
 
 target_compile_features(parsegen-calc PUBLIC cxx_std_17)
 
-target_link_libraries(parsegen-calc parsegen)
+target_link_libraries(parsegen-calc PRIVATE parsegen)
 
 install(TARGETS parsegen
   EXPORT ParseGenTargets
