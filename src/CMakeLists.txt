@@ -35,7 +35,7 @@ set_target_properties(parsegen PROPERTIES
 target_include_directories(parsegen
   INTERFACE $<INSTALL_INTERFACE:include>)
 
-if (ParseGen_WORKAROUND_GCC_FILESYSTEM)
+if (parsegen_WORKAROUND_GCC_FILESYSTEM)
   target_link_libraries(parsegen PUBLIC stdc++fs)
 endif()
 
@@ -48,7 +48,7 @@ target_compile_features(parsegen-calc PUBLIC cxx_std_17)
 target_link_libraries(parsegen-calc PRIVATE parsegen)
 
 install(TARGETS parsegen
-  EXPORT ParseGenTargets
+  EXPORT parsegen-targets
   LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
   ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
   RUNTIME DESTINATION "${INSTALL_LIB_DIR}"
