@@ -1,7 +1,0 @@
-# Compute paths
-get_filename_component(parsegen_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-
-# Our library dependencies (contains definitions for IMPORTED targets)
-if(NOT TARGET parsegen AND NOT parsegen_BINARY_DIR)
-  include("${parsegen_CMAKE_DIR}/parsegen-targets.cmake")
-endif()

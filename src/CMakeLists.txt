@@ -33,7 +33,9 @@ target_compile_features(parsegen PUBLIC cxx_std_17)
 set_target_properties(parsegen PROPERTIES
   PUBLIC_HEADER "${PARSEGEN_HEADERS}")
 target_include_directories(parsegen
-  INTERFACE $<INSTALL_INTERFACE:include>)
+  PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+  "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 
 if (parsegen_WORKAROUND_GCC_FILESYSTEM)
   target_link_libraries(parsegen PUBLIC stdc++fs)
@@ -47,10 +49,11 @@ target_compile_features(parsegen-calc PUBLIC cxx_std_17)
 
 target_link_libraries(parsegen-calc PRIVATE parsegen)
 
-install(TARGETS parsegen
+install(
+  TARGETS parsegen
   EXPORT parsegen-targets
-  LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
-  ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
-  RUNTIME DESTINATION "${INSTALL_LIB_DIR}"
-  PUBLIC_HEADER DESTINATION "include"
-  )
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
