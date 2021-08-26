@@ -43,12 +43,12 @@ struct parser_in_progress {
   state_in_progress_vector states;
   configurations configs;
   state_configurations state_configs;
-  parserGraph states2state_configs;
+  parser_graph states2state_configs;
   grammar_ptr grammar;
 };
 
 state_configurations form_state_configs(state_in_progress_vector const& states);
-parserGraph form_states_to_state_configs(
+parser_graph form_states_to_state_configs(
     state_configurations const& scs, state_in_progress_vector const& states);
 
 void print_dot(std::string const& filepath, parser_in_progress const& pip);
