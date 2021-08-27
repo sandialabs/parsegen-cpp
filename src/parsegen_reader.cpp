@@ -223,6 +223,55 @@ void reader::reset_lexer_state() {
   lexer_token = -1;
 }
 
+void get_underlined_portion(
+    std::istream& stream,
+    stream_position first,
+    stream_position last,
+    std::ostream& output)
+{
+  stream_position output_first = first;
+  while (true) {
+    if (output_first == 0) break;
+    stream.unget();
+    char c;
+    if (stream.get(c) && c == '\n') {
+      output_first = stream.tellg();
+      break;
+    }
+  }
+  stream_position line_start = output_first;
+  stream_position position;
+  char c;
+  while (stream.get(c)) {
+    output.put(c);
+    position = stream.tellg();
+    if (position >= last && c == '\n') {
+      break;
+    }
+    if (c == '\n') {
+      auto distance = position - line_start;
+      for (decltype(distance) i = 0; i < distance; ++i) {
+        auto const underline_position = line_start + i;
+        if (first <= underline_position && underline_position < last) {
+          output.put('~');
+        } else {
+          output.put(' ');
+        }
+      }
+      output.put('\n');
+      line_start = position;
+    }
+  }
+}
+
+void reader::handle_tokenization_failure(std::istream& stream)
+{
+  std::stringstream ss;
+  ss << "parsegen::reader found some text that did not match any of the tokens in the language:\n";
+  get_underlined_portion(stream, last_lexer_accept_position, position, ss);
+  throw parse_error(ss.str());
+}
+
 void reader::at_lexer_end(std::istream& stream) {
   if (lexer_token == -1) {
     std::stringstream ss;

@@ -11,6 +11,8 @@
 
 namespace parsegen {
 
+using stream_position = std::istream::pos_type;
+
 class reader {
  public:
   reader() = delete;
@@ -31,7 +33,6 @@ class reader {
   virtual std::any at_reduce(int production, std::vector<std::any>& rhs);
 
  protected:
-  using stream_position = std::istream::pos_type;
   reader_tables_ptr tables;
   parsegen::parser const& parser;
   finite_automaton const& lexer;
@@ -83,6 +84,7 @@ class reader {
   void reset_lexer_state();
   void update_position(char c);
   void error_print_line(std::istream& is, std::ostream& os);
+  void handle_tokenization_failure(std::istream& stream);
 };
 
 class debug_reader : public reader {
