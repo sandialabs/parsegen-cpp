@@ -81,17 +81,6 @@ void reader::at_token(std::istream& stream) {
       value_stack.emplace_back(std::move(shift_result));
       stream_ends_stack.push_back(last_lexer_accept_position);
       symbol_stack.push_back(lexer_token);
-      std::cerr << "SHIFT:";
-      for (int i = 0; i < size(symbol_stack); ++i) {
-        std::cerr << " "
-          << at(grammar->symbol_names, at(symbol_stack, i))
-          << "["
-          << at(stream_ends_stack, i)
-          << ", "
-          << at(stream_ends_stack, i + 1)
-          << ")";
-      }
-      std::cerr << '\n';
       done = true;
     } else if (parser_action.kind == ACTION_REDUCE) {
       if (parser_action.production == get_accept_production(*grammar)) {
@@ -123,17 +112,6 @@ void reader::at_token(std::istream& stream) {
       stream_ends_stack.push_back(old_end);
       resize(symbol_stack, size(symbol_stack) - size(prod.rhs));
       symbol_stack.push_back(prod.lhs);
-      std::cerr << "REDUCE:";
-      for (int i = 0; i < size(symbol_stack); ++i) {
-        std::cerr << " "
-          << at(grammar->symbol_names, at(symbol_stack, i))
-          << "["
-          << at(stream_ends_stack, i)
-          << ", "
-          << at(stream_ends_stack, i + 1)
-          << ")";
-      }
-      std::cerr << '\n';
       if (sensing_indent) {
         if (size(prod.rhs)) {
           resize(symbol_indentation_stack,
