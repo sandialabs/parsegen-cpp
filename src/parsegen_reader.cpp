@@ -143,14 +143,19 @@ void reader::at_token(std::istream& stream) {
         }
       }
     } else {
-      assert(!"SERIOUS BUG: action::kind enum value not in range");
+      throw std::logic_error(
+          "serious bug in parsegen::reader: action::kind enum value out of range\n");
     }
     parser_state = execute_action(parser, parser_stack, parser_action);
   }
 }
 
 void reader::indent_mismatch() {
-  assert(!indent_stack.empty());
+  if (indent_stack.empty()) {
+    throw std::logic_error(
+        "parsegen::reader detected an indentation mismatch but the indent_stack is empty\n"
+        "This indicates a bug in parsegen::reader\n");
+  }
   auto top = indent_stack.back();
   std::stringstream ss;
   ss << "error: Indentation characters beginning line " << line << " of "
@@ -167,7 +172,7 @@ void reader::at_token_indent(std::istream& stream) {
   }
   auto last_newline_pos = lexer_text.find_last_of("\n");
   if (last_newline_pos == std::string::npos) {
-    assert(!"INDENT token did not contain a newline '\\n' !\n");
+    throw parse_error("INDENT token did not contain a newline");
   }
   auto lexer_indent =
       lexer_text.substr(last_newline_pos + 1, std::string::npos);
@@ -225,7 +230,6 @@ void reader::at_lexer_end(std::istream& stream) {
       ss << "error: Could not tokenize this (line " << line;
       ss << " column " << column << " of " << stream_name << "):\n";
       ss << line_text << '\n';
-      assert(line_text.size() >= lexer_text.size());
       print_underline(ss, line_text, line_text.size() - lexer_text.size(),
           line_text.size());
     } else {
@@ -244,8 +248,11 @@ reader::reader(reader_tables_ptr tables_in)
     : tables(tables_in),
       parser(tables->parser),
       lexer(tables->lexer),
-      grammar(get_grammar(parser)) {
-  assert(get_determinism(lexer));
+      grammar(get_grammar(parser))
+{
+  if (!get_determinism(lexer)) {
+    throw std::logic_error("parsegen::reader: the lexer in the given tables is not a deterministic finite automaton");
+  }
 }
 
 void reader::update_position(char c) {
