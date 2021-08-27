@@ -56,7 +56,7 @@ int execute_action(
     stack.push_back(action.next_state);
   } else {
     auto& prod = at(p.grammar->productions, action.production);
-    for (int i = 0; i < size(prod.rhs); ++i) stack.pop_back();
+    resize(stack, size(stack) - size(prod.rhs));
     assert(p.grammar.get());
     auto& grammar = *(p.grammar);
     auto nt = as_nonterminal(grammar, prod.lhs);

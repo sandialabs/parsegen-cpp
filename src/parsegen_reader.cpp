@@ -79,7 +79,7 @@ void reader::at_token(std::istream& stream) {
       std::any shift_result;
       shift_result = this->at_shift(lexer_token, lexer_text);
       value_stack.emplace_back(std::move(shift_result));
-      stream_ends_stack.push_back(stream.tellg());
+      stream_ends_stack.push_back(last_lexer_accept_position);
       std::cerr << "SHIFT " << at(grammar->symbol_names, lexer_token) << ":";
       for (auto p : stream_ends_stack) std::cerr << ' ' << p;
       std::cerr << '\n';
