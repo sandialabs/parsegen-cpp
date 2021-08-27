@@ -38,6 +38,7 @@ class reader {
   grammar_ptr grammar;
   std::size_t line;
   std::size_t column;
+  stream_position position;
   int lexer_state;
   std::string lexer_text;
   std::string line_text;

@@ -298,12 +298,13 @@ std::any reader::read_stream(
   while (stream.get(c)) {
     if (!is_symbol(c)) {
       std::stringstream ss;
-      ss << "error: Unexpected character code " << int(c);
+      ss << "error: Unexpected ASCII code " << int(c);
       ss << " at line " << line << " column " << column;
       ss << " of " << stream_name << '\n';
       error_print_line(stream, ss);
       throw parse_error(ss.str());
     }
+    position = stream.tellg();
     line_text.push_back(c);
     lexer_text.push_back(c);
     auto lexer_symbol = get_symbol(c);
@@ -335,12 +336,17 @@ std::any reader::read_stream(
   lexer_token = get_end_terminal(*grammar);
   at_token(stream);
   if (!did_accept) {
-    assert(
-        !"The EOF terminal was accepted but the root nonterminal was not "
+    throw std::logic_error(
+        "The EOF terminal was accepted but the root nonterminal was not "
         "reduced\n"
         "This indicates a bug in parsegen::reader\n");
   }
-  assert(value_stack.size() == 1);
+  if (value_stack.size() != 1) {
+    throw std::logic_error(
+        "parsegen::reader::read_stream finished but value_stack has size "
+        + std::to_string(value_stack.size())
+        + "\nThis indicates a bug in parsegen::reader\n");
+  }
   return std::move(value_stack.back());
 }
 
