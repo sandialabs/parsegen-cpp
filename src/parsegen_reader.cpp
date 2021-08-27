@@ -229,26 +229,53 @@ void get_underlined_portion(
     stream_position last,
     std::ostream& output)
 {
+  std::cerr << "start of get_underlined_portion(stream, first=" << first
+    << ", last=" << last << ", output)\n";
   stream_position output_first = first;
+  std::cerr << "before seekg, stream at " << stream.tellg() << '\n';
+  stream.seekg(output_first);
+  std::cerr << "after seekg, stream at " << stream.tellg() << '\n';
+  int debug_i = 0;
   while (true) {
-    if (output_first == 0) break;
-    stream.unget();
-    char c;
-    if (stream.get(c) && c == '\n') {
-      output_first = stream.tellg();
+    std::cerr << "trying output_first=" << output_first << '\n';
+    if (output_first == 0) {
+      std::cerr << "output_first=0, breaking\n";
       break;
     }
+    std::cerr << "before unget(), stream at " << stream.tellg() << '\n';
+    stream.unget();
+    std::cerr << "after unget(), stream at " << stream.tellg() << '\n';
+    char c;
+    if (stream.get(c)) {
+      std::cerr << "after successful get(), stream at " << stream.tellg() << '\n';
+      if (c == '\n') {
+        output_first = stream.tellg();
+        std::cerr << "found newline, output_first=" << output_first << '\n';
+        break;
+      }
+      stream.unget();
+      std::cerr << "after second unget(), stream at " << stream.tellg() << '\n';
+      output_first = stream.tellg();
+    } else {
+      std::cerr << "get() was unsuccessful\n";
+    }
+    if (debug_i == 4) std::exit(-1);
+    ++debug_i;
   }
+  std::cerr << "decided on output_first=" << output_first << '\n';
   stream_position line_start = output_first;
   stream_position position;
   char c;
+  bool last_was_newline;
   while (stream.get(c)) {
+    last_was_newline = false;
     output.put(c);
     position = stream.tellg();
     if (position >= last && c == '\n') {
       break;
     }
     if (c == '\n') {
+      last_was_newline = true;
       auto distance = position - line_start;
       for (decltype(distance) i = 0; i < distance; ++i) {
         auto const underline_position = line_start + i;
@@ -262,6 +289,19 @@ void get_underlined_portion(
       line_start = position;
     }
   }
+  if (!last_was_newline) {
+    output.put('\n');
+    auto distance = position - line_start;
+    for (decltype(distance) i = 0; i < distance; ++i) {
+      auto const underline_position = line_start + i;
+      if (first <= underline_position && underline_position < last) {
+        output.put('~');
+      } else {
+        output.put(' ');
+      }
+    }
+    output.put('\n');
+  }
 }
 
 void reader::handle_tokenization_failure(std::istream& stream)
@@ -274,19 +314,7 @@ void reader::handle_tokenization_failure(std::istream& stream)
 
 void reader::at_lexer_end(std::istream& stream) {
   if (lexer_token == -1) {
-    std::stringstream ss;
-    if (lexer_text.find('\n') == std::string::npos) {
-      ss << "error: Could not tokenize this (line " << line;
-      ss << " column " << column << " of " << stream_name << "):\n";
-      ss << line_text << '\n';
-      print_underline(ss, line_text, line_text.size() - lexer_text.size(),
-          line_text.size());
-    } else {
-      ss << "error: Could not tokenize this (ends at line " << line;
-      ss << " column " << column << " of " << stream_name << "):\n";
-      ss << lexer_text << '\n';
-    }
-    throw parse_error(ss.str());
+    handle_tokenization_failure(stream);
   }
   backtrack_to_last_accept(stream);
   at_token_indent(stream);
