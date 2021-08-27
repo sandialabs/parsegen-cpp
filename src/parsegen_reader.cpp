@@ -232,10 +232,8 @@ void get_underlined_portion(
     last_was_newline = false;
     output.put(c);
     position = stream.tellg();
-    if (position >= last && c == '\n') {
-      break;
-    }
     if (c == '\n') {
+      fprintf(stderr, "inserting underliner after a newline in the middle\n");
       last_was_newline = true;
       auto distance = position - line_start;
       for (decltype(distance) i = 0; i < distance; ++i) {
@@ -249,8 +247,12 @@ void get_underlined_portion(
       output.put('\n');
       line_start = position;
     }
+    if (position >= last && c == '\n') {
+      break;
+    }
   }
   if (!last_was_newline) {
+    fprintf(stderr, "inserting underliner after the end\n");
     output.put('\n');
     auto distance = position - line_start;
     for (decltype(distance) i = 0; i < distance; ++i) {
