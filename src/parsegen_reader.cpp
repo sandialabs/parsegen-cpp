@@ -210,18 +210,15 @@ void get_underlined_portion(
   stream.clear(std::ios_base::badbit);
   stream.clear(std::ios_base::failbit);
   stream.clear(std::ios_base::eofbit);
-  std::cerr << "start of get_underlined_portion([" << first << ", " << last << "))\n";
   stream_position output_first = first;
   stream.seekg(output_first);
   while (true) {
     if (output_first == 0) {
       break;
     }
-    std::cerr << "backing up from output_first=" << output_first << '\n';
     stream.unget();
     char c;
     if (stream.get(c)) {
-      std::cerr << "got char '" << c << "'\n";
       if (c == '\n') {
         output_first = stream.tellg();
         break;
@@ -229,11 +226,9 @@ void get_underlined_portion(
       stream.unget();
       output_first = stream.tellg();
     } else {
-      std::cerr << "stream.get() failed!\n";
-      std::exit(-1);
+      throw std::logic_error("stream.get() failed in get_underlined_portion");
     }
   }
-  std::cerr << "decided on output_first=" << output_first << '\n';
   stream_position line_start = output_first;
   stream_position position;
   char c;
@@ -273,7 +268,6 @@ void get_underlined_portion(
     }
     output.put('\n');
   }
-  std::cerr << "end of get_underlined_portion([" << first << ", " << last << "))\n";
 }
 
 void reader::print_parser_stack(std::istream& stream, std::ostream& output)
