@@ -31,6 +31,7 @@ class reader {
   virtual std::any at_reduce(int production, std::vector<std::any>& rhs);
 
  protected:
+  using stream_position = std::istream::pos_type;
   reader_tables_ptr tables;
   parsegen::parser const& parser;
   finite_automaton const& lexer;
@@ -45,10 +46,12 @@ class reader {
   std::size_t last_lexer_accept_line;
   std::size_t last_lexer_accept_column;
   std::string last_lexer_accept_line_text;
+  stream_position last_lexer_accept_position;
   int parser_state;
   std::vector<int> parser_stack;
   std::vector<std::any> value_stack;
   std::vector<std::any> reduction_rhs;
+  std::vector<stream_position> stream_ends_stack;
   std::string stream_name;
   bool did_accept;
 

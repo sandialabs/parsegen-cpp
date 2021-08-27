@@ -79,6 +79,10 @@ void reader::at_token(std::istream& stream) {
       std::any shift_result;
       shift_result = this->at_shift(lexer_token, lexer_text);
       value_stack.emplace_back(std::move(shift_result));
+      stream_ends_stack.push_back(stream.tellg());
+      std::cerr << "SHIFT " << at(grammar->symbol_names, lexer_token) << ":";
+      for (auto p : stream_ends_stack) std::cerr << ' ' << p;
+      std::cerr << '\n';
       done = true;
     } else if (parser_action.kind == ACTION_REDUCE) {
       if (parser_action.production == get_accept_production(*grammar)) {
@@ -105,6 +109,16 @@ void reader::at_token(std::istream& stream) {
         throw parse_error(ss.str());
       }
       value_stack.emplace_back(std::move(reduce_result));
+      auto const old_end = stream_ends_stack.back();
+      resize(stream_ends_stack, size(stream_ends_stack) - size(prod.rhs));
+      stream_ends_stack.push_back(old_end);
+      std::cerr << "REDUCE";
+      for (int i = 0; i < size(prod.rhs); ++i) {
+        std::cerr << ' ' << at(grammar->symbol_names, at(prod.rhs, i));
+      }
+      std::cerr << " -> " << at(grammar->symbol_names, prod.lhs) << ":";
+      for (auto p : stream_ends_stack) std::cerr << ' ' << p;
+      std::cerr << '\n';
       if (sensing_indent) {
         if (size(prod.rhs)) {
           resize(symbol_indentation_stack,
@@ -257,6 +271,8 @@ std::any reader::read_stream(
   parser_stack.clear();
   parser_stack.push_back(parser_state);
   value_stack.clear();
+  stream_ends_stack.clear();
+  stream_ends_stack.push_back(stream.tellg());
   did_accept = false;
   stream_name = stream_name_in;
   if (tables->indent_info.is_sensitive) {
@@ -291,6 +307,7 @@ std::any reader::read_stream(
         last_lexer_accept_line = line;
         last_lexer_accept_column = column;
         last_lexer_accept_line_text = line_text;
+        last_lexer_accept_position = stream.tellg();
       }
     }
   }
