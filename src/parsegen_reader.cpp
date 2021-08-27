@@ -193,12 +193,8 @@ void reader::backtrack_to_last_accept(std::istream& stream) {
   line = last_lexer_accept_line;
   column = last_lexer_accept_column;
   line_text = last_lexer_accept_line_text;
-  while (lexer_text.size() > last_lexer_accept) {
-    bool ok = !stream.unget().fail();
-    (void)ok;
-    assert(ok);
-    lexer_text.pop_back();
-  }
+  lexer_text.resize(last_lexer_accept);
+  stream.seekg(last_lexer_accept_position);
 }
 
 void reader::reset_lexer_state() {
