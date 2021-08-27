@@ -207,23 +207,33 @@ void get_underlined_portion(
     stream_position last,
     std::ostream& output)
 {
+  stream.clear(std::ios_base::badbit);
+  stream.clear(std::ios_base::failbit);
+  stream.clear(std::ios_base::eofbit);
+  std::cerr << "start of get_underlined_portion([" << first << ", " << last << "))\n";
   stream_position output_first = first;
   stream.seekg(output_first);
   while (true) {
     if (output_first == 0) {
       break;
     }
+    std::cerr << "backing up from output_first=" << output_first << '\n';
     stream.unget();
     char c;
     if (stream.get(c)) {
+      std::cerr << "got char '" << c << "'\n";
       if (c == '\n') {
         output_first = stream.tellg();
         break;
       }
       stream.unget();
       output_first = stream.tellg();
+    } else {
+      std::cerr << "stream.get() failed!\n";
+      std::exit(-1);
     }
   }
+  std::cerr << "decided on output_first=" << output_first << '\n';
   stream_position line_start = output_first;
   stream_position position;
   char c;
@@ -233,7 +243,6 @@ void get_underlined_portion(
     output.put(c);
     position = stream.tellg();
     if (c == '\n') {
-      fprintf(stderr, "inserting underliner after a newline in the middle\n");
       last_was_newline = true;
       auto distance = position - line_start;
       for (decltype(distance) i = 0; i < distance; ++i) {
@@ -252,7 +261,6 @@ void get_underlined_portion(
     }
   }
   if (!last_was_newline) {
-    fprintf(stderr, "inserting underliner after the end\n");
     output.put('\n');
     auto distance = position - line_start;
     for (decltype(distance) i = 0; i < distance; ++i) {
@@ -265,6 +273,22 @@ void get_underlined_portion(
     }
     output.put('\n');
   }
+  std::cerr << "end of get_underlined_portion([" << first << ", " << last << "))\n";
+}
+
+void reader::print_parser_stack(std::istream& stream, std::ostream& output)
+{
+  output << "parser stack is:\n";
+  for (int i = 0; i < size(symbol_stack); ++i) {
+    output << at(grammar->symbol_names, at(symbol_stack, i)) << ":\n";
+    if (i + 1 >= size(stream_ends_stack)) {
+      throw std::logic_error("i + 1 >= size(stream_ends_stack)!");
+    }
+    auto const first = at(stream_ends_stack, i);
+    auto const last = at(stream_ends_stack, i + 1);
+    get_underlined_portion(stream, first, last, output);
+    output << '\n';
+  }
 }
 
 void reader::handle_tokenization_failure(std::istream& stream)
@@ -272,6 +296,7 @@ void reader::handle_tokenization_failure(std::istream& stream)
   std::stringstream ss;
   ss << "parsegen::reader found some text that did not match any of the tokens in the language:\n";
   get_underlined_portion(stream, last_lexer_accept_position, position, ss);
+  print_parser_stack(stream, ss);
   throw parse_error(ss.str());
 }
 

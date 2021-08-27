@@ -84,6 +84,7 @@ class reader {
   void reset_lexer_state();
   void update_position(char c);
   void error_print_line(std::istream& is, std::ostream& os);
+  void print_parser_stack(std::istream& stream, std::ostream& output);
   void handle_tokenization_failure(std::istream& stream);
 };
 
