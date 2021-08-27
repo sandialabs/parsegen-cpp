@@ -207,40 +207,23 @@ void get_underlined_portion(
     stream_position last,
     std::ostream& output)
 {
-  std::cerr << "start of get_underlined_portion(stream, first=" << first
-    << ", last=" << last << ", output)\n";
   stream_position output_first = first;
-  std::cerr << "before seekg, stream at " << stream.tellg() << '\n';
   stream.seekg(output_first);
-  std::cerr << "after seekg, stream at " << stream.tellg() << '\n';
-  int debug_i = 0;
   while (true) {
-    std::cerr << "trying output_first=" << output_first << '\n';
     if (output_first == 0) {
-      std::cerr << "output_first=0, breaking\n";
       break;
     }
-    std::cerr << "before unget(), stream at " << stream.tellg() << '\n';
     stream.unget();
-    std::cerr << "after unget(), stream at " << stream.tellg() << '\n';
     char c;
     if (stream.get(c)) {
-      std::cerr << "after successful get(), stream at " << stream.tellg() << '\n';
       if (c == '\n') {
         output_first = stream.tellg();
-        std::cerr << "found newline, output_first=" << output_first << '\n';
         break;
       }
       stream.unget();
-      std::cerr << "after second unget(), stream at " << stream.tellg() << '\n';
       output_first = stream.tellg();
-    } else {
-      std::cerr << "get() was unsuccessful\n";
     }
-    if (debug_i == 4) std::exit(-1);
-    ++debug_i;
   }
-  std::cerr << "decided on output_first=" << output_first << '\n';
   stream_position line_start = output_first;
   stream_position position;
   char c;
