@@ -52,6 +52,7 @@ class reader {
   std::vector<std::any> value_stack;
   std::vector<std::any> reduction_rhs;
   std::vector<stream_position> stream_ends_stack;
+  std::vector<int> symbol_stack;
   std::string stream_name;
   bool did_accept;
 

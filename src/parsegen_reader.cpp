@@ -80,8 +80,17 @@ void reader::at_token(std::istream& stream) {
       shift_result = this->at_shift(lexer_token, lexer_text);
       value_stack.emplace_back(std::move(shift_result));
       stream_ends_stack.push_back(last_lexer_accept_position);
-      std::cerr << "SHIFT " << at(grammar->symbol_names, lexer_token) << ":";
-      for (auto p : stream_ends_stack) std::cerr << ' ' << p;
+      symbol_stack.push_back(lexer_token);
+      std::cerr << "SHIFT:";
+      for (int i = 0; i < size(symbol_stack); ++i) {
+        std::cerr << " "
+          << at(grammar->symbol_names, at(symbol_stack, i))
+          << "["
+          << at(stream_ends_stack, i)
+          << ", "
+          << at(stream_ends_stack, i + 1)
+          << ")";
+      }
       std::cerr << '\n';
       done = true;
     } else if (parser_action.kind == ACTION_REDUCE) {
@@ -112,12 +121,18 @@ void reader::at_token(std::istream& stream) {
       auto const old_end = stream_ends_stack.back();
       resize(stream_ends_stack, size(stream_ends_stack) - size(prod.rhs));
       stream_ends_stack.push_back(old_end);
-      std::cerr << "REDUCE";
-      for (int i = 0; i < size(prod.rhs); ++i) {
-        std::cerr << ' ' << at(grammar->symbol_names, at(prod.rhs, i));
+      resize(symbol_stack, size(symbol_stack) - size(prod.rhs));
+      symbol_stack.push_back(prod.lhs);
+      std::cerr << "REDUCE:";
+      for (int i = 0; i < size(symbol_stack); ++i) {
+        std::cerr << " "
+          << at(grammar->symbol_names, at(symbol_stack, i))
+          << "["
+          << at(stream_ends_stack, i)
+          << ", "
+          << at(stream_ends_stack, i + 1)
+          << ")";
       }
-      std::cerr << " -> " << at(grammar->symbol_names, prod.lhs) << ":";
-      for (auto p : stream_ends_stack) std::cerr << ' ' << p;
       std::cerr << '\n';
       if (sensing_indent) {
         if (size(prod.rhs)) {
@@ -269,6 +284,7 @@ std::any reader::read_stream(
   value_stack.clear();
   stream_ends_stack.clear();
   stream_ends_stack.push_back(stream.tellg());
+  symbol_stack.clear();
   did_accept = false;
   stream_name = stream_name_in;
   if (tables->indent_info.is_sensitive) {
