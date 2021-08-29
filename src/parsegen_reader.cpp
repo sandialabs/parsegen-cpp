@@ -164,7 +164,7 @@ void reader::handle_unacceptable_token(std::istream& stream)
   throw parse_error(ss.str());
 }
 
-void reader::handle_reduction_failure(std::istream& stream, std::exception const& e, int production)
+void reader::handle_reduce_exception(std::istream& stream, std::exception const& e, int production)
 {
   std::stringstream ss;
   ss << "parsegen::reader caught an exception in the reduce() virtual member method:\n";
@@ -182,6 +182,17 @@ void reader::handle_reduction_failure(std::istream& stream, std::exception const
   throw parse_error(ss.str());
 }
 
+void reader::handle_shift_exception(std::istream& stream, std::exception const& e)
+{
+  std::stringstream ss;
+  ss << "parsegen::reader caught an exception in the shift() virtual member method:\n";
+  ss << e.what() << '\n';
+  ss << "While trying to shift this " << at(grammar->symbol_names, lexer_token) << " symbol:\n";
+  get_underlined_portion(stream, stream_ends_stack.back(), last_lexer_accept_position, ss);
+  print_parser_stack(stream, ss);
+  throw parse_error(ss.str());
+}
+
 void reader::at_token(std::istream& stream) {
   bool done = false;
   /* this can loop arbitrarily as reductions are made,
@@ -195,7 +206,11 @@ void reader::at_token(std::istream& stream) {
         symbol_indentation_stack.push_back(indent_text.size());
       }
       std::any shift_result;
-      shift_result = this->at_shift(lexer_token, lexer_text);
+      try {
+        shift_result = this->at_shift(lexer_token, lexer_text);
+      } catch (std::exception const& e) {
+        handle_shift_exception(stream, e);
+      }
       value_stack.emplace_back(std::move(shift_result));
       stream_ends_stack.push_back(last_lexer_accept_position);
       symbol_stack.push_back(lexer_token);
@@ -215,8 +230,8 @@ void reader::at_token(std::istream& stream) {
       try {
         reduce_result =
             this->at_reduce(parser_action.production, reduction_rhs);
-      } catch (const std::exception& e) {
-        handle_reduction_failure(stream, e, parser_action.production);
+      } catch (std::exception const& e) {
+        handle_reduce_exception(stream, e, parser_action.production);
       }
       resize(value_stack, size(value_stack) - size(prod.rhs));
       value_stack.emplace_back(std::move(reduce_result));
