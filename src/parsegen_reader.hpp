@@ -87,6 +87,7 @@ class reader {
   void print_parser_stack(std::istream& stream, std::ostream& output);
   void handle_tokenization_failure(std::istream& stream);
   void handle_unacceptable_token(std::istream& stream);
+  void handle_reduction_failure(std::istream& stream, std::exception const& e, int production);
 };
 
 class debug_reader : public reader {

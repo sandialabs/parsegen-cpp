@@ -164,6 +164,24 @@ void reader::handle_unacceptable_token(std::istream& stream)
   throw parse_error(ss.str());
 }
 
+void reader::handle_reduction_failure(std::istream& stream, std::exception const& e, int production)
+{
+  std::stringstream ss;
+  ss << "parsegen::reader caught an exception in the reduce() virtual member method:\n";
+  ss << e.what() << '\n';
+  ss << "While trying to reduce symbols {";
+  auto& prod = at(grammar->productions, production);
+  for (int i = 0; i < size(prod.rhs); ++i) {
+    auto& rhs_name = at(grammar->symbol_names, at(prod.rhs, i));
+    if (i > 0) ss << ", ";
+    ss << rhs_name;
+  }
+  auto& lhs_name = at(grammar->symbol_names, prod.lhs);
+  ss << "} to symbol " << lhs_name << ".\n";
+  print_parser_stack(stream, ss);
+  throw parse_error(ss.str());
+}
+
 void reader::at_token(std::istream& stream) {
   bool done = false;
   /* this can loop arbitrarily as reductions are made,
@@ -198,12 +216,7 @@ void reader::at_token(std::istream& stream) {
         reduce_result =
             this->at_reduce(parser_action.production, reduction_rhs);
       } catch (const std::exception& e) {
-        std::stringstream ss;
-        ss << "error: parser failure at line " << line;
-        ss << " column " << column << " of " << stream_name << '\n';
-        error_print_line(stream, ss);
-        ss << '\n' << e.what();
-        throw parse_error(ss.str());
+        handle_reduction_failure(stream, e, parser_action.production);
       }
       resize(value_stack, size(value_stack) - size(prod.rhs));
       value_stack.emplace_back(std::move(reduce_result));
