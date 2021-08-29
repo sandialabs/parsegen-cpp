@@ -133,7 +133,7 @@ void get_underlined_portion(
   }
 }
 
-void reader::handle_out_of_actions_failure(std::istream& stream)
+void reader::handle_unacceptable_token(std::istream& stream)
 {
   std::stringstream ss;
   int line, column;
@@ -141,7 +141,7 @@ void reader::handle_out_of_actions_failure(std::istream& stream)
   ss << "Starting at column " << column << " of line " << line << " of " << stream_name << ",\n";
   ss << "parsegen::reader found an unacceptable token (one for which the parser can take no shift or reduce action):\n";
   get_underlined_portion(stream, stream_ends_stack.back(), last_lexer_accept_position, ss);
-  ss << "This unexpected token is called " << at(grammar->symbol_names, lexer_token) << " in the language.\n";
+  ss << "This unacceptable token is called " << at(grammar->symbol_names, lexer_token) << " in the language.\n";
   std::set<std::string> expect_names;
   for (int expect_token = 0; expect_token < grammar->nterminals;
       ++expect_token) {
@@ -150,7 +150,7 @@ void reader::handle_out_of_actions_failure(std::istream& stream)
       expect_names.insert(at(grammar->symbol_names, expect_token));
     }
   }
-  ss << "The list of acceptable tokens at this point was {";
+  ss << "At this point, the parser would have accepted one of the following tokens: {";
   for (std::set<std::string>::iterator it = expect_names.begin();
       it != expect_names.end(); ++it) {
     if (it != expect_names.begin()) ss << ", ";
@@ -171,7 +171,7 @@ void reader::at_token(std::istream& stream) {
   while (!done) {
     auto parser_action = get_action(parser, parser_state, lexer_token);
     if (parser_action.kind == ACTION_NONE) {
-      handle_out_of_actions_failure(stream);
+      handle_unacceptable_token(stream);
     } else if (parser_action.kind == ACTION_SHIFT) {
       if (sensing_indent) {
         symbol_indentation_stack.push_back(indent_text.size());
