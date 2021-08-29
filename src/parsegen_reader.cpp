@@ -193,7 +193,6 @@ void reader::at_token(std::istream& stream) {
         reduction_rhs.emplace_back(
             std::move(at(value_stack, size(value_stack) - size(prod.rhs) + i)));
       }
-      resize(value_stack, size(value_stack) - size(prod.rhs));
       std::any reduce_result;
       try {
         reduce_result =
@@ -206,6 +205,7 @@ void reader::at_token(std::istream& stream) {
         ss << '\n' << e.what();
         throw parse_error(ss.str());
       }
+      resize(value_stack, size(value_stack) - size(prod.rhs));
       value_stack.emplace_back(std::move(reduce_result));
       auto const old_end = stream_ends_stack.back();
       resize(stream_ends_stack, size(stream_ends_stack) - size(prod.rhs));
