@@ -86,6 +86,7 @@ class reader {
   void error_print_line(std::istream& is, std::ostream& os);
   void print_parser_stack(std::istream& stream, std::ostream& output);
   void handle_tokenization_failure(std::istream& stream);
+  void handle_out_of_actions_failure(std::istream& stream);
 };
 
 class debug_reader : public reader {
