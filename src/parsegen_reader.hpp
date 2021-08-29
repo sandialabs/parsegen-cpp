@@ -89,6 +89,7 @@ class reader {
   void handle_unacceptable_token(std::istream& stream);
   void handle_reduce_exception(std::istream& stream, std::exception const& e, int production);
   void handle_shift_exception(std::istream& stream, std::exception const& e);
+  void handle_bad_character(std::istream& stream, char c);
 };
 
 class debug_reader : public reader {

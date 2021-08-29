@@ -193,6 +193,16 @@ void reader::handle_shift_exception(std::istream& stream, std::exception const& 
   throw parse_error(ss.str());
 }
 
+void reader::handle_bad_character(std::istream& stream, char c)
+{
+  std::stringstream ss;
+  int line, column;
+  get_line_column(stream, position, line, column);
+  ss << "At column " << column << " of line " << line << " of " << stream_name << ",\n";
+  ss << "parsegen::reader found an unacceptable character code " << int(c) << ".\n";
+  throw parse_error(ss.str());
+}
+
 void reader::at_token(std::istream& stream) {
   bool done = false;
   /* this can loop arbitrarily as reductions are made,
@@ -425,12 +435,7 @@ std::any reader::read_stream(
   char c;
   while (stream.get(c)) {
     if (!is_symbol(c)) {
-      std::stringstream ss;
-      ss << "error: Unexpected ASCII code " << int(c);
-      ss << " at line " << line << " column " << column;
-      ss << " of " << stream_name << '\n';
-      error_print_line(stream, ss);
-      throw parse_error(ss.str());
+      handle_bad_character(stream, c);
     }
     position = stream.tellg();
     line_text.push_back(c);
@@ -482,9 +487,7 @@ std::any reader::read_string(
 std::any reader::read_file(std::filesystem::path const& file_path) {
   std::ifstream stream(file_path);
   if (!stream.is_open()) {
-    std::stringstream ss;
-    ss << "Could not open file " << file_path;
-    throw parse_error(ss.str());
+    throw parse_error("Could not open file " + file_path.string());
   }
   return read_stream(stream, file_path.string());
 }
