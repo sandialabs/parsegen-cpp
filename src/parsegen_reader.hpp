@@ -77,7 +77,7 @@ class reader {
 
  private:  // helper methods
   void at_token(std::istream& stream);
-  [[noreturn]] void indent_mismatch();
+  [[noreturn]] void indent_mismatch(std::istream& stream);
   void at_token_indent(std::istream& stream);
   void at_lexer_end(std::istream& stream);
   void backtrack_to_last_accept(std::istream& stream);
@@ -85,11 +85,11 @@ class reader {
   void update_position(char c);
   void error_print_line(std::istream& is, std::ostream& os);
   void print_parser_stack(std::istream& stream, std::ostream& output);
-  void handle_tokenization_failure(std::istream& stream);
-  void handle_unacceptable_token(std::istream& stream);
-  void handle_reduce_exception(std::istream& stream, std::exception const& e, int production);
-  void handle_shift_exception(std::istream& stream, std::exception const& e);
-  void handle_bad_character(std::istream& stream, char c);
+  [[noreturn]] void handle_tokenization_failure(std::istream& stream);
+  [[noreturn]] void handle_unacceptable_token(std::istream& stream);
+  [[noreturn]] void handle_reduce_exception(std::istream& stream, std::exception const& e, int production);
+  [[noreturn]] void handle_shift_exception(std::istream& stream, std::exception const& e);
+  [[noreturn]] void handle_bad_character(std::istream& stream, char c);
 };
 
 class debug_reader : public reader {

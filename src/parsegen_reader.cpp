@@ -266,18 +266,14 @@ void reader::at_token(std::istream& stream) {
   }
 }
 
-void reader::indent_mismatch() {
-  if (indent_stack.empty()) {
-    throw std::logic_error(
-        "parsegen::reader detected an indentation mismatch but the indent_stack is empty\n"
-        "This indicates a bug in parsegen::reader\n");
-  }
-  auto top = indent_stack.back();
+void reader::indent_mismatch(std::istream& stream) {
   std::stringstream ss;
-  ss << "error: Indentation characters beginning line " << line << " of "
-     << stream_name << " don't match those beginning line " << top.line << '\n';
+  int line, column;
+  get_line_column(stream, last_lexer_accept_position, line, column);
+  ss << "parsegen::reader noticed the indentation characters beginning line " << line << " of "
+     << stream_name << " don't match earlier indentation.\n";
   ss << "It is strongly recommended not to mix tabs and spaces in "
-        "indentation-sensitive formats\n";
+        "indentation-sensitive formats.\n";
   throw parse_error(ss.str());
 }
 
@@ -298,7 +294,7 @@ void reader::at_token_indent(std::istream& stream) {
   std::size_t minlen = std::min(lexer_indent.length(), indent_text.length());
   if (lexer_indent.length() > indent_text.length()) {
     if (0 != lexer_indent.compare(0, indent_text.length(), indent_text)) {
-      indent_mismatch();
+      indent_mismatch(stream);
     }
     indent_stack.push_back({line, indent_text.length(), lexer_indent.length()});
     indent_text = lexer_indent;
@@ -306,7 +302,7 @@ void reader::at_token_indent(std::istream& stream) {
     at_token(stream);
   } else if (lexer_indent.length() < indent_text.length()) {
     if (0 != indent_text.compare(0, lexer_indent.length(), lexer_indent)) {
-      indent_mismatch();
+      indent_mismatch(stream);
     }
     while (!indent_stack.empty()) {
       auto top = indent_stack.back();
@@ -318,7 +314,7 @@ void reader::at_token_indent(std::istream& stream) {
     indent_text = lexer_indent;
   } else {
     if (0 != lexer_indent.compare(indent_text)) {
-      indent_mismatch();
+      indent_mismatch(stream);
     }
   }
 }
