@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.0...3.18.0)
+cmake_minimum_required(VERSION 3.15.0...3.21.2)
 
 project(parsegen VERSION 1.0.0 LANGUAGES CXX)
 
