@@ -79,14 +79,14 @@ void get_underlined_portion(
     if (output_first == 0) {
       break;
     }
-    stream.unget();
+    stream.seekg(-1, std::ios_base::cur);
     char c;
     if (stream.get(c)) {
       if (c == '\n') {
         output_first = stream.tellg();
         break;
       }
-      stream.unget();
+      stream.seekg(-1, std::ios_base::cur);
       output_first = stream.tellg();
     } else {
       throw std::logic_error("stream.get() failed in get_underlined_portion");
