@@ -295,7 +295,6 @@ void reader::at_token_indent(std::istream& stream) {
 void reader::backtrack_to_last_accept(std::istream& stream) {
   /* all the last_accept and backtracking is driven by
     the "accept the longest match" rule */
-  line_text = last_lexer_accept_line_text;
   lexer_text.resize(last_lexer_accept);
   stream.seekg(last_lexer_accept_position);
 }
@@ -353,18 +352,10 @@ reader::reader(reader_tables_ptr tables_in)
   }
 }
 
-void reader::update_position(char c) {
-  if (c == '\n') {
-    line_text.clear();
-  } else {
-  }
-}
-
 std::any reader::read_stream(
     std::istream& stream, std::string const& stream_name_in) {
   lexer_state = 0;
   lexer_text.clear();
-  line_text.clear();
   lexer_token = -1;
   parser_state = 0;
   parser_stack.clear();
@@ -388,7 +379,6 @@ std::any reader::read_stream(
       handle_bad_character(stream, c);
     }
     position = stream.tellg();
-    line_text.push_back(c);
     lexer_text.push_back(c);
     auto lexer_symbol = get_symbol(c);
     lexer_state = step(lexer, lexer_state, lexer_symbol);
@@ -396,11 +386,9 @@ std::any reader::read_stream(
       at_lexer_end(stream);
     } else {
       auto token = accepts(lexer, lexer_state);
-      update_position(c);
       if (token != -1) {
         lexer_token = token;
         last_lexer_accept = lexer_text.size();
-        last_lexer_accept_line_text = line_text;
         last_lexer_accept_position = stream.tellg();
       }
     }

@@ -76,7 +76,6 @@ class reader {
   void at_lexer_end(std::istream& stream);
   void backtrack_to_last_accept(std::istream& stream);
   void reset_lexer_state();
-  void update_position(char c);
   void print_parser_stack(std::istream& stream, std::ostream& output);
   [[noreturn]] void handle_tokenization_failure(std::istream& stream);
   [[noreturn]] void handle_unacceptable_token(std::istream& stream);
