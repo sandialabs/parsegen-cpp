@@ -12,33 +12,6 @@
 
 namespace parsegen {
 
-namespace {
-
-void print_indicator(
-    std::ostream& os, std::string const& above, std::size_t pos) {
-  for (std::size_t i = 0; i < pos; ++i) {
-    if (above.at(i) == '\t')
-      os << '\t';
-    else
-      os << ' ';
-  }
-  os << "^\n";
-}
-
-void print_underline(std::ostream& os, std::string const& above,
-    std::size_t start, std::size_t end) {
-  for (std::size_t i = 0; i < start; ++i) {
-    if (above.at(i) == '\t')
-      os << '\t';
-    else
-      os << ' ';
-  }
-  for (auto i = start; i < end; ++i) os << '~';
-  os << '\n';
-}
-
-}  // end anonymous namespace
-
 void get_line_column(
     std::istream& stream,
     stream_position position,
