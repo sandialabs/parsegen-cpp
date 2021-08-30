@@ -40,10 +40,8 @@ class reader {
   stream_position position;
   int lexer_state;
   std::string lexer_text;
-  std::string line_text;
   int lexer_token;
   std::size_t last_lexer_accept;
-  std::string last_lexer_accept_line_text;
   stream_position last_lexer_accept_position;
   int parser_state;
   std::vector<int> parser_stack;
