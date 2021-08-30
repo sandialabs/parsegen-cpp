@@ -392,18 +392,6 @@ void reader::update_position(char c) {
   }
 }
 
-void reader::error_print_line(std::istream& is, std::ostream& os) {
-  auto oldpos = line_text.size();
-  char c;
-  while (is.get(c)) {
-    if (c == '\n' || c == '\r') break;
-    line_text.push_back(c);
-  }
-  if (line_text.empty()) return;
-  os << line_text << '\n';
-  if (oldpos > 0) print_indicator(os, line_text, oldpos - 1);
-}
-
 std::any reader::read_stream(
     std::istream& stream, std::string const& stream_name_in) {
   line = 1;
