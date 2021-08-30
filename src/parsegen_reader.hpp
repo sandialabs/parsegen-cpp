@@ -63,10 +63,6 @@ class reader {
   // characters, which subset of them came from each nested increase
   // in indentation
   std::vector<indent_stack_entry> indent_stack;
-  // this stack notes, for each symbol in the pushdown automaton
-  // stack, how many characters indent the line that that symbol
-  // starts on
-  std::vector<std::size_t> symbol_indentation_stack;
 
  private:  // helper methods
   void at_token(std::istream& stream);

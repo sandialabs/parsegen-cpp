@@ -185,9 +185,6 @@ void reader::at_token(std::istream& stream) {
     if (parser_action.kind == ACTION_NONE) {
       handle_unacceptable_token(stream);
     } else if (parser_action.kind == ACTION_SHIFT) {
-      if (sensing_indent) {
-        symbol_indentation_stack.push_back(indent_text.size());
-      }
       std::any shift_result;
       try {
         shift_result = this->at_shift(lexer_token, lexer_text);
@@ -223,14 +220,6 @@ void reader::at_token(std::istream& stream) {
       stream_ends_stack.push_back(old_end);
       resize(symbol_stack, size(symbol_stack) - size(prod.rhs));
       symbol_stack.push_back(prod.lhs);
-      if (sensing_indent) {
-        if (size(prod.rhs)) {
-          resize(symbol_indentation_stack,
-              (size(symbol_indentation_stack) + 1) - size(prod.rhs));
-        } else {
-          symbol_indentation_stack.push_back(symbol_indentation_stack.back());
-        }
-      }
     } else {
       throw std::logic_error(
           "serious bug in parsegen::reader: action::kind enum value out of range\n");
