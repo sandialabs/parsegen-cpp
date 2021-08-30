@@ -266,7 +266,7 @@ void reader::at_token(std::istream& stream) {
   }
 }
 
-void reader::indent_mismatch(std::istream& stream) {
+void reader::handle_indent_mismatch(std::istream& stream) {
   std::stringstream ss;
   int line, column;
   get_line_column(stream, last_lexer_accept_position, line, column);
@@ -294,7 +294,7 @@ void reader::at_token_indent(std::istream& stream) {
   std::size_t minlen = std::min(lexer_indent.length(), indent_text.length());
   if (lexer_indent.length() > indent_text.length()) {
     if (0 != lexer_indent.compare(0, indent_text.length(), indent_text)) {
-      indent_mismatch(stream);
+      handle_indent_mismatch(stream);
     }
     indent_stack.push_back({line, indent_text.length(), lexer_indent.length()});
     indent_text = lexer_indent;
@@ -302,7 +302,7 @@ void reader::at_token_indent(std::istream& stream) {
     at_token(stream);
   } else if (lexer_indent.length() < indent_text.length()) {
     if (0 != indent_text.compare(0, lexer_indent.length(), lexer_indent)) {
-      indent_mismatch(stream);
+      handle_indent_mismatch(stream);
     }
     while (!indent_stack.empty()) {
       auto top = indent_stack.back();
@@ -314,7 +314,7 @@ void reader::at_token_indent(std::istream& stream) {
     indent_text = lexer_indent;
   } else {
     if (0 != lexer_indent.compare(indent_text)) {
-      indent_mismatch(stream);
+      handle_indent_mismatch(stream);
     }
   }
 }

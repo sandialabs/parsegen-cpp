@@ -77,7 +77,6 @@ class reader {
 
  private:  // helper methods
   void at_token(std::istream& stream);
-  [[noreturn]] void indent_mismatch(std::istream& stream);
   void at_token_indent(std::istream& stream);
   void at_lexer_end(std::istream& stream);
   void backtrack_to_last_accept(std::istream& stream);
@@ -90,6 +89,7 @@ class reader {
   [[noreturn]] void handle_reduce_exception(std::istream& stream, std::exception const& e, int production);
   [[noreturn]] void handle_shift_exception(std::istream& stream, std::exception const& e);
   [[noreturn]] void handle_bad_character(std::istream& stream, char c);
+  [[noreturn]] void handle_indent_mismatch(std::istream& stream);
 };
 
 class debug_reader : public reader {
