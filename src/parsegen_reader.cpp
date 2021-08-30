@@ -12,32 +12,169 @@
 
 namespace parsegen {
 
-namespace {
-
-void print_indicator(
-    std::ostream& os, std::string const& above, std::size_t pos) {
-  for (std::size_t i = 0; i < pos; ++i) {
-    if (above.at(i) == '\t')
-      os << '\t';
-    else
-      os << ' ';
+void get_line_column(
+    std::istream& stream,
+    stream_position position,
+    int& line,
+    int& column)
+{
+  line = 1;
+  column = 1;
+  stream.clear(std::ios_base::badbit);
+  stream.clear(std::ios_base::failbit);
+  stream.clear(std::ios_base::eofbit);
+  stream.seekg(0);
+  if (stream.tellg() == position) return;
+  char c;
+  while (stream.get(c)) {
+    if (c == '\n') {
+      ++line;
+      column = 1;
+    } else {
+      ++column;
+    }
+    if (stream.tellg() == position) return;
   }
-  os << "^\n";
 }
 
-void print_underline(std::ostream& os, std::string const& above,
-    std::size_t start, std::size_t end) {
-  for (std::size_t i = 0; i < start; ++i) {
-    if (above.at(i) == '\t')
-      os << '\t';
-    else
-      os << ' ';
+void get_underlined_portion(
+    std::istream& stream,
+    stream_position first,
+    stream_position last,
+    std::ostream& output)
+{
+  stream.clear(std::ios_base::badbit);
+  stream.clear(std::ios_base::failbit);
+  stream.clear(std::ios_base::eofbit);
+  stream_position output_first = first;
+  stream.seekg(output_first);
+  while (true) {
+    if (output_first == 0) {
+      break;
+    }
+    stream.seekg(-1, std::ios_base::cur);
+    char c;
+    if (stream.get(c)) {
+      if (c == '\n') {
+        output_first = stream.tellg();
+        break;
+      }
+      stream.seekg(-1, std::ios_base::cur);
+      output_first = stream.tellg();
+    } else {
+      throw std::logic_error("stream.get() failed in get_underlined_portion");
+    }
   }
-  for (auto i = start; i < end; ++i) os << '~';
-  os << '\n';
+  stream_position line_start = output_first;
+  stream_position position;
+  char c;
+  bool last_was_newline;
+  while (stream.get(c)) {
+    last_was_newline = false;
+    output.put(c);
+    position = stream.tellg();
+    if (c == '\n') {
+      last_was_newline = true;
+      auto distance = position - line_start;
+      for (decltype(distance) i = 0; i < distance; ++i) {
+        auto const underline_position = line_start + i;
+        if (first <= underline_position && underline_position < last) {
+          output.put('~');
+        } else {
+          output.put(' ');
+        }
+      }
+      output.put('\n');
+      line_start = position;
+    }
+    if (position >= last && c == '\n') {
+      break;
+    }
+  }
+  if (!last_was_newline) {
+    output.put('\n');
+    auto distance = position - line_start;
+    for (decltype(distance) i = 0; i < distance; ++i) {
+      auto const underline_position = line_start + i;
+      if (first <= underline_position && underline_position < last) {
+        output.put('~');
+      } else {
+        output.put(' ');
+      }
+    }
+    output.put('\n');
+  }
 }
 
-}  // end anonymous namespace
+void reader::handle_unacceptable_token(std::istream& stream)
+{
+  std::stringstream ss;
+  int line, column;
+  get_line_column(stream, stream_ends_stack.back(), line, column);
+  ss << "Starting at column " << column << " of line " << line << " of " << stream_name << ",\n";
+  ss << "parsegen::reader found an unacceptable token (one for which the parser can take no shift or reduce action):\n";
+  get_underlined_portion(stream, stream_ends_stack.back(), last_lexer_accept_position, ss);
+  ss << "This unacceptable token is called " << at(grammar->symbol_names, lexer_token) << " in the language.\n";
+  std::set<std::string> expect_names;
+  for (int expect_token = 0; expect_token < grammar->nterminals;
+      ++expect_token) {
+    auto expect_action = get_action(parser, parser_state, expect_token);
+    if (expect_action.kind != ACTION_NONE) {
+      expect_names.insert(at(grammar->symbol_names, expect_token));
+    }
+  }
+  ss << "At this point, the parser would have accepted one of the following tokens: {";
+  for (std::set<std::string>::iterator it = expect_names.begin();
+      it != expect_names.end(); ++it) {
+    if (it != expect_names.begin()) ss << ", ";
+    if (*it == ",")
+      ss << "','";
+    else
+      ss << *it;
+  }
+  ss << "}\n";
+  print_parser_stack(stream, ss);
+  throw parse_error(ss.str());
+}
+
+void reader::handle_reduce_exception(std::istream& stream, std::exception const& e, int production)
+{
+  std::stringstream ss;
+  ss << "parsegen::reader caught an exception in the reduce() virtual member method:\n";
+  ss << e.what() << '\n';
+  ss << "While trying to reduce symbols {";
+  auto& prod = at(grammar->productions, production);
+  for (int i = 0; i < size(prod.rhs); ++i) {
+    auto& rhs_name = at(grammar->symbol_names, at(prod.rhs, i));
+    if (i > 0) ss << ", ";
+    ss << rhs_name;
+  }
+  auto& lhs_name = at(grammar->symbol_names, prod.lhs);
+  ss << "} to symbol " << lhs_name << ".\n";
+  print_parser_stack(stream, ss);
+  throw parse_error(ss.str());
+}
+
+void reader::handle_shift_exception(std::istream& stream, std::exception const& e)
+{
+  std::stringstream ss;
+  ss << "parsegen::reader caught an exception in the shift() virtual member method:\n";
+  ss << e.what() << '\n';
+  ss << "While trying to shift this " << at(grammar->symbol_names, lexer_token) << " symbol:\n";
+  get_underlined_portion(stream, stream_ends_stack.back(), last_lexer_accept_position, ss);
+  print_parser_stack(stream, ss);
+  throw parse_error(ss.str());
+}
+
+void reader::handle_bad_character(std::istream& stream, char c)
+{
+  std::stringstream ss;
+  int line, column;
+  get_line_column(stream, position, line, column);
+  ss << "At column " << column << " of line " << line << " of " << stream_name << ",\n";
+  ss << "parsegen::reader found an unacceptable character code " << int(c) << ".\n";
+  throw parse_error(ss.str());
+}
 
 void reader::at_token(std::istream& stream) {
   bool done = false;
@@ -46,39 +183,17 @@ void reader::at_token(std::istream& stream) {
   while (!done) {
     auto parser_action = get_action(parser, parser_state, lexer_token);
     if (parser_action.kind == ACTION_NONE) {
-      std::stringstream ss;
-      ss << "error: parser failure at line " << line;
-      ss << " column " << column << " of " << stream_name << '\n';
-      error_print_line(stream, ss);
-      std::set<std::string> expect_names;
-      for (int expect_token = 0; expect_token < grammar->nterminals;
-           ++expect_token) {
-        auto expect_action = get_action(parser, parser_state, expect_token);
-        if (expect_action.kind != ACTION_NONE) {
-          expect_names.insert(at(grammar->symbol_names, expect_token));
-        }
-      }
-      ss << "Expected one of {";
-      for (std::set<std::string>::iterator it = expect_names.begin();
-           it != expect_names.end(); ++it) {
-        if (it != expect_names.begin()) ss << ", ";
-        if (*it == ",")
-          ss << "','";
-        else
-          ss << *it;
-      }
-      ss << "}\n";
-      ss << "Got: " << at(grammar->symbol_names, lexer_token) << '\n';
-      ss << "Lexer text: \"" << lexer_text << "\"\n";
-      ss << "parser was in state " << parser_state << '\n';
-      throw parse_error(ss.str());
+      handle_unacceptable_token(stream);
     } else if (parser_action.kind == ACTION_SHIFT) {
-      if (sensing_indent) {
-        symbol_indentation_stack.push_back(indent_text.size());
-      }
       std::any shift_result;
-      shift_result = this->at_shift(lexer_token, lexer_text);
+      try {
+        shift_result = this->at_shift(lexer_token, lexer_text);
+      } catch (std::exception const& e) {
+        handle_shift_exception(stream, e);
+      }
       value_stack.emplace_back(std::move(shift_result));
+      stream_ends_stack.push_back(last_lexer_accept_position);
+      symbol_stack.push_back(lexer_token);
       done = true;
     } else if (parser_action.kind == ACTION_REDUCE) {
       if (parser_action.production == get_accept_production(*grammar)) {
@@ -91,43 +206,36 @@ void reader::at_token(std::istream& stream) {
         reduction_rhs.emplace_back(
             std::move(at(value_stack, size(value_stack) - size(prod.rhs) + i)));
       }
-      resize(value_stack, size(value_stack) - size(prod.rhs));
       std::any reduce_result;
       try {
         reduce_result =
             this->at_reduce(parser_action.production, reduction_rhs);
-      } catch (const std::exception& e) {
-        std::stringstream ss;
-        ss << "error: parser failure at line " << line;
-        ss << " column " << column << " of " << stream_name << '\n';
-        error_print_line(stream, ss);
-        ss << '\n' << e.what();
-        throw parse_error(ss.str());
+      } catch (std::exception const& e) {
+        handle_reduce_exception(stream, e, parser_action.production);
       }
+      resize(value_stack, size(value_stack) - size(prod.rhs));
       value_stack.emplace_back(std::move(reduce_result));
-      if (sensing_indent) {
-        if (size(prod.rhs)) {
-          resize(symbol_indentation_stack,
-              (size(symbol_indentation_stack) + 1) - size(prod.rhs));
-        } else {
-          symbol_indentation_stack.push_back(symbol_indentation_stack.back());
-        }
-      }
+      auto const old_end = stream_ends_stack.back();
+      resize(stream_ends_stack, size(stream_ends_stack) - size(prod.rhs));
+      stream_ends_stack.push_back(old_end);
+      resize(symbol_stack, size(symbol_stack) - size(prod.rhs));
+      symbol_stack.push_back(prod.lhs);
     } else {
-      assert(!"SERIOUS BUG: action::kind enum value not in range");
+      throw std::logic_error(
+          "serious bug in parsegen::reader: action::kind enum value out of range\n");
     }
     parser_state = execute_action(parser, parser_stack, parser_action);
   }
 }
 
-void reader::indent_mismatch() {
-  assert(!indent_stack.empty());
-  auto top = indent_stack.back();
+void reader::handle_indent_mismatch(std::istream& stream) {
   std::stringstream ss;
-  ss << "error: Indentation characters beginning line " << line << " of "
-     << stream_name << " don't match those beginning line " << top.line << '\n';
+  int line, column;
+  get_line_column(stream, last_lexer_accept_position, line, column);
+  ss << "parsegen::reader noticed the indentation characters beginning line " << line << " of "
+     << stream_name << " don't match earlier indentation.\n";
   ss << "It is strongly recommended not to mix tabs and spaces in "
-        "indentation-sensitive formats\n";
+        "indentation-sensitive formats.\n";
   throw parse_error(ss.str());
 }
 
@@ -138,7 +246,7 @@ void reader::at_token_indent(std::istream& stream) {
   }
   auto last_newline_pos = lexer_text.find_last_of("\n");
   if (last_newline_pos == std::string::npos) {
-    assert(!"INDENT token did not contain a newline '\\n' !\n");
+    throw parse_error("INDENT token did not contain a newline");
   }
   auto lexer_indent =
       lexer_text.substr(last_newline_pos + 1, std::string::npos);
@@ -148,15 +256,15 @@ void reader::at_token_indent(std::istream& stream) {
   std::size_t minlen = std::min(lexer_indent.length(), indent_text.length());
   if (lexer_indent.length() > indent_text.length()) {
     if (0 != lexer_indent.compare(0, indent_text.length(), indent_text)) {
-      indent_mismatch();
+      handle_indent_mismatch(stream);
     }
-    indent_stack.push_back({line, indent_text.length(), lexer_indent.length()});
+    indent_stack.push_back({indent_text.length(), lexer_indent.length()});
     indent_text = lexer_indent;
     lexer_token = tables->indent_info.indent_token;
     at_token(stream);
   } else if (lexer_indent.length() < indent_text.length()) {
     if (0 != indent_text.compare(0, lexer_indent.length(), lexer_indent)) {
-      indent_mismatch();
+      handle_indent_mismatch(stream);
     }
     while (!indent_stack.empty()) {
       auto top = indent_stack.back();
@@ -168,7 +276,7 @@ void reader::at_token_indent(std::istream& stream) {
     indent_text = lexer_indent;
   } else {
     if (0 != lexer_indent.compare(indent_text)) {
-      indent_mismatch();
+      handle_indent_mismatch(stream);
     }
   }
 }
@@ -176,15 +284,8 @@ void reader::at_token_indent(std::istream& stream) {
 void reader::backtrack_to_last_accept(std::istream& stream) {
   /* all the last_accept and backtracking is driven by
     the "accept the longest match" rule */
-  line = last_lexer_accept_line;
-  column = last_lexer_accept_column;
-  line_text = last_lexer_accept_line_text;
-  while (lexer_text.size() > last_lexer_accept) {
-    bool ok = !stream.unget().fail();
-    (void)ok;
-    assert(ok);
-    lexer_text.pop_back();
-  }
+  lexer_text.resize(last_lexer_accept);
+  stream.seekg(last_lexer_accept_position);
 }
 
 void reader::reset_lexer_state() {
@@ -193,22 +294,36 @@ void reader::reset_lexer_state() {
   lexer_token = -1;
 }
 
+void reader::print_parser_stack(std::istream& stream, std::ostream& output)
+{
+  output << "The parser stack contains:\n";
+  for (int i = 0; i < size(symbol_stack); ++i) {
+    output << at(grammar->symbol_names, at(symbol_stack, i)) << ":\n";
+    if (i + 1 >= size(stream_ends_stack)) {
+      throw std::logic_error("i + 1 >= size(stream_ends_stack)!");
+    }
+    auto const first = at(stream_ends_stack, i);
+    auto const last = at(stream_ends_stack, i + 1);
+    get_underlined_portion(stream, first, last, output);
+    output << '\n';
+  }
+}
+
+void reader::handle_tokenization_failure(std::istream& stream)
+{
+  std::stringstream ss;
+  int line, column;
+  get_line_column(stream, last_lexer_accept_position, line, column);
+  ss << "Starting at column " << column << " of line " << line << " of " << stream_name << ",\n";
+  ss << "parsegen::reader found some text that did not match any of the tokens in the language:\n";
+  get_underlined_portion(stream, last_lexer_accept_position, position, ss);
+  print_parser_stack(stream, ss);
+  throw parse_error(ss.str());
+}
+
 void reader::at_lexer_end(std::istream& stream) {
   if (lexer_token == -1) {
-    std::stringstream ss;
-    if (lexer_text.find('\n') == std::string::npos) {
-      ss << "error: Could not tokenize this (line " << line;
-      ss << " column " << column << " of " << stream_name << "):\n";
-      ss << line_text << '\n';
-      assert(line_text.size() >= lexer_text.size());
-      print_underline(ss, line_text, line_text.size() - lexer_text.size(),
-          line_text.size());
-    } else {
-      ss << "error: Could not tokenize this (ends at line " << line;
-      ss << " column " << column << " of " << stream_name << "):\n";
-      ss << lexer_text << '\n';
-    }
-    throw parse_error(ss.str());
+    handle_tokenization_failure(stream);
   }
   backtrack_to_last_accept(stream);
   at_token_indent(stream);
@@ -219,44 +334,25 @@ reader::reader(reader_tables_ptr tables_in)
     : tables(tables_in),
       parser(tables->parser),
       lexer(tables->lexer),
-      grammar(get_grammar(parser)) {
-  assert(get_determinism(lexer));
-}
-
-void reader::update_position(char c) {
-  if (c == '\n') {
-    ++line;
-    column = 1;
-    line_text.clear();
-  } else {
-    ++column;
+      grammar(get_grammar(parser))
+{
+  if (!get_determinism(lexer)) {
+    throw std::logic_error("parsegen::reader: the lexer in the given tables is not a deterministic finite automaton");
   }
-}
-
-void reader::error_print_line(std::istream& is, std::ostream& os) {
-  auto oldpos = line_text.size();
-  char c;
-  while (is.get(c)) {
-    if (c == '\n' || c == '\r') break;
-    line_text.push_back(c);
-  }
-  if (line_text.empty()) return;
-  os << line_text << '\n';
-  if (oldpos > 0) print_indicator(os, line_text, oldpos - 1);
 }
 
 std::any reader::read_stream(
     std::istream& stream, std::string const& stream_name_in) {
-  line = 1;
-  column = 1;
   lexer_state = 0;
   lexer_text.clear();
-  line_text.clear();
   lexer_token = -1;
   parser_state = 0;
   parser_stack.clear();
   parser_stack.push_back(parser_state);
   value_stack.clear();
+  stream_ends_stack.clear();
+  stream_ends_stack.push_back(stream.tellg());
+  symbol_stack.clear();
   did_accept = false;
   stream_name = stream_name_in;
   if (tables->indent_info.is_sensitive) {
@@ -269,14 +365,9 @@ std::any reader::read_stream(
   char c;
   while (stream.get(c)) {
     if (!is_symbol(c)) {
-      std::stringstream ss;
-      ss << "error: Unexpected character code " << int(c);
-      ss << " at line " << line << " column " << column;
-      ss << " of " << stream_name << '\n';
-      error_print_line(stream, ss);
-      throw parse_error(ss.str());
+      handle_bad_character(stream, c);
     }
-    line_text.push_back(c);
+    position = stream.tellg();
     lexer_text.push_back(c);
     auto lexer_symbol = get_symbol(c);
     lexer_state = step(lexer, lexer_state, lexer_symbol);
@@ -284,34 +375,31 @@ std::any reader::read_stream(
       at_lexer_end(stream);
     } else {
       auto token = accepts(lexer, lexer_state);
-      update_position(c);
       if (token != -1) {
         lexer_token = token;
         last_lexer_accept = lexer_text.size();
-        last_lexer_accept_line = line;
-        last_lexer_accept_column = column;
-        last_lexer_accept_line_text = line_text;
+        last_lexer_accept_position = stream.tellg();
       }
     }
   }
   if (last_lexer_accept < lexer_text.size()) {
-    std::stringstream ss;
-    std::string bad_str =
-        lexer_text.substr(last_lexer_accept, std::string::npos);
-    ss << "error: Could not tokenize \"" << bad_str;
-    ss << "\" at end of " << stream_name << '\n';
-    throw parse_error(ss.str());
+    handle_tokenization_failure(stream);
   }
   at_lexer_end(stream);
   lexer_token = get_end_terminal(*grammar);
   at_token(stream);
   if (!did_accept) {
-    assert(
-        !"The EOF terminal was accepted but the root nonterminal was not "
+    throw std::logic_error(
+        "The EOF terminal was accepted but the root nonterminal was not "
         "reduced\n"
         "This indicates a bug in parsegen::reader\n");
   }
-  assert(value_stack.size() == 1);
+  if (value_stack.size() != 1) {
+    throw std::logic_error(
+        "parsegen::reader::read_stream finished but value_stack has size "
+        + std::to_string(value_stack.size())
+        + "\nThis indicates a bug in parsegen::reader\n");
+  }
   return std::move(value_stack.back());
 }
 
@@ -324,9 +412,7 @@ std::any reader::read_string(
 std::any reader::read_file(std::filesystem::path const& file_path) {
   std::ifstream stream(file_path);
   if (!stream.is_open()) {
-    std::stringstream ss;
-    ss << "Could not open file " << file_path;
-    throw parse_error(ss.str());
+    throw parse_error("Could not open file " + file_path.string());
   }
   return read_stream(stream, file_path.string());
 }

@@ -11,6 +11,8 @@
 
 namespace parsegen {
 
+using stream_position = std::istream::pos_type;
+
 class reader {
  public:
   reader() = delete;
@@ -35,20 +37,18 @@ class reader {
   parsegen::parser const& parser;
   finite_automaton const& lexer;
   grammar_ptr grammar;
-  std::size_t line;
-  std::size_t column;
+  stream_position position;
   int lexer_state;
   std::string lexer_text;
-  std::string line_text;
   int lexer_token;
   std::size_t last_lexer_accept;
-  std::size_t last_lexer_accept_line;
-  std::size_t last_lexer_accept_column;
-  std::string last_lexer_accept_line_text;
+  stream_position last_lexer_accept_position;
   int parser_state;
   std::vector<int> parser_stack;
   std::vector<std::any> value_stack;
   std::vector<std::any> reduction_rhs;
+  std::vector<stream_position> stream_ends_stack;
+  std::vector<int> symbol_stack;
   std::string stream_name;
   bool did_accept;
 
@@ -56,7 +56,6 @@ class reader {
   bool sensing_indent;
   std::string indent_text;
   struct indent_stack_entry {
-    std::size_t line;
     std::size_t start_length;
     std::size_t end_length;
   };
@@ -64,20 +63,20 @@ class reader {
   // characters, which subset of them came from each nested increase
   // in indentation
   std::vector<indent_stack_entry> indent_stack;
-  // this stack notes, for each symbol in the pushdown automaton
-  // stack, how many characters indent the line that that symbol
-  // starts on
-  std::vector<std::size_t> symbol_indentation_stack;
 
  private:  // helper methods
   void at_token(std::istream& stream);
-  [[noreturn]] void indent_mismatch();
   void at_token_indent(std::istream& stream);
   void at_lexer_end(std::istream& stream);
   void backtrack_to_last_accept(std::istream& stream);
   void reset_lexer_state();
-  void update_position(char c);
-  void error_print_line(std::istream& is, std::ostream& os);
+  void print_parser_stack(std::istream& stream, std::ostream& output);
+  [[noreturn]] void handle_tokenization_failure(std::istream& stream);
+  [[noreturn]] void handle_unacceptable_token(std::istream& stream);
+  [[noreturn]] void handle_reduce_exception(std::istream& stream, std::exception const& e, int production);
+  [[noreturn]] void handle_shift_exception(std::istream& stream, std::exception const& e);
+  [[noreturn]] void handle_bad_character(std::istream& stream, char c);
+  [[noreturn]] void handle_indent_mismatch(std::istream& stream);
 };
 
 class debug_reader : public reader {

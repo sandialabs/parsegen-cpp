@@ -704,10 +704,10 @@ std::any reader_impl::at_reduce(
         std::any_cast<std::string&>(rhs.at(0));
       std::string& rest =
         std::any_cast<std::string&>(rhs.at(4));
-      std::string result(std::move(header));
-      result.push_back('\n');
-      result += rest;
-      return result;
+      std::string scalar_string(std::move(header));
+      scalar_string.push_back('\n');
+      scalar_string += rest;
+      return scalar(scalar_string);
     }
     case PROD_BSCALAR_FIRST: {
       return std::move(rhs.at(0));

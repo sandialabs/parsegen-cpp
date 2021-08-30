@@ -50,7 +50,7 @@ target_compile_features(parsegen-calc PUBLIC cxx_std_17)
 target_link_libraries(parsegen-calc PRIVATE parsegen)
 
 install(
-  TARGETS parsegen
+  TARGETS parsegen parsegen-calc
   EXPORT parsegen-targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
