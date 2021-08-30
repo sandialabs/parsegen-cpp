@@ -269,7 +269,7 @@ void reader::at_token_indent(std::istream& stream) {
     if (0 != lexer_indent.compare(0, indent_text.length(), indent_text)) {
       handle_indent_mismatch(stream);
     }
-    indent_stack.push_back({line, indent_text.length(), lexer_indent.length()});
+    indent_stack.push_back({indent_text.length(), lexer_indent.length()});
     indent_text = lexer_indent;
     lexer_token = tables->indent_info.indent_token;
     at_token(stream);
@@ -295,8 +295,6 @@ void reader::at_token_indent(std::istream& stream) {
 void reader::backtrack_to_last_accept(std::istream& stream) {
   /* all the last_accept and backtracking is driven by
     the "accept the longest match" rule */
-  line = last_lexer_accept_line;
-  column = last_lexer_accept_column;
   line_text = last_lexer_accept_line_text;
   lexer_text.resize(last_lexer_accept);
   stream.seekg(last_lexer_accept_position);
@@ -357,18 +355,13 @@ reader::reader(reader_tables_ptr tables_in)
 
 void reader::update_position(char c) {
   if (c == '\n') {
-    ++line;
-    column = 1;
     line_text.clear();
   } else {
-    ++column;
   }
 }
 
 std::any reader::read_stream(
     std::istream& stream, std::string const& stream_name_in) {
-  line = 1;
-  column = 1;
   lexer_state = 0;
   lexer_text.clear();
   line_text.clear();
@@ -407,8 +400,6 @@ std::any reader::read_stream(
       if (token != -1) {
         lexer_token = token;
         last_lexer_accept = lexer_text.size();
-        last_lexer_accept_line = line;
-        last_lexer_accept_column = column;
         last_lexer_accept_line_text = line_text;
         last_lexer_accept_position = stream.tellg();
       }

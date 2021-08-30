@@ -37,16 +37,12 @@ class reader {
   parsegen::parser const& parser;
   finite_automaton const& lexer;
   grammar_ptr grammar;
-  std::size_t line;
-  std::size_t column;
   stream_position position;
   int lexer_state;
   std::string lexer_text;
   std::string line_text;
   int lexer_token;
   std::size_t last_lexer_accept;
-  std::size_t last_lexer_accept_line;
-  std::size_t last_lexer_accept_column;
   std::string last_lexer_accept_line_text;
   stream_position last_lexer_accept_position;
   int parser_state;
@@ -62,7 +58,6 @@ class reader {
   bool sensing_indent;
   std::string indent_text;
   struct indent_stack_entry {
-    std::size_t line;
     std::size_t start_length;
     std::size_t end_length;
   };
