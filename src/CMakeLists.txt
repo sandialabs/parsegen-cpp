@@ -11,6 +11,8 @@ set(PARSEGEN_HEADERS
   parsegen_xml.hpp
   parsegen_yaml.hpp
   parsegen_math_lang.hpp
+  parsegen_error.hpp
+  parsegen.hpp
   )
 
 add_library(parsegen
@@ -27,6 +29,7 @@ add_library(parsegen
   parsegen_regex.cpp
   parsegen_xml.cpp
   parsegen_yaml.cpp
+  parsegen_error.cpp
   )
 
 target_compile_features(parsegen PUBLIC cxx_std_17)

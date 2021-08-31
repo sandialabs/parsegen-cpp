@@ -11,6 +11,7 @@
 #include "parsegen_std_vector.hpp"
 #include "parsegen_string.hpp"
 #include "parsegen_finite_automaton.hpp"
+#include "parsegen_error.hpp"
 
 namespace parsegen {
 namespace regex {

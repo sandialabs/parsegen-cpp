@@ -3,9 +3,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "parsegen_language.hpp"
-#include "parsegen_math_lang.hpp"
-#include "parsegen_reader.hpp"
+#include "parsegen.hpp"
 
 namespace {
 

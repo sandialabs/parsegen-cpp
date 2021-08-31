@@ -2,7 +2,6 @@
 #define PARSEGEN_PARSER_HPP
 
 #include <stack>
-#include <stdexcept>
 
 #include "parsegen_grammar.hpp"
 #include "parsegen_table.hpp"
@@ -41,12 +40,6 @@ action const& get_action(parser const& p, int state, int terminal);
 int execute_action(
     parser const& p, std::vector<int>& stack, action const& action);
 grammar_ptr const& get_grammar(parser const& p);
-
-class parse_error : public std::invalid_argument {
- public:
-  parse_error(const std::string& msg);
-  virtual void out_of_line_virtual_method();
-};
 
 }  // namespace parsegen
 

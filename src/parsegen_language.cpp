@@ -9,6 +9,7 @@
 #include "parsegen_regex.hpp"
 #include "parsegen_std_vector.hpp"
 #include "parsegen_string.hpp"
+#include "parsegen_error.hpp"
 
 namespace parsegen {
 

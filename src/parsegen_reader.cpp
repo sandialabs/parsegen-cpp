@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "parsegen_string.hpp"
+#include "parsegen_error.hpp"
 
 namespace parsegen {
 
