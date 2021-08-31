@@ -168,12 +168,12 @@ static indentation build_indent_info(language const& language) {
   return out;
 }
 
-reader_tables_ptr build_reader_tables(language const& language) {
+parser_tables_ptr build_parser_tables(language const& language) {
   auto lexer = build_lexer(language);
   auto indent_info = build_indent_info(language);
   auto grammar = build_grammar(language);
   auto parser = accept_parser(build_lalr1_parser(grammar));
-  return reader_tables_ptr(new reader_tables({parser, lexer, indent_info}));
+  return parser_tables_ptr(new parser_tables({parser, lexer, indent_info}));
 }
 
 }  // namespace parsegen

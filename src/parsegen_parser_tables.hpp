@@ -14,12 +14,12 @@ struct indentation {
   int newline_token;
 };
 
-struct reader_tables {
+struct parser_tables {
   shift_reduce_tables parser;
   finite_automaton lexer;
   indentation indent_info;
 };
 
-using reader_tables_ptr = std::shared_ptr<reader_tables const>;
+using parser_tables_ptr = std::shared_ptr<parser_tables const>;
 
 }  // namespace parsegen

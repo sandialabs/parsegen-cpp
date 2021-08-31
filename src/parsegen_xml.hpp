@@ -136,7 +136,7 @@ enum { NTOKS = TOK_OTHER + 1 };
 language build_language();
 language_ptr ask_language();
 
-reader_tables_ptr ask_reader_tables();
+parser_tables_ptr ask_parser_tables();
 
 }  // end namespace xml
 }  // namespace parsegen

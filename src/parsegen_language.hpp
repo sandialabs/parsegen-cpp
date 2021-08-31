@@ -8,7 +8,7 @@
 
 #include "parsegen_finite_automaton.hpp"
 #include "parsegen_grammar.hpp"
-#include "parsegen_reader_tables.hpp"
+#include "parsegen_parser_tables.hpp"
 
 namespace parsegen {
 
@@ -31,7 +31,7 @@ grammar_ptr build_grammar(language const& language);
 
 finite_automaton build_lexer(language const& language);
 
-reader_tables_ptr build_reader_tables(language const& language);
+parser_tables_ptr build_parser_tables(language const& language);
 
 std::ostream& operator<<(std::ostream& os, language const& lang);
 

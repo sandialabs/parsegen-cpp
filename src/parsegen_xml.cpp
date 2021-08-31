@@ -146,18 +146,18 @@ language_ptr ask_language() {
   return ptr;
 }
 
-reader_tables_ptr ask_reader_tables() {
+parser_tables_ptr ask_parser_tables() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static reader_tables_ptr ptr;
+  static parser_tables_ptr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
   if (ptr.use_count() == 0) {
     auto lang = ask_language();
-    ptr = build_reader_tables(*lang);
+    ptr = build_parser_tables(*lang);
   }
   return ptr;
 }

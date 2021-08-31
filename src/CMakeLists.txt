@@ -5,7 +5,7 @@ set(PARSEGEN_HEADERS
   parsegen_table.hpp
   parsegen_std_vector.hpp
   parsegen_grammar.hpp
-  parsegen_reader_tables.hpp
+  parsegen_parser_tables.hpp
   parsegen_shift_reduce_tables.hpp
   parsegen_regex.hpp
   parsegen_xml.hpp

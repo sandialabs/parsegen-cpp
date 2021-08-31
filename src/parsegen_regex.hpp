@@ -4,7 +4,7 @@
 #include "parsegen_finite_automaton.hpp"
 #include "parsegen_language.hpp"
 #include "parsegen_reader.hpp"
-#include "parsegen_reader_tables.hpp"
+#include "parsegen_parser_tables.hpp"
 
 namespace parsegen {
 namespace regex {
@@ -58,7 +58,7 @@ language_ptr ask_language();
 
 finite_automaton build_lexer();
 
-reader_tables_ptr ask_reader_tables();
+parser_tables_ptr ask_parser_tables();
 
 finite_automaton build_dfa(
     std::string const& name, std::string const& regex, int token);

@@ -2,7 +2,7 @@
 #define PARSEGEN_MATH_LANG_HPP
 
 #include "parsegen_language.hpp"
-#include "parsegen_reader_tables.hpp"
+#include "parsegen_parser_tables.hpp"
 #include <set>
 
 namespace parsegen {
@@ -84,7 +84,7 @@ language build_language();
 
 language_ptr ask_language();
 
-reader_tables_ptr ask_reader_tables();
+parser_tables_ptr ask_parser_tables();
 
 std::set<std::string> get_variables_used(std::string const& expr);
 std::set<std::string> get_symbols_used(std::string const& expr);

@@ -68,7 +68,7 @@ http://www.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html */
   return out;
 }
 
-/* bootstrap ! This lexer is used to build the reader_tables that read
+/* bootstrap ! This lexer is used to build the parser_tables that read
    regular expressions themselves, so it can't depend on that reader ! */
 finite_automaton build_lexer() {
   std::string meta_chars_str = ".[]()|-^*+?";
@@ -98,12 +98,12 @@ finite_automaton build_lexer() {
   return finite_automaton::simplify(finite_automaton::make_deterministic(out));
 }
 
-reader_tables_ptr ask_reader_tables() {
+parser_tables_ptr ask_parser_tables() {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
-  static reader_tables_ptr ptr;
+  static parser_tables_ptr ptr;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -116,7 +116,7 @@ reader_tables_ptr ask_reader_tables() {
     indent_info.is_sensitive = false;
     indent_info.indent_token = -1;
     indent_info.dedent_token = -1;
-    ptr.reset(new reader_tables{parser, lexer, indent_info});
+    ptr.reset(new parser_tables{parser, lexer, indent_info});
   }
   return ptr;
 }
@@ -147,14 +147,14 @@ finite_automaton build_dfa(
     ss << "error: couldn't build DFA for token \"" << name << "\" regex \""
        << regex << "\"\n";
     ss << "repeating with debug_reader:\n";
-    debug_reader debug_reader(regex::ask_reader_tables(), ss);
+    debug_reader debug_reader(regex::ask_parser_tables(), ss);
     debug_reader.read_string(regex, name);
     throw parse_error(ss.str());
   }
 }
 
 regex::reader::reader(int result_token_in)
-    : parsegen::reader(regex::ask_reader_tables()),
+    : parsegen::reader(regex::ask_parser_tables()),
       result_token(result_token_in) {}
 
 std::any regex::reader::at_shift(int token, std::string& text) {

@@ -9,7 +9,7 @@ namespace {
 
 class calculator : public parsegen::reader {
  public:
-  calculator() : parsegen::reader(parsegen::math_lang::ask_reader_tables()) {
+  calculator() : parsegen::reader(parsegen::math_lang::ask_parser_tables()) {
     unary_function_map["sqrt"] = &std::sqrt;
     unary_function_map["sin"] = &std::sin;
     unary_function_map["cos"] = &std::cos;

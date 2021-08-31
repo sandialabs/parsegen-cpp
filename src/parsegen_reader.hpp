@@ -6,7 +6,7 @@
 #include <iosfwd>
 #include <any>
 
-#include "parsegen_reader_tables.hpp"
+#include "parsegen_parser_tables.hpp"
 #include "parsegen_std_vector.hpp"
 
 namespace parsegen {
@@ -18,7 +18,7 @@ class reader {
   reader() = delete;
   reader(reader const&) = default;
   virtual ~reader() = default;
-  reader(reader_tables_ptr tables_in);
+  reader(parser_tables_ptr tables_in);
   std::any read_stream(
       std::istream& stream,
       std::string const& stream_name_in = "");
@@ -33,7 +33,7 @@ class reader {
   virtual std::any at_reduce(int production, std::vector<std::any>& rhs);
 
  protected:
-  reader_tables_ptr tables;
+  parser_tables_ptr tables;
   shift_reduce_tables const& parser;
   finite_automaton const& lexer;
   grammar_ptr grammar;
@@ -81,7 +81,7 @@ class reader {
 
 class debug_reader : public reader {
  public:
-  debug_reader(reader_tables_ptr tables_in, std::ostream& os_in);
+  debug_reader(parser_tables_ptr tables_in, std::ostream& os_in);
   debug_reader(debug_reader const& other) = default;
   virtual ~debug_reader() override = default;
 
