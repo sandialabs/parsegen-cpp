@@ -35,7 +35,7 @@ class reader {
  protected:
   parser_tables_ptr tables;
   shift_reduce_tables const& syntax_tables;
-  finite_automaton const& lexer;
+  finite_automaton const& lexical_tables;
   grammar_ptr grammar;
   stream_position position;
   int lexer_state;

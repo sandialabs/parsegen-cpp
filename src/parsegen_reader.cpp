@@ -334,10 +334,10 @@ void reader::at_lexer_end(std::istream& stream) {
 reader::reader(parser_tables_ptr tables_in)
     : tables(tables_in),
       syntax_tables(tables->syntax_tables),
-      lexer(tables->lexical_tables),
+      lexical_tables(tables->lexical_tables),
       grammar(get_grammar(syntax_tables))
 {
-  if (!get_determinism(lexer)) {
+  if (!get_determinism(lexical_tables)) {
     throw std::logic_error("parsegen::reader: the lexer in the given tables is not a deterministic finite automaton");
   }
 }
@@ -371,11 +371,11 @@ std::any reader::read_stream(
     position = stream.tellg();
     lexer_text.push_back(c);
     auto lexer_symbol = get_symbol(c);
-    lexer_state = step(lexer, lexer_state, lexer_symbol);
+    lexer_state = step(lexical_tables, lexer_state, lexer_symbol);
     if (lexer_state == -1) {
       at_lexer_end(stream);
     } else {
-      auto token = accepts(lexer, lexer_state);
+      auto token = accepts(lexical_tables, lexer_state);
       if (token != -1) {
         lexer_token = token;
         last_lexer_accept = lexer_text.size();
