@@ -333,8 +333,8 @@ void reader::at_lexer_end(std::istream& stream) {
 
 reader::reader(parser_tables_ptr tables_in)
     : tables(tables_in),
-      syntax_tables(tables->parser),
-      lexer(tables->lexer),
+      syntax_tables(tables->syntax_tables),
+      lexer(tables->lexical_tables),
       grammar(get_grammar(syntax_tables))
 {
   if (!get_determinism(lexer)) {

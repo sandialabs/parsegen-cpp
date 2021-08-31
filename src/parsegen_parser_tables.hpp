@@ -15,8 +15,8 @@ struct indentation {
 };
 
 struct parser_tables {
-  shift_reduce_tables parser;
-  finite_automaton lexer;
+  shift_reduce_tables syntax_tables;
+  finite_automaton lexical_tables;
   indentation indent_info;
 };
 
