@@ -30,7 +30,7 @@ class calculator : public parsegen::parser {
     double a1;
     int n;
   };
-  virtual std::any at_shift(int token, std::string& text) {
+  virtual std::any shift(int token, std::string& text) {
     switch (token) {
       case parsegen::math_lang::TOK_NAME: {
         return text;
@@ -41,7 +41,7 @@ class calculator : public parsegen::parser {
     }
     return std::any();
   }
-  virtual std::any at_reduce(int prod, std::vector<std::any>& rhs) {
+  virtual std::any reduce(int prod, std::vector<std::any>& rhs) {
     using std::any_cast;
     switch (prod) {
       case parsegen::math_lang::PROD_PROGRAM: {

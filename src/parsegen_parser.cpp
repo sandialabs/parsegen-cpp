@@ -188,7 +188,7 @@ void parser::at_token(std::istream& stream) {
     } else if (parser_action.kind == action::kind::shift) {
       std::any shift_result;
       try {
-        shift_result = this->at_shift(lexer_token, lexer_text);
+        shift_result = this->shift(lexer_token, lexer_text);
       } catch (std::exception const& e) {
         handle_shift_exception(stream, e);
       }
@@ -210,7 +210,7 @@ void parser::at_token(std::istream& stream) {
       std::any reduce_result;
       try {
         reduce_result =
-            this->at_reduce(parser_action.production, reduction_rhs);
+            this->reduce(parser_action.production, reduction_rhs);
       } catch (std::exception const& e) {
         handle_reduce_exception(stream, e, parser_action.production);
       }
@@ -418,21 +418,21 @@ std::any parser::read_file(std::filesystem::path const& file_path) {
   return read_stream(stream, file_path.string());
 }
 
-std::any parser::at_shift(int, std::string&) { return std::any(); }
+std::any parser::shift(int, std::string&) { return std::any(); }
 
-std::any parser::at_reduce(int, std::vector<std::any>&) { return std::any(); }
+std::any parser::reduce(int, std::vector<std::any>&) { return std::any(); }
 
 debug_parser::debug_parser(parser_tables_ptr tables_in, std::ostream& os_in)
     : parser(tables_in), os(os_in) {}
 
-std::any debug_parser::at_shift(int token, std::string& text) {
+std::any debug_parser::shift(int token, std::string& text) {
   auto escaped_text = escape_for_c_string(text);
   os << "SHIFT (" << at(grammar->symbol_names, token) << ")["
     << escaped_text << "]\n";
   return escaped_text;
 }
 
-std::any debug_parser::at_reduce(int prod_i, std::vector<std::any>& rhs) {
+std::any debug_parser::reduce(int prod_i, std::vector<std::any>& rhs) {
   os << "REDUCE";
   std::string lhs_text;
   auto& prod = at(grammar->productions, prod_i);

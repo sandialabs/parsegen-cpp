@@ -157,7 +157,7 @@ regex::parser::parser(int result_token_in)
     : parsegen::parser(regex::ask_parser_tables()),
       result_token(result_token_in) {}
 
-std::any regex::parser::at_shift(int token, std::string& text) {
+std::any regex::parser::shift(int token, std::string& text) {
   if (token != TOK_CHAR) {
     return std::any();
   }
@@ -172,7 +172,7 @@ std::any regex::parser::at_shift(int token, std::string& text) {
   }
 }
 
-std::any regex::parser::at_reduce(int production, std::vector<std::any>& rhs) {
+std::any regex::parser::reduce(int production, std::vector<std::any>& rhs) {
   switch (production) {
     case PROD_REGEX:
       return finite_automaton::simplify(finite_automaton::make_deterministic(

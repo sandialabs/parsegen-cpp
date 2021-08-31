@@ -118,18 +118,18 @@ class symbols_parser : public parser {
   std::set<std::string> function_names;
 
  private:
-  std::any at_shift(int token, std::string& text) override;
-  std::any at_reduce(int prod, std::vector<std::any>& rhs) override;
+  std::any shift(int token, std::string& text) override;
+  std::any reduce(int prod, std::vector<std::any>& rhs) override;
 };
 
 symbols_parser::symbols_parser() : parser(ask_parser_tables()) {}
 
-std::any symbols_parser::at_shift(int token, std::string& text) {
+std::any symbols_parser::shift(int token, std::string& text) {
   if (token == TOK_NAME) return text;
   return std::any();
 }
 
-std::any symbols_parser::at_reduce(int prod, std::vector<std::any>& rhs) {
+std::any symbols_parser::reduce(int prod, std::vector<std::any>& rhs) {
   if (prod == PROD_VAR) {
     auto& name = std::any_cast<std::string&>(rhs.at(0));
     variable_names.insert(name);

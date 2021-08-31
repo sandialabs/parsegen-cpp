@@ -29,8 +29,8 @@ class parser {
       std::filesystem::path const& file_path);
 
  protected:
-  virtual std::any at_shift(int token, std::string& text);
-  virtual std::any at_reduce(int production, std::vector<std::any>& rhs);
+  virtual std::any shift(int token, std::string& text);
+  virtual std::any reduce(int production, std::vector<std::any>& rhs);
 
  protected:
   parser_tables_ptr tables;
@@ -86,8 +86,8 @@ class debug_parser : public parser {
   virtual ~debug_parser() override = default;
 
  protected:
-  virtual std::any at_shift(int token, std::string& text) override;
-  virtual std::any at_reduce(int production, std::vector<std::any>& rhs) override;
+  virtual std::any shift(int token, std::string& text) override;
+  virtual std::any reduce(int production, std::vector<std::any>& rhs) override;
 
  private:
   std::ostream& os;

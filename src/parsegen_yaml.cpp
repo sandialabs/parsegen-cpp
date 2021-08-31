@@ -368,7 +368,7 @@ parser_impl::parser_impl()
   :parsegen::parser(ask_parser_tables())
 {}
 
-std::any parser_impl::at_shift(
+std::any parser_impl::shift(
     int token, std::string& text)
 {
   switch (token) {
@@ -379,7 +379,7 @@ std::any parser_impl::at_shift(
   return std::any();
 }
 
-std::any parser_impl::at_reduce(
+std::any parser_impl::reduce(
     int production,
     std::vector<std::any>& rhs)
 {

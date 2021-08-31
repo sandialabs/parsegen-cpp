@@ -221,8 +221,8 @@ class sequence : public object {
 class parser_impl : public parsegen::parser {
  public:
   parser_impl();
-  std::any at_shift(int token, std::string& text) override;
-  std::any at_reduce(
+  std::any shift(int token, std::string& text) override;
+  std::any reduce(
       int production,
       std::vector<std::any>& rhs) override;
 };
