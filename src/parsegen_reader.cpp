@@ -119,7 +119,7 @@ void reader::handle_unacceptable_token(std::istream& stream)
   std::set<std::string> expect_names;
   for (int expect_token = 0; expect_token < grammar->nterminals;
       ++expect_token) {
-    auto expect_action = get_action(parser, parser_state, expect_token);
+    auto expect_action = get_action(syntax_tables, parser_state, expect_token);
     if (expect_action.kind != action::kind::none) {
       expect_names.insert(at(grammar->symbol_names, expect_token));
     }
@@ -182,7 +182,7 @@ void reader::at_token(std::istream& stream) {
   /* this can loop arbitrarily as reductions are made,
      because they don't consume the token */
   while (!done) {
-    auto parser_action = get_action(parser, parser_state, lexer_token);
+    auto parser_action = get_action(syntax_tables, parser_state, lexer_token);
     if (parser_action.kind == action::kind::none) {
       handle_unacceptable_token(stream);
     } else if (parser_action.kind == action::kind::shift) {
@@ -225,7 +225,7 @@ void reader::at_token(std::istream& stream) {
       throw std::logic_error(
           "serious bug in parsegen::reader: action::kind enum value out of range\n");
     }
-    parser_state = execute_action(parser, parser_stack, parser_action);
+    parser_state = execute_action(syntax_tables, parser_stack, parser_action);
   }
 }
 
@@ -333,9 +333,9 @@ void reader::at_lexer_end(std::istream& stream) {
 
 reader::reader(parser_tables_ptr tables_in)
     : tables(tables_in),
-      parser(tables->parser),
+      syntax_tables(tables->parser),
       lexer(tables->lexer),
-      grammar(get_grammar(parser))
+      grammar(get_grammar(syntax_tables))
 {
   if (!get_determinism(lexer)) {
     throw std::logic_error("parsegen::reader: the lexer in the given tables is not a deterministic finite automaton");

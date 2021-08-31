@@ -34,7 +34,7 @@ class reader {
 
  protected:
   parser_tables_ptr tables;
-  shift_reduce_tables const& parser;
+  shift_reduce_tables const& syntax_tables;
   finite_automaton const& lexer;
   grammar_ptr grammar;
   stream_position position;
