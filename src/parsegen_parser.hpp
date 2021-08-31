@@ -9,14 +9,13 @@
 
 namespace parsegen {
 
-enum actionKind {
-  ACTION_NONE,
-  ACTION_SHIFT,
-  ACTION_REDUCE,
-};
-
 struct action {
-  actionKind kind;
+  enum class kind {
+    none,
+    shift,
+    reduce
+  };
+  parsegen::action::kind kind;
   union {
     int production;
     int next_state;

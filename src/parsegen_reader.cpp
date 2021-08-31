@@ -119,7 +119,7 @@ void reader::handle_unacceptable_token(std::istream& stream)
   for (int expect_token = 0; expect_token < grammar->nterminals;
       ++expect_token) {
     auto expect_action = get_action(parser, parser_state, expect_token);
-    if (expect_action.kind != ACTION_NONE) {
+    if (expect_action.kind != action::kind::none) {
       expect_names.insert(at(grammar->symbol_names, expect_token));
     }
   }
@@ -182,9 +182,9 @@ void reader::at_token(std::istream& stream) {
      because they don't consume the token */
   while (!done) {
     auto parser_action = get_action(parser, parser_state, lexer_token);
-    if (parser_action.kind == ACTION_NONE) {
+    if (parser_action.kind == action::kind::none) {
       handle_unacceptable_token(stream);
-    } else if (parser_action.kind == ACTION_SHIFT) {
+    } else if (parser_action.kind == action::kind::shift) {
       std::any shift_result;
       try {
         shift_result = this->at_shift(lexer_token, lexer_text);
@@ -195,7 +195,7 @@ void reader::at_token(std::istream& stream) {
       stream_ends_stack.push_back(last_lexer_accept_position);
       symbol_stack.push_back(lexer_token);
       done = true;
-    } else if (parser_action.kind == ACTION_REDUCE) {
+    } else if (parser_action.kind == action::kind::reduce) {
       if (parser_action.production == get_accept_production(*grammar)) {
         did_accept = true;
         return;

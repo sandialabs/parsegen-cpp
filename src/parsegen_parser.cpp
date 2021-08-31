@@ -15,7 +15,7 @@ int add_state(parser& p) {
   resize(p.nonterminal_table, state + 1, get_ncols(p.nonterminal_table));
   for (int t = 0; t < p.grammar->nterminals; ++t) {
     action action;
-    action.kind = ACTION_NONE;
+    action.kind = action::kind::none;
     at(p.terminal_table, state, t) = action;
   }
   for (int nt = 0; nt < get_nnonterminals(*(p.grammar)); ++nt) {
@@ -25,9 +25,9 @@ int add_state(parser& p) {
 }
 
 void add_terminal_action(parser& p, int state, int terminal, action action) {
-  assert(at(p.terminal_table, state, terminal).kind == ACTION_NONE);
-  assert(action.kind != ACTION_NONE);
-  if (action.kind == ACTION_SHIFT) {
+  assert(at(p.terminal_table, state, terminal).kind == action::kind::none);
+  assert(action.kind != action::kind::none);
+  if (action.kind == action::kind::shift) {
     assert(0 <= action.next_state);
     assert(action.next_state < get_nstates(p));
   } else {
@@ -51,8 +51,8 @@ action const& get_action(parser const& p, int state, int terminal) {
 
 int execute_action(
     parser const& p, std::vector<int>& stack, action const& action) {
-  assert(action.kind != ACTION_NONE);
-  if (action.kind == ACTION_SHIFT) {
+  assert(action.kind != action::kind::none);
+  if (action.kind == action::kind::shift) {
     stack.push_back(action.next_state);
   } else {
     auto& prod = at(p.grammar->productions, action.production);

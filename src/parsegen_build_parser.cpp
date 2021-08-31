@@ -103,7 +103,7 @@ static void add_reduction_actions(
       auto& prod = at(grammar.productions, prod_i);
       if (config.dot != size(prod.rhs)) continue;
       action_in_progress reduction;
-      reduction.action.kind = ACTION_REDUCE;
+      reduction.action.kind = action::kind::reduce;
       reduction.action.production = config.production;
       state.actions.push_back(reduction);
     }
@@ -114,7 +114,7 @@ static void set_lr0_contexts(state_in_progress_vector& states, grammar const& gr
   for (auto& state_uptr : states) {
     auto& state = *state_uptr;
     for (auto& action : state.actions) {
-      if (action.action.kind != ACTION_REDUCE) continue;
+      if (action.action.kind != action::kind::reduce) continue;
       if (action.action.production == get_accept_production(grammar)) {
         action.context.insert(get_end_terminal(grammar));
       } else {
@@ -181,7 +181,7 @@ static state_in_progress_vector build_lr0_parser(
         next_state_i = it->second;
       }
       action_in_progress transition;
-      transition.action.kind = ACTION_SHIFT;
+      transition.action.kind = action::kind::shift;
       transition.action.next_state = next_state_i;
       transition.context.insert(transition_symbol);
       state.actions.emplace_back(std::move(transition));
@@ -420,7 +420,7 @@ void print_dot(std::string const& filepath, parser_in_progress const& pip) {
         file << ", \\{";
         bool found = false;
         for (auto& action : state.actions) {
-          if (action.action.kind == ACTION_REDUCE &&
+          if (action.action.kind == action::kind::reduce &&
               action.action.production == config.production) {
             found = true;
             auto& ac = action.context;
@@ -445,7 +445,7 @@ void print_dot(std::string const& filepath, parser_in_progress const& pip) {
     file << "shape = \"record\"\n";
     file << "]\n";
     for (auto& action : state.actions) {
-      if (action.action.kind == ACTION_SHIFT) {
+      if (action.action.kind == action::kind::shift) {
         auto symb = *(action.context.begin());
         auto symb_name = at(grammar->symbol_names, symb);
         auto next = action.action.next_state;
@@ -494,7 +494,7 @@ static parser_graph find_transition_predecessors(state_configurations const& scs
   for (int state_i = 0; state_i < size(states); ++state_i) {
     auto& state = *at(states, state_i);
     for (auto& action : state.actions) {
-      if (action.action.kind != ACTION_SHIFT) continue;
+      if (action.action.kind != action::kind::shift) continue;
       assert(action.context.size() == 1);
       auto symbol = *(action.context.begin());
       auto state_j = action.action.next_state;
@@ -977,13 +977,13 @@ static std::vector<bool> determine_adequate_states(
     bool state_is_adequate = true;
     for (int a_i = 0; a_i < size(state.actions); ++a_i) {
       auto& action = at(state.actions, a_i);
-      if (action.action.kind == ACTION_SHIFT &&
+      if (action.action.kind == action::kind::shift &&
           is_nonterminal(*grammar, *(action.context.begin()))) {
         continue;
       }
       for (int a_j = a_i + 1; a_j < size(state.actions); ++a_j) {
         auto& action2 = at(state.actions, a_j);
-        if (action2.action.kind == ACTION_SHIFT &&
+        if (action2.action.kind == action::kind::shift &&
             is_nonterminal(*grammar, *(action2.context.begin()))) {
           continue;
         }
@@ -991,10 +991,10 @@ static std::vector<bool> determine_adequate_states(
           if (verbose) {
             auto* ap1 = &action;
             auto* ap2 = &action2;
-            if (ap1->action.kind == ACTION_SHIFT) {
+            if (ap1->action.kind == action::kind::shift) {
               std::swap(ap1, ap2);
             }
-            assert(ap1->action.kind == ACTION_REDUCE);
+            assert(ap1->action.kind == action::kind::reduce);
             std::cerr << "shift-reduce conflict in state " << s_i << ":\n";
             std::cerr << "reduce ";
             auto& prod = at(grammar->productions, ap1->action.production);
@@ -1086,7 +1086,7 @@ parser_in_progress build_lalr1_parser(grammar_ptr grammar, bool verbose) {
       auto& prod = at(grammar->productions, config.production);
       if (config.dot != size(prod.rhs)) continue;
       for (auto& action : state.actions) {
-        if (action.action.kind == ACTION_REDUCE &&
+        if (action.action.kind == action::kind::reduce &&
             action.action.production == config.production) {
           action.context = at(contexts, sc_i);
         }
@@ -1116,7 +1116,7 @@ parser accept_parser(parser_in_progress const& pip) {
   for (int s_i = 0; s_i < size(sips); ++s_i) {
     auto& sip = *at(sips, s_i);
     for (auto& action : sip.actions) {
-      if (action.action.kind == ACTION_SHIFT &&
+      if (action.action.kind == action::kind::shift &&
           is_nonterminal(*grammar, *(action.context.begin()))) {
         auto nt = as_nonterminal(*grammar, *(action.context.begin()));
         add_nonterminal_action(out, s_i, nt, action.action.next_state);
