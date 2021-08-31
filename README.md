@@ -50,7 +50,7 @@ tries to be a "standard modern CMake package" as much as possible.
 
 The two most important classes
 in ParseGen are the `language`, which fully describes a text language,
-and the `reader`, which parses a language according to user-defined
+and the `parser`, which parses a language according to user-defined
 rules that react to syntactic constructs observed.
 The file `src/parsegen_calc.cpp` is a great introductory example
 that builds a command-line calculator app using ParseGen.
