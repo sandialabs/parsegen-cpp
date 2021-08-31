@@ -1106,10 +1106,10 @@ parser_in_progress build_lalr1_parser(grammar_ptr grammar, bool verbose) {
   return out;
 }
 
-parser accept_parser(parser_in_progress const& pip) {
+shift_reduce_tables accept_parser(parser_in_progress const& pip) {
   auto& sips = pip.states;
   auto& grammar = pip.grammar;
-  auto out = parser(grammar, size(sips));
+  auto out = shift_reduce_tables(grammar, size(sips));
   for (int s_i = 0; s_i < size(sips); ++s_i) {
     add_state(out);
   }

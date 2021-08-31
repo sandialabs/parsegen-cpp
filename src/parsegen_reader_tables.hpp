@@ -1,10 +1,9 @@
-#ifndef PARSEGEN_READER_TABLES_HPP
-#define PARSEGEN_READER_TABLES_HPP
+#pragma once
 
 #include <memory>
 
 #include "parsegen_finite_automaton.hpp"
-#include "parsegen_parser.hpp"
+#include "parsegen_shift_reduce_tables.hpp"
 
 namespace parsegen {
 
@@ -16,7 +15,7 @@ struct indentation {
 };
 
 struct reader_tables {
-  parsegen::parser parser;
+  shift_reduce_tables parser;
   finite_automaton lexer;
   indentation indent_info;
 };
@@ -24,5 +23,3 @@ struct reader_tables {
 using reader_tables_ptr = std::shared_ptr<reader_tables const>;
 
 }  // namespace parsegen
-
-#endif

@@ -1,15 +1,15 @@
-#include "parsegen_parser.hpp"
+#include "parsegen_shift_reduce_tables.hpp"
 
 namespace parsegen {
 
-parser::parser(grammar_ptr g, int nstates_reserve)
+shift_reduce_tables::shift_reduce_tables(grammar_ptr g, int nstates_reserve)
     : grammar(g),
       terminal_table(g->nterminals, nstates_reserve),
       nonterminal_table(get_nnonterminals(*g), nstates_reserve) {}
 
-int get_nstates(parser const& p) { return get_nrows(p.terminal_table); }
+int get_nstates(shift_reduce_tables const& p) { return get_nrows(p.terminal_table); }
 
-int add_state(parser& p) {
+int add_state(shift_reduce_tables& p) {
   auto state = get_nstates(p);
   resize(p.terminal_table, state + 1, get_ncols(p.terminal_table));
   resize(p.nonterminal_table, state + 1, get_ncols(p.nonterminal_table));
@@ -24,7 +24,7 @@ int add_state(parser& p) {
   return state;
 }
 
-void add_terminal_action(parser& p, int state, int terminal, action action) {
+void add_terminal_action(shift_reduce_tables& p, int state, int terminal, action action) {
   assert(at(p.terminal_table, state, terminal).kind == action::kind::none);
   assert(action.kind != action::kind::none);
   if (action.kind == action::kind::shift) {
@@ -38,19 +38,19 @@ void add_terminal_action(parser& p, int state, int terminal, action action) {
 }
 
 void add_nonterminal_action(
-    parser& p, int state, int nonterminal, int next_state) {
+    shift_reduce_tables& p, int state, int nonterminal, int next_state) {
   assert(0 <= next_state);
   assert(next_state < get_nstates(p));
   assert(at(p.nonterminal_table, state, nonterminal) == -1);
   at(p.nonterminal_table, state, nonterminal) = next_state;
 }
 
-action const& get_action(parser const& p, int state, int terminal) {
+action const& get_action(shift_reduce_tables const& p, int state, int terminal) {
   return at(p.terminal_table, state, terminal);
 }
 
 int execute_action(
-    parser const& p, std::vector<int>& stack, action const& action) {
+    shift_reduce_tables const& p, std::vector<int>& stack, action const& action) {
   assert(action.kind != action::kind::none);
   if (action.kind == action::kind::shift) {
     stack.push_back(action.next_state);
@@ -67,6 +67,6 @@ int execute_action(
   return stack.back();
 }
 
-grammar_ptr const& get_grammar(parser const& p) { return p.grammar; }
+grammar_ptr const& get_grammar(shift_reduce_tables const& p) { return p.grammar; }
 
 }  // end namespace parsegen

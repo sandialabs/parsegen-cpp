@@ -6,7 +6,7 @@ set(PARSEGEN_HEADERS
   parsegen_std_vector.hpp
   parsegen_grammar.hpp
   parsegen_reader_tables.hpp
-  parsegen_parser.hpp
+  parsegen_shift_reduce_tables.hpp
   parsegen_regex.hpp
   parsegen_xml.hpp
   parsegen_yaml.hpp
@@ -23,7 +23,7 @@ add_library(parsegen
   parsegen_grammar.cpp
   parsegen_language.cpp
   parsegen_math_lang.cpp
-  parsegen_parser.cpp
+  parsegen_shift_reduce_tables.cpp
   parsegen_parser_graph.cpp
   parsegen_reader.cpp
   parsegen_regex.cpp

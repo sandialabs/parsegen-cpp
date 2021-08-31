@@ -1,10 +1,9 @@
-#ifndef PARSEGEN_BUILD_PARSER_HPP
-#define PARSEGEN_BUILD_PARSER_HPP
+#pragma once
 
 #include <memory>
 #include <set>
 
-#include "parsegen_parser.hpp"
+#include "parsegen_shift_reduce_tables.hpp"
 #include "parsegen_parser_graph.hpp"
 
 namespace parsegen {
@@ -55,8 +54,6 @@ void print_dot(std::string const& filepath, parser_in_progress const& pip);
 
 parser_in_progress build_lalr1_parser(grammar_ptr grammar, bool verbose = false);
 
-parser accept_parser(parser_in_progress const& pip);
+shift_reduce_tables accept_parser(parser_in_progress const& pip);
 
 }  // namespace parsegen
-
-#endif
