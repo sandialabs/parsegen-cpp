@@ -7,9 +7,9 @@
 
 namespace {
 
-class calculator : public parsegen::reader {
+class calculator : public parsegen::parser {
  public:
-  calculator() : parsegen::reader(parsegen::math_lang::ask_parser_tables()) {
+  calculator() : parsegen::parser(parsegen::math_lang::ask_parser_tables()) {
     unary_function_map["sqrt"] = &std::sqrt;
     unary_function_map["sin"] = &std::sin;
     unary_function_map["cos"] = &std::cos;
@@ -175,9 +175,9 @@ class calculator : public parsegen::reader {
 }  // end anonymous namespace
 
 int main() {
-  calculator reader;
+  calculator parser;
   for (std::string line; std::getline(std::cin, line);) {
-    std::cout << std::any_cast<double>(reader.read_string(line, "input"))
+    std::cout << std::any_cast<double>(parser.read_string(line, "input"))
               << '\n';
   }
 }

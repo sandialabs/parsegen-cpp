@@ -13,12 +13,12 @@ namespace parsegen {
 
 using stream_position = std::istream::pos_type;
 
-class reader {
+class parser {
  public:
-  reader() = delete;
-  reader(reader const&) = default;
-  virtual ~reader() = default;
-  reader(parser_tables_ptr tables_in);
+  parser() = delete;
+  parser(parser const&) = default;
+  virtual ~parser() = default;
+  parser(parser_tables_ptr tables_in);
   std::any read_stream(
       std::istream& stream,
       std::string const& stream_name_in = "");
@@ -79,11 +79,11 @@ class reader {
   [[noreturn]] void handle_indent_mismatch(std::istream& stream);
 };
 
-class debug_reader : public reader {
+class debug_parser : public parser {
  public:
-  debug_reader(parser_tables_ptr tables_in, std::ostream& os_in);
-  debug_reader(debug_reader const& other) = default;
-  virtual ~debug_reader() override = default;
+  debug_parser(parser_tables_ptr tables_in, std::ostream& os_in);
+  debug_parser(debug_parser const& other) = default;
+  virtual ~debug_parser() override = default;
 
  protected:
   virtual std::any at_shift(int token, std::string& text) override;

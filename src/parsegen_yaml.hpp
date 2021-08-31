@@ -3,7 +3,7 @@
 
 #include "parsegen_language.hpp"
 #include "parsegen_parser_tables.hpp"
-#include "parsegen_reader.hpp"
+#include "parsegen_parser.hpp"
 
 namespace parsegen {
 namespace yaml {
@@ -218,17 +218,17 @@ class sequence : public object {
   void print(std::ostream& s, std::string const& indent = "") const override;
 };
 
-class reader_impl : public parsegen::reader {
+class parser_impl : public parsegen::parser {
  public:
-  reader_impl();
+  parser_impl();
   std::any at_shift(int token, std::string& text) override;
   std::any at_reduce(
       int production,
       std::vector<std::any>& rhs) override;
 };
 
-class reader {
-  reader_impl m_impl;
+class parser {
+  parser_impl m_impl;
  public:
   map read_stream(
       std::istream& stream,

@@ -364,11 +364,11 @@ void sequence::print(std::ostream& s, std::string const& indent) const
   }
 }
 
-reader_impl::reader_impl()
-  :parsegen::reader(ask_parser_tables())
+parser_impl::parser_impl()
+  :parsegen::parser(ask_parser_tables())
 {}
 
-std::any reader_impl::at_shift(
+std::any parser_impl::at_shift(
     int token, std::string& text)
 {
   switch (token) {
@@ -379,7 +379,7 @@ std::any reader_impl::at_shift(
   return std::any();
 }
 
-std::any reader_impl::at_reduce(
+std::any parser_impl::at_reduce(
     int production,
     std::vector<std::any>& rhs)
 {
@@ -877,7 +877,7 @@ std::any reader_impl::at_reduce(
   return std::any();
 }
 
-map reader::read_stream(
+map parser::read_stream(
     std::istream& stream,
     std::string const& stream_name_in)
 {
@@ -885,7 +885,7 @@ map reader::read_stream(
       m_impl.read_stream(stream, stream_name_in));
 }
 
-map reader::read_string(
+map parser::read_string(
     std::string const& string,
     std::string const& string_name)
 {
@@ -893,7 +893,7 @@ map reader::read_string(
       m_impl.read_string(string, string_name));
 }
 
-map reader::read_file(
+map parser::read_file(
       std::filesystem::path const& file_path)
 {
   return std::any_cast<map&&>(

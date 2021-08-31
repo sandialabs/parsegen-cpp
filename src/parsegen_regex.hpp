@@ -3,7 +3,7 @@
 
 #include "parsegen_finite_automaton.hpp"
 #include "parsegen_language.hpp"
-#include "parsegen_reader.hpp"
+#include "parsegen_parser.hpp"
 #include "parsegen_parser_tables.hpp"
 
 namespace parsegen {
@@ -66,11 +66,11 @@ finite_automaton build_dfa(
 std::any at_shift_internal(int token, std::string& text);
 std::any at_reduce_internal(int production, std::vector<std::any>& rhs, int result_token);
 
-class reader : public parsegen::reader {
+class parser : public parsegen::parser {
  public:
-  reader(int result_token_in);
-  reader(reader const&) = default;
-  virtual ~reader() override = default;
+  parser(int result_token_in);
+  parser(parser const&) = default;
+  virtual ~parser() override = default;
 
  protected:
   virtual std::any at_shift(int token, std::string& text) override;

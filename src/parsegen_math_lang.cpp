@@ -1,5 +1,5 @@
 #include "parsegen_math_lang.hpp"
-#include "parsegen_reader.hpp"
+#include "parsegen_parser.hpp"
 
 namespace parsegen {
 
@@ -108,10 +108,10 @@ parser_tables_ptr ask_parser_tables() {
   return ptr;
 }
 
-class symbols_reader : public reader {
+class symbols_parser : public parser {
  public:
-  symbols_reader();
-  ~symbols_reader() override = default;
+  symbols_parser();
+  ~symbols_parser() override = default;
 
  public:
   std::set<std::string> variable_names;
@@ -122,14 +122,14 @@ class symbols_reader : public reader {
   std::any at_reduce(int prod, std::vector<std::any>& rhs) override;
 };
 
-symbols_reader::symbols_reader() : reader(ask_parser_tables()) {}
+symbols_parser::symbols_parser() : parser(ask_parser_tables()) {}
 
-std::any symbols_reader::at_shift(int token, std::string& text) {
+std::any symbols_parser::at_shift(int token, std::string& text) {
   if (token == TOK_NAME) return text;
   return std::any();
 }
 
-std::any symbols_reader::at_reduce(int prod, std::vector<std::any>& rhs) {
+std::any symbols_parser::at_reduce(int prod, std::vector<std::any>& rhs) {
   if (prod == PROD_VAR) {
     auto& name = std::any_cast<std::string&>(rhs.at(0));
     variable_names.insert(name);
@@ -141,16 +141,16 @@ std::any symbols_reader::at_reduce(int prod, std::vector<std::any>& rhs) {
 }
 
 std::set<std::string> get_variables_used(std::string const& expr) {
-  symbols_reader reader;
-  reader.read_string(expr, "get_variables_used");
-  return reader.variable_names;
+  symbols_parser parser;
+  parser.read_string(expr, "get_variables_used");
+  return parser.variable_names;
 }
 
 std::set<std::string> get_symbols_used(std::string const& expr) {
-  symbols_reader reader;
-  reader.read_string(expr, "get_symbols_used");
-  auto set = std::move(reader.variable_names);
-  set.insert(reader.function_names.begin(), reader.function_names.end());
+  symbols_parser parser;
+  parser.read_string(expr, "get_symbols_used");
+  auto set = std::move(parser.variable_names);
+  set.insert(parser.function_names.begin(), parser.function_names.end());
   return set;
 }
 

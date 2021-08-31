@@ -6,7 +6,7 @@
 
 #include "parsegen_build_parser.hpp"
 #include "parsegen_chartab.hpp"
-#include "parsegen_reader.hpp"
+#include "parsegen_parser.hpp"
 #include "parsegen_set.hpp"
 #include "parsegen_std_vector.hpp"
 #include "parsegen_string.hpp"
@@ -69,7 +69,7 @@ http://www.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html */
 }
 
 /* bootstrap ! This lexer is used to build the parser_tables that read
-   regular expressions themselves, so it can't depend on that reader ! */
+   regular expressions themselves, so it can't depend on that parser ! */
 finite_automaton build_lexer() {
   std::string meta_chars_str = ".[]()|-^*+?";
   std::set<int> all_chars;
@@ -138,26 +138,26 @@ language_ptr ask_language() {
 
 finite_automaton build_dfa(
     std::string const& name, std::string const& regex, int token) {
-  auto reader = regex::reader(token);
+  auto parser = regex::parser(token);
   try {
-    return std::any_cast<finite_automaton>(reader.read_string(regex, name));
+    return std::any_cast<finite_automaton>(parser.read_string(regex, name));
   } catch (const parse_error& e) {
     std::stringstream ss;
     ss << e.what() << '\n';
     ss << "error: couldn't build DFA for token \"" << name << "\" regex \""
        << regex << "\"\n";
-    ss << "repeating with debug_reader:\n";
-    debug_reader debug_reader(regex::ask_parser_tables(), ss);
-    debug_reader.read_string(regex, name);
+    ss << "repeating with debug_parser:\n";
+    debug_parser debug_parser(regex::ask_parser_tables(), ss);
+    debug_parser.read_string(regex, name);
     throw parse_error(ss.str());
   }
 }
 
-regex::reader::reader(int result_token_in)
-    : parsegen::reader(regex::ask_parser_tables()),
+regex::parser::parser(int result_token_in)
+    : parsegen::parser(regex::ask_parser_tables()),
       result_token(result_token_in) {}
 
-std::any regex::reader::at_shift(int token, std::string& text) {
+std::any regex::parser::at_shift(int token, std::string& text) {
   if (token != TOK_CHAR) {
     return std::any();
   }
@@ -172,7 +172,7 @@ std::any regex::reader::at_shift(int token, std::string& text) {
   }
 }
 
-std::any regex::reader::at_reduce(int production, std::vector<std::any>& rhs) {
+std::any regex::parser::at_reduce(int production, std::vector<std::any>& rhs) {
   switch (production) {
     case PROD_REGEX:
       return finite_automaton::simplify(finite_automaton::make_deterministic(
