@@ -230,13 +230,13 @@ class parser_impl : public parsegen::parser {
 class parser {
   parser_impl m_impl;
  public:
-  map read_stream(
+  map parse_stream(
       std::istream& stream,
       std::string const& stream_name_in = "");
-  map read_string(
+  map parse_string(
       std::string const& string,
       std::string const& string_name = "");
-  map read_file(
+  map parse_file(
       std::filesystem::path const& file_path);
 };
 

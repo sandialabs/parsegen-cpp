@@ -140,7 +140,7 @@ finite_automaton build_dfa(
     std::string const& name, std::string const& regex, int token) {
   auto parser = regex::parser(token);
   try {
-    return std::any_cast<finite_automaton>(parser.read_string(regex, name));
+    return std::any_cast<finite_automaton>(parser.parse_string(regex, name));
   } catch (const parse_error& e) {
     std::stringstream ss;
     ss << e.what() << '\n';
@@ -148,7 +148,7 @@ finite_automaton build_dfa(
        << regex << "\"\n";
     ss << "repeating with debug_parser:\n";
     debug_parser debug_parser(regex::ask_parser_tables(), ss);
-    debug_parser.read_string(regex, name);
+    debug_parser.parse_string(regex, name);
     throw parse_error(ss.str());
   }
 }

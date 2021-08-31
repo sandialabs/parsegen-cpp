@@ -177,7 +177,7 @@ class calculator : public parsegen::parser {
 int main() {
   calculator parser;
   for (std::string line; std::getline(std::cin, line);) {
-    std::cout << std::any_cast<double>(parser.read_string(line, "input"))
+    std::cout << std::any_cast<double>(parser.parse_string(line, "input"))
               << '\n';
   }
 }

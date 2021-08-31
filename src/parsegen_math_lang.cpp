@@ -142,13 +142,13 @@ std::any symbols_parser::reduce(int prod, std::vector<std::any>& rhs) {
 
 std::set<std::string> get_variables_used(std::string const& expr) {
   symbols_parser parser;
-  parser.read_string(expr, "get_variables_used");
+  parser.parse_string(expr, "get_variables_used");
   return parser.variable_names;
 }
 
 std::set<std::string> get_symbols_used(std::string const& expr) {
   symbols_parser parser;
-  parser.read_string(expr, "get_symbols_used");
+  parser.parse_string(expr, "get_symbols_used");
   auto set = std::move(parser.variable_names);
   set.insert(parser.function_names.begin(), parser.function_names.end());
   return set;

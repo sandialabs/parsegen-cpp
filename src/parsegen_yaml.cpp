@@ -877,27 +877,27 @@ std::any parser_impl::reduce(
   return std::any();
 }
 
-map parser::read_stream(
+map parser::parse_stream(
     std::istream& stream,
     std::string const& stream_name_in)
 {
   return std::any_cast<map&&>(
-      m_impl.read_stream(stream, stream_name_in));
+      m_impl.parse_stream(stream, stream_name_in));
 }
 
-map parser::read_string(
+map parser::parse_string(
     std::string const& string,
     std::string const& string_name)
 {
   return std::any_cast<map&&>(
-      m_impl.read_string(string, string_name));
+      m_impl.parse_string(string, string_name));
 }
 
-map parser::read_file(
+map parser::parse_file(
       std::filesystem::path const& file_path)
 {
   return std::any_cast<map&&>(
-      m_impl.read_file(file_path));
+      m_impl.parse_file(file_path));
 }
 
 }  // end namespace yaml

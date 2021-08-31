@@ -342,7 +342,7 @@ parser::parser(parser_tables_ptr tables_in)
   }
 }
 
-std::any parser::read_stream(
+std::any parser::parse_stream(
     std::istream& stream, std::string const& stream_name_in) {
   lexer_state = 0;
   lexer_text.clear();
@@ -397,25 +397,25 @@ std::any parser::read_stream(
   }
   if (value_stack.size() != 1) {
     throw std::logic_error(
-        "parsegen::parser::read_stream finished but value_stack has size "
+        "parsegen::parser::parse_stream finished but value_stack has size "
         + std::to_string(value_stack.size())
         + "\nThis indicates a bug in parsegen::parser\n");
   }
   return std::move(value_stack.back());
 }
 
-std::any parser::read_string(
+std::any parser::parse_string(
     std::string const& string, std::string const& string_name) {
   std::istringstream stream(string);
-  return read_stream(stream, string_name);
+  return parse_stream(stream, string_name);
 }
 
-std::any parser::read_file(std::filesystem::path const& file_path) {
+std::any parser::parse_file(std::filesystem::path const& file_path) {
   std::ifstream stream(file_path);
   if (!stream.is_open()) {
     throw parse_error("Could not open file " + file_path.string());
   }
-  return read_stream(stream, file_path.string());
+  return parse_stream(stream, file_path.string());
 }
 
 std::any parser::shift(int, std::string&) { return std::any(); }

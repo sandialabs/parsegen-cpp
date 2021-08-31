@@ -19,13 +19,13 @@ class parser {
   parser(parser const&) = default;
   virtual ~parser() = default;
   parser(parser_tables_ptr tables_in);
-  std::any read_stream(
+  std::any parse_stream(
       std::istream& stream,
       std::string const& stream_name_in = "");
-  std::any read_string(
+  std::any parse_string(
       std::string const& string,
       std::string const& string_name = "");
-  std::any read_file(
+  std::any parse_file(
       std::filesystem::path const& file_path);
 
  protected:
