@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15.0...3.21.2)
 
-project(parsegen VERSION 1.0.0 LANGUAGES CXX)
+project(parsegen VERSION 2.0.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
