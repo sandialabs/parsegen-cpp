@@ -99,7 +99,7 @@ std::ostream& operator<<(std::ostream& os, language const& lang) {
 
 finite_automaton build_lexer(language const& language) {
   finite_automaton lexer;
-  for (int i = 0; i < size(language.tokens); ++i) {
+  for (int i = 0; i < isize(language.tokens); ++i) {
     auto& name = at(language.tokens, i).name;
     auto& regex = at(language.tokens, i).regex;
     if (name.empty()) {
@@ -128,7 +128,7 @@ static indentation build_indent_info(language const& language) {
   out.indent_token = -1;
   out.dedent_token = -1;
   out.newline_token = -1;
-  for (int tok_i = 0; tok_i < size(language.tokens); ++tok_i) {
+  for (int tok_i = 0; tok_i < isize(language.tokens); ++tok_i) {
     auto& token = at(language.tokens, tok_i);
     if (token.name == "INDENT") {
       if (out.indent_token != -1) {

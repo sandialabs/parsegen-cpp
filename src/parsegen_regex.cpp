@@ -86,7 +86,7 @@ finite_automaton build_lexer() {
   auto lex_escaped = finite_automaton::concat(lex_slash, lex_any, TOK_CHAR);
   auto lex_char = finite_automaton::unite(lex_nonmeta, lex_escaped);
   finite_automaton lex_metachars;
-  for (int i = 0; i < size(meta_chars_str); ++i) {
+  for (int i = 0; i < isize(meta_chars_str); ++i) {
     int token = TOK_CHAR + i + 1;
     auto lex_metachar = make_char_single_nfa(at(meta_chars_str, i), token);
     if (i)

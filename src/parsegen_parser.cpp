@@ -145,7 +145,7 @@ void parser::handle_reduce_exception(std::istream& stream, std::exception const&
   ss << e.what() << '\n';
   ss << "While trying to reduce symbols {";
   auto& prod = at(grammar->productions, production);
-  for (int i = 0; i < size(prod.rhs); ++i) {
+  for (int i = 0; i < isize(prod.rhs); ++i) {
     auto& rhs_name = at(grammar->symbol_names, at(prod.rhs, i));
     if (i > 0) ss << ", ";
     ss << rhs_name;
@@ -203,9 +203,9 @@ void parser::at_token(std::istream& stream) {
       }
       auto& prod = at(grammar->productions, parser_action.production);
       reduction_rhs.clear();
-      for (int i = 0; i < size(prod.rhs); ++i) {
+      for (int i = 0; i < isize(prod.rhs); ++i) {
         reduction_rhs.emplace_back(
-            std::move(at(value_stack, size(value_stack) - size(prod.rhs) + i)));
+            std::move(at(value_stack, isize(value_stack) - isize(prod.rhs) + i)));
       }
       std::any reduce_result;
       try {
@@ -214,12 +214,12 @@ void parser::at_token(std::istream& stream) {
       } catch (std::exception const& e) {
         handle_reduce_exception(stream, e, parser_action.production);
       }
-      resize(value_stack, size(value_stack) - size(prod.rhs));
+      resize(value_stack, isize(value_stack) - isize(prod.rhs));
       value_stack.emplace_back(std::move(reduce_result));
       auto const old_end = stream_ends_stack.back();
-      resize(stream_ends_stack, size(stream_ends_stack) - size(prod.rhs));
+      resize(stream_ends_stack, isize(stream_ends_stack) - isize(prod.rhs));
       stream_ends_stack.push_back(old_end);
-      resize(symbol_stack, size(symbol_stack) - size(prod.rhs));
+      resize(symbol_stack, isize(symbol_stack) - isize(prod.rhs));
       symbol_stack.push_back(prod.lhs);
     } else {
       throw std::logic_error(
@@ -298,10 +298,10 @@ void parser::reset_lexer_state() {
 void parser::print_parser_stack(std::istream& stream, std::ostream& output)
 {
   output << "The parser stack contains:\n";
-  for (int i = 0; i < size(symbol_stack); ++i) {
+  for (int i = 0; i < isize(symbol_stack); ++i) {
     output << at(grammar->symbol_names, at(symbol_stack, i)) << ":\n";
-    if (i + 1 >= size(stream_ends_stack)) {
-      throw std::logic_error("i + 1 >= size(stream_ends_stack)!");
+    if (i + 1 >= isize(stream_ends_stack)) {
+      throw std::logic_error("i + 1 >= isize(stream_ends_stack)!");
     }
     auto const first = at(stream_ends_stack, i);
     auto const last = at(stream_ends_stack, i + 1);
@@ -436,7 +436,7 @@ std::any debug_parser::reduce(int prod_i, std::vector<std::any>& rhs) {
   os << "REDUCE";
   std::string lhs_text;
   auto& prod = at(grammar->productions, prod_i);
-  for (int i = 0; i < size(prod.rhs); ++i) {
+  for (int i = 0; i < isize(prod.rhs); ++i) {
     auto& rhs_name = at(grammar->symbol_names, at(prod.rhs, i));
     auto rhs_text = std::any_cast<std::string&&>(std::move(at(rhs, i)));
     os << " (" << rhs_name << ")[" << rhs_text << "]";

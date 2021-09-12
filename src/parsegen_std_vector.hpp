@@ -1,5 +1,4 @@
-#ifndef PARSEGEN_STD_VECTOR_HPP
-#define PARSEGEN_STD_VECTOR_HPP
+#pragma once
 
 #include <vector>
 #include <cassert>
@@ -10,7 +9,7 @@ namespace parsegen {
    do all indexing with int */
 
 template <typename T>
-inline int size(std::vector<T> const& v) {
+inline int isize(std::vector<T> const& v) {
   return int(v.size());
 }
 
@@ -49,5 +48,3 @@ inline std::vector<T> make_vector(int n, T const& init_val = T()) {
 }
 
 }  // namespace parsegen
-
-#endif

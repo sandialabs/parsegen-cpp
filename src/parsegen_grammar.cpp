@@ -73,17 +73,17 @@ void add_accept_production(grammar& g) {
   g.nsymbols++;
 }
 
-int get_accept_production(grammar const& g) { return size(g.productions) - 1; }
+int get_accept_production(grammar const& g) { return isize(g.productions) - 1; }
 
 int get_accept_nonterminal(grammar const& g) { return g.nsymbols - 1; }
 
 std::ostream& operator<<(std::ostream& os, grammar const& g) {
   os << "symbols:\n";
-  for (int i = 0; i < size(g.symbol_names); ++i) {
+  for (int i = 0; i < isize(g.symbol_names); ++i) {
     os << i << ": " << at(g.symbol_names, i) << "\n";
   }
   os << "productions:\n";
-  for (int i = 0; i < size(g.productions); ++i) {
+  for (int i = 0; i < isize(g.productions); ++i) {
     auto& prod = at(g.productions, i);
     os << i << ": " << prod.lhs << " ::=";
     for (auto& symb : prod.rhs) {

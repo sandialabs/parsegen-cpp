@@ -1,5 +1,4 @@
-#ifndef PARSEGEN_STRING_HPP
-#define PARSEGEN_STRING_HPP
+#pragma once
 
 #include <string>
 #include <cassert>
@@ -9,7 +8,7 @@ namespace parsegen {
 /* some wrappers over std::string to let us
    do all indexing with int */
 
-inline int size(std::string const& s) { return int(s.size()); }
+inline int isize(std::string const& s) { return int(s.size()); }
 
 inline typename std::string::reference at(std::string& s, int i) {
   assert(0 <= i);
@@ -26,5 +25,3 @@ inline typename std::string::const_reference at(std::string const& s, int i) {
 std::string escape_for_c_string(std::string const& s);
 
 }  // namespace parsegen
-
-#endif

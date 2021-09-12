@@ -23,7 +23,7 @@ template <typename T>
 int get_nrows(table<T> const& t) {
   assert(t.ncols > 0);
   assert(size(t.data) % t.ncols == 0);
-  return size(t.data) / t.ncols;
+  return isize(t.data) / t.ncols;
 }
 
 template <typename T>
