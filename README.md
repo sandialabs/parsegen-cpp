@@ -6,6 +6,8 @@ For example, it can parse subsets of formats like XML and YAML.
 ParseGen's utility is that it is a toolbox for defining new
 text languages and parsing them.
 
+A presentation on ParseGen can be downloaded [here](https://figshare.com/articles/presentation/Parsing_Input_Files_With_ParseGen/16624408)
+
 Theory
 ------
 
