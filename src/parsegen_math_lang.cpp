@@ -5,6 +5,65 @@ namespace parsegen {
 
 namespace math_lang {
 
+std::string maybe_sign_regex() {
+  return "[\\-\\+]?";
+}
+
+std::string leading_digits_regex() {
+  return "(0|([1-9][0-9]*))";
+}
+
+std::string trailing_digits_regex() {
+  return "[0-9]+";
+}
+
+// B: digits before the dot
+// D: the dot
+// A: digits after the dot
+// E: exponent portion
+//
+//  B D A E  valid
+//  0 1 1 0  1  form1
+//  0 1 1 1  1  form1
+//  1 0 0 1  1  form2
+//  1 1 0 0  1  form3
+//  1 1 0 1  1  form3
+//  1 1 1 0  1  form3
+//  1 1 1 1  1  form3
+
+std::string unsigned_floating_point_not_integer_regex() {
+  std::string const b = leading_digits_regex();
+  std::string const d = "\\.";
+  std::string const a = trailing_digits_regex();
+  std::string const e = "([eE]" + maybe_sign_regex() + trailing_digits_regex() + ")";
+  std::string const maybe_a = a + "?";
+  std::string const maybe_e = e + "?";
+  std::string const form1 = "(" + d + a + maybe_e + ")";
+  std::string const form2 = "(" + b + e + ")";
+  std::string const form3 = "(" + b + d + maybe_a + maybe_e + ")";
+  return "(" + form1 + "|" + form2 + "|" + form3 + ")";
+}
+
+std::string unsigned_integer_regex() {
+  return leading_digits_regex();
+}
+
+std::string unsigned_floating_point_regex() {
+  return "(" + unsigned_floating_point_not_integer_regex() + "|" + unsigned_integer_regex() + ")";
+}
+
+std::string signed_integer_regex() {
+  return maybe_sign_regex() + unsigned_integer_regex();
+}
+
+std::string signed_floating_point_not_integer_regex() {
+  return maybe_sign_regex() + unsigned_floating_point_not_integer_regex();
+}
+
+std::string signed_floating_point_regex() {
+  return maybe_sign_regex() + unsigned_floating_point_regex();
+}
+
 language build_language() {
   language out;
   auto& prods = out.productions;
@@ -71,7 +130,7 @@ language build_language() {
   out.tokens[TOK_AND] = {"&&", "&&"};
   out.tokens[TOK_OR] = {"||", "\\|\\|"};
   out.tokens[TOK_CONST] = {
-      "constant", "(0|([1-9][0-9]*))(\\.[0-9]*)?([eE][\\-\\+]?[0-9]+)?"};
+      "constant", unsigned_floating_point_regex() };
   out.tokens[TOK_SEMICOLON] = {";", ";"};
   out.tokens[TOK_ASSIGN] = {"=", "="};
   return out;
