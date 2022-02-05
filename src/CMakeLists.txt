@@ -12,6 +12,7 @@ set(PARSEGEN_HEADERS
   parsegen_yaml.hpp
   parsegen_math_lang.hpp
   parsegen_error.hpp
+  parsegen_object_pointer.hpp
   parsegen.hpp
   )
 
