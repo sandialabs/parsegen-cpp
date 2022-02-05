@@ -21,8 +21,8 @@ class object_pointer {
     return m_pointer;
   }
  public:
-  object_pointer() = default;
-  object_pointer(T* arg)
+  object_pointer() noexcept = default;
+  object_pointer(T* arg) noexcept
    :m_pointer(arg)
   {}
   object_pointer(object_pointer const&)
@@ -30,7 +30,7 @@ class object_pointer {
     throw std::logic_error("object_pointer copy constructor called");
   }
   template <class U>
-  object_pointer(object_pointer<U>&& other)
+  object_pointer(object_pointer<U>&& other) noexcept
    :m_pointer(other.release())
   {
   }
@@ -49,11 +49,11 @@ class object_pointer {
     delete m_pointer;
     m_pointer = nullptr;
   }
-  explicit operator bool() const
+  explicit operator bool() const noexcept
   {
     return m_pointer != nullptr;
   }
-  T* get() const
+  T* get() const noexcept
   {
     return m_pointer;
   }
@@ -65,7 +65,7 @@ class object_pointer {
   {
     return get_non_null();
   }
-  T* release()
+  T* release() noexcept
   {
     T* result = m_pointer;
     m_pointer = nullptr;
