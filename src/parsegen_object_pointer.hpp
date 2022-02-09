@@ -13,6 +13,7 @@ namespace parsegen {
 template <class T>
 class object_pointer {
   T* m_pointer{nullptr};
+ private:
   T* get_non_null() const
   {
     if (m_pointer == nullptr) {
@@ -22,12 +23,17 @@ class object_pointer {
   }
  public:
   object_pointer() noexcept = default;
-  object_pointer(T* arg) noexcept
+  explicit object_pointer(T* arg) noexcept
    :m_pointer(arg)
-  {}
+  {
+  }
   object_pointer(object_pointer const&)
   {
     throw std::logic_error("object_pointer copy constructor called");
+  }
+  object_pointer(object_pointer&& other) noexcept
+   :m_pointer(other.release())
+  {
   }
   template <class U>
   object_pointer(object_pointer<U>&& other) noexcept
@@ -37,12 +43,20 @@ class object_pointer {
   object_pointer& operator=(object_pointer const&)
   {
     throw std::logic_error("object_pointer copy assignment operator called");
+    return *this;
+  }
+  object_pointer& operator=(object_pointer&& other)
+  {
+    delete m_pointer;
+    m_pointer = other.release();
+    return *this;
   }
   template <class U>
   object_pointer& operator=(object_pointer<U>&& other)
   {
     delete m_pointer;
     m_pointer = other.release();
+    return *this;
   }
   ~object_pointer()
   {
