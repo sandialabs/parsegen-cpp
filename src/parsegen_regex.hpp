@@ -80,6 +80,8 @@ class parser : public parsegen::parser {
   int result_token;
 };
 
+bool matches(std::string const& r, std::string const& t);
+
 std::string from_charset(std::set<char> const& s);
 std::string from_automaton(finite_automaton const& fa);
 

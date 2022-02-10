@@ -255,6 +255,10 @@ void remove_range(std::set<char>& s, char first, char last)
   }
 }
 
+bool matches(std::string const& r, std::string const& t)
+{
+  return accepts(build_dfa("first arg of matches", r, 0), t, 0);
+}
 
 std::string internal_from_charset(std::set<char> s)
 {
