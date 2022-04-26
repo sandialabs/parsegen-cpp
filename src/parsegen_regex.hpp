@@ -88,6 +88,19 @@ std::string from_automaton(finite_automaton const& fa);
 std::string for_first_occurrence_of(std::string const& s);
 std::string for_case_insensitive(std::string const& s);
 
+std::string maybe_sign();
+std::string leading_digits();
+std::string trailing_digits();
+std::string unsigned_floating_point_not_integer();
+std::string unsigned_integer();
+std::string unsigned_floating_point();
+std::string signed_integer();
+std::string signed_floating_point_not_integer();
+std::string signed_floating_point();
+std::string whitespace();
+std::string identifier();
+std::string C_style_comment();
+
 }  // end namespace regex
 }  // end namespace parsegen
 

@@ -9,16 +9,6 @@ namespace parsegen {
 
 namespace math_lang {
 
-std::string maybe_sign_regex();
-std::string leading_digits_regex();
-std::string trailing_digits_regex();
-std::string unsigned_floating_point_not_integer_regex();
-std::string unsigned_integer_regex();
-std::string unsigned_floating_point_regex();
-std::string signed_integer_regex();
-std::string signed_floating_point_not_integer_regex();
-std::string signed_floating_point_regex();
-
 enum {
   PROD_PROGRAM,
   PROD_NO_STATEMENTS,

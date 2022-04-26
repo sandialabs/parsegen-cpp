@@ -1039,5 +1039,92 @@ std::string for_case_insensitive(std::string const& s)
   return result;
 }
 
+std::string maybe_sign() {
+  return "[\\-\\+]?";
+}
+
+std::string leading_digits() {
+  return "(0|([1-9][0-9]*))";
+}
+
+std::string trailing_digits() {
+  return "[0-9]+";
+}
+
+// B: digits before the dot
+// D: the dot
+// A: digits after the dot
+// E: exponent portion
+//
+//  B D A E  valid
+//  0 1 1 0  1  form1
+//  0 1 1 1  1  form1
+//  1 0 0 1  1  form2
+//  1 1 0 0  1  form3
+//  1 1 0 1  1  form3
+//  1 1 1 0  1  form3
+//  1 1 1 1  1  form3
+
+std::string unsigned_floating_point_not_integer() {
+  std::string const b = leading_digits();
+  std::string const d = "\\.";
+  std::string const a = trailing_digits();
+  std::string const e = "([eE]" + maybe_sign() + trailing_digits() + ")";
+  std::string const maybe_a = a + "?";
+  std::string const maybe_e = e + "?";
+  std::string const form1 = "(" + d + a + maybe_e + ")";
+  std::string const form2 = "(" + b + e + ")";
+  std::string const form3 = "(" + b + d + maybe_a + maybe_e + ")";
+  return "(" + form1 + "|" + form2 + "|" + form3 + ")";
+}
+
+std::string unsigned_integer() {
+  return leading_digits();
+}
+
+std::string unsigned_floating_point() {
+  return "(" + unsigned_floating_point_not_integer() + "|" + unsigned_integer() + ")";
+}
+
+std::string signed_integer() {
+  return maybe_sign() + unsigned_integer();
+}
+
+std::string signed_floating_point_not_integer() {
+  return maybe_sign() + unsigned_floating_point_not_integer();
+}
+
+std::string signed_floating_point() {
+  return maybe_sign() + unsigned_floating_point();
+}
+
+std::string whitespace() {
+  return "[ \t\n\r]+";
+}
+
+std::string identifier() {
+  return "[_a-zA-Z][_a-zA-Z0-9]*";
+}
+
+std::string C_style_comment()
+{
+  // https://stackoverflow.com/questions/13014947/regex-to-match-a-c-style-multiline-comment
+  using namespace std::string_literals;
+  auto const slash = "/"s;
+  auto const asterisk = "\\*"s;
+  auto const comment_start = slash + asterisk;
+  auto const not_asterisk = "[^\\*]"s;
+  auto const neither_slash_nor_asterisk = "[^/\\*]"s;
+  auto const zero_or_more_not_asterisks = not_asterisk + "*"s;
+  auto const one_or_more_asterisks = asterisk + "+"s;
+  auto const comment_head = zero_or_more_not_asterisks + one_or_more_asterisks;
+  auto const comment_repeatee =
+    neither_slash_nor_asterisk +
+    zero_or_more_not_asterisks +
+    one_or_more_asterisks;
+  auto const comment_repeater = "("s + comment_repeatee + ")*"s;
+  return comment_start + comment_head + comment_repeater + slash;
+}
+
 }  // end namespace regex
 }  // end namespace parsegen

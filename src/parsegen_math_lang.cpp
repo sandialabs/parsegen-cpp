@@ -1,68 +1,10 @@
 #include "parsegen_math_lang.hpp"
 #include "parsegen_parser.hpp"
+#include "parsegen_regex.hpp"
 
 namespace parsegen {
 
 namespace math_lang {
-
-std::string maybe_sign_regex() {
-  return "[\\-\\+]?";
-}
-
-std::string leading_digits_regex() {
-  return "(0|([1-9][0-9]*))";
-}
-
-std::string trailing_digits_regex() {
-  return "[0-9]+";
-}
-
-// B: digits before the dot
-// D: the dot
-// A: digits after the dot
-// E: exponent portion
-//
-//  B D A E  valid
-//  0 1 1 0  1  form1
-//  0 1 1 1  1  form1
-//  1 0 0 1  1  form2
-//  1 1 0 0  1  form3
-//  1 1 0 1  1  form3
-//  1 1 1 0  1  form3
-//  1 1 1 1  1  form3
-
-std::string unsigned_floating_point_not_integer_regex() {
-  std::string const b = leading_digits_regex();
-  std::string const d = "\\.";
-  std::string const a = trailing_digits_regex();
-  std::string const e = "([eE]" + maybe_sign_regex() + trailing_digits_regex() + ")";
-  std::string const maybe_a = a + "?";
-  std::string const maybe_e = e + "?";
-  std::string const form1 = "(" + d + a + maybe_e + ")";
-  std::string const form2 = "(" + b + e + ")";
-  std::string const form3 = "(" + b + d + maybe_a + maybe_e + ")";
-  return "(" + form1 + "|" + form2 + "|" + form3 + ")";
-}
-
-std::string unsigned_integer_regex() {
-  return leading_digits_regex();
-}
-
-std::string unsigned_floating_point_regex() {
-  return "(" + unsigned_floating_point_not_integer_regex() + "|" + unsigned_integer_regex() + ")";
-}
-
-std::string signed_integer_regex() {
-  return maybe_sign_regex() + unsigned_integer_regex();
-}
-
-std::string signed_floating_point_not_integer_regex() {
-  return maybe_sign_regex() + unsigned_floating_point_not_integer_regex();
-}
-
-std::string signed_floating_point_regex() {
-  return maybe_sign_regex() + unsigned_floating_point_regex();
-}
 
 language build_language() {
   language out;
@@ -110,8 +52,8 @@ language build_language() {
   prods[PROD_NO_SPACES] = {"S?", {}};
   prods[PROD_SPACES] = {"S?", {"spaces"}};
   out.tokens.resize(NTOKS);
-  out.tokens[TOK_SPACE] = {"spaces", "[ \t\n\r]+"};
-  out.tokens[TOK_NAME] = {"name", "[_a-zA-Z][_a-zA-Z0-9]*"};
+  out.tokens[TOK_SPACE] = {"spaces", regex::whitespace()};
+  out.tokens[TOK_NAME] = {"name", regex::identifier()};
   out.tokens[TOK_ADD] = {"+", "\\+"};
   out.tokens[TOK_SUB] = {"-", "\\-"};
   out.tokens[TOK_MUL] = {"*", "\\*"};
@@ -130,7 +72,7 @@ language build_language() {
   out.tokens[TOK_AND] = {"&&", "&&"};
   out.tokens[TOK_OR] = {"||", "\\|\\|"};
   out.tokens[TOK_CONST] = {
-      "constant", unsigned_floating_point_regex() };
+      "constant", regex::unsigned_floating_point() };
   out.tokens[TOK_SEMICOLON] = {";", ";"};
   out.tokens[TOK_ASSIGN] = {"=", "="};
   return out;
