@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(__GNUC__) && (__GNUC__ < 8)
+#if (!defined(__clang__)) && defined(__GNUC__) && (__GNUC__ < 8)
 #include <experimental/filesystem>
 /* Yes, defining our own stuff in namespace std
  * is bad practice.
