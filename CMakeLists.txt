@@ -5,8 +5,6 @@ project(parsegen VERSION 2.0.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-option(parsegen_WORKAROUND_GCC_FILESYSTEM "link to stdc++fs" OFF)
-
 add_subdirectory(src)
 
 configure_package_config_file(
