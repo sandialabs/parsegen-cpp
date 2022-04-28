@@ -1,8 +1,7 @@
 #ifndef PARSEGEN_PARSER_HPP
 #define PARSEGEN_PARSER_HPP
 
-#include "parsegen_filesystem.hpp"
-
+#include <filesystem>
 #include <functional>
 #include <iosfwd>
 #include <any>

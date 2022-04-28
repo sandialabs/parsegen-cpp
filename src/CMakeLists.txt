@@ -1,6 +1,5 @@
 set(PARSEGEN_HEADERS
   parsegen_language.hpp
-  parsegen_filesystem.hpp
   parsegen_parser.hpp
   parsegen_finite_automaton.hpp
   parsegen_table.hpp
@@ -42,18 +41,6 @@ target_include_directories(parsegen
   PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
   "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
-
-try_compile(
-  compiler_supports_filesystem
-  "${CMAKE_CURRENT_BINARY_DIR}"
-  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/compiler_supports_filesystem.cpp"
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED TRUE
-  CXX_EXTENSIONS FALSE)
-
-if (NOT compiler_supports_filesystem)
-  target_link_libraries(parsegen PUBLIC stdc++fs)
-endif()
 
 add_executable(parsegen-calc
   parsegen_calc.cpp
