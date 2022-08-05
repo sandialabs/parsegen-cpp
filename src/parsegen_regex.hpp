@@ -102,6 +102,12 @@ std::string identifier();
 std::string C_style_comment();
 
 }  // end namespace regex
+
+inline std::string anycase(std::string const& a)
+{
+  return parsegen::regex::for_case_insensitive(a);
+}
+
 }  // end namespace parsegen
 
 #endif
