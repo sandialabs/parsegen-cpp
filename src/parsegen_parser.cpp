@@ -125,7 +125,7 @@ void parser::handle_reduce_exception(
   std::stringstream ss;
   int line, column;
   get_line_column(stream, stream_ends_stack.back(), line, column);
-  ss << "\nat line " << line << " of " << stream_name << ":\n";
+  ss << "at line " << line << " of " << stream_name << ":\n";
   auto const first_stack_index = isize(symbol_stack) - isize(prod.rhs);
   auto const last_stack_index = isize(symbol_stack);
   auto const first_stream_pos = at(stream_ends_stack, first_stack_index);
@@ -140,7 +140,7 @@ void parser::handle_shift_exception(std::istream& stream, error& e)
   std::stringstream ss;
   int line, column;
   get_line_column(stream, stream_ends_stack.back(), line, column);
-  ss << "\nat line " << line << " of " << stream_name << ":\n";
+  ss << "at line " << line << " of " << stream_name << ":\n";
   get_underlined_portion(stream, stream_ends_stack.back(), last_lexer_accept_position, ss);
   e.set_parser_message(ss.str());
   throw;
