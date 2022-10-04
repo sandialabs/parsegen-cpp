@@ -16,9 +16,13 @@ class error : public std::runtime_error {
   std::string m_parser_message;
   std::string m_full_message;
  public:
-  error()
+  error(std::string const& user_message_arg, std::string const& parser_message_arg = "")
     :std::runtime_error("")
-  {}
+    ,m_user_message(user_message_arg)
+    ,m_parser_message(parser_message_arg)
+  {
+    m_full_message = m_user_message + m_parser_message;
+  }
   void set_user_message(std::string const& user_message_arg)
   {
     m_user_message = user_message_arg;
@@ -33,6 +37,13 @@ class error : public std::runtime_error {
   {
     return m_full_message.c_str();
   }
+};
+
+class unacceptable_token : public error {
+ public:
+  unacceptable_token(std::string const& parser_message_arg)
+    :error(parser_message_arg)
+  {}
 };
 
 }

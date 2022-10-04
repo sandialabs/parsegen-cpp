@@ -112,48 +112,26 @@ void parser::handle_unacceptable_token(std::istream& stream)
   std::stringstream ss;
   int line, column;
   get_line_column(stream, stream_ends_stack.back(), line, column);
-  ss << "Starting at column " << column << " of line " << line << " of " << stream_name << ",\n";
-  ss << "parsegen::parser found an unacceptable token (one for which the parser can take no shift or reduce action):\n";
+  ss << "at line " << line << ", column " << column << " of " << stream_name << ":\n";
   get_underlined_portion(stream, stream_ends_stack.back(), last_lexer_accept_position, ss);
-  ss << "This unacceptable token is called " << at(grammar->symbol_names, lexer_token) << " in the language.\n";
-  std::set<std::string> expect_names;
-  for (int expect_token = 0; expect_token < grammar->nterminals;
-      ++expect_token) {
-    auto expect_action = get_action(syntax_tables, parser_state, expect_token);
-    if (expect_action.kind != action::kind::none) {
-      expect_names.insert(at(grammar->symbol_names, expect_token));
-    }
-  }
-  ss << "At this point, the parser would have accepted one of the following tokens: {";
-  for (std::set<std::string>::iterator it = expect_names.begin();
-      it != expect_names.end(); ++it) {
-    if (it != expect_names.begin()) ss << ", ";
-    if (*it == ",")
-      ss << "','";
-    else
-      ss << *it;
-  }
-  ss << "}\n";
-  print_parser_stack(stream, ss);
-  throw parse_error(ss.str());
+  throw unacceptable_token(ss.str());
 }
 
-void parser::handle_reduce_exception(std::istream& stream, std::exception const& e, int production)
+void parser::handle_reduce_exception(
+    std::istream& stream,
+    error& e,
+    grammar::production const& prod)
 {
   std::stringstream ss;
-  ss << "parsegen::parser caught an exception in the reduce() virtual member method:\n";
-  ss << e.what() << '\n';
-  ss << "While trying to reduce symbols {";
-  auto& prod = at(grammar->productions, production);
-  for (int i = 0; i < isize(prod.rhs); ++i) {
-    auto& rhs_name = at(grammar->symbol_names, at(prod.rhs, i));
-    if (i > 0) ss << ", ";
-    ss << rhs_name;
-  }
-  auto& lhs_name = at(grammar->symbol_names, prod.lhs);
-  ss << "} to symbol " << lhs_name << ".\n";
-  print_parser_stack(stream, ss);
-  throw parse_error(ss.str());
+  int line, column;
+  get_line_column(stream, stream_ends_stack.back(), line, column);
+  auto const first_stack_index = isize(symbol_stack) - isize(prod.rhs);
+  auto const last_stack_index = isize(symbol_stack);
+  auto const first_stream_pos = at(stream_ends_stack, first_stack_index);
+  auto const last_stream_pos = at(stream_ends_stack, last_stack_index);
+  get_underlined_portion(stream, first_stream_pos, last_stream_pos, ss);
+  e.set_parser_message(ss.str());
+  throw;
 }
 
 void parser::handle_shift_exception(std::istream& stream, std::exception const& e)
@@ -211,8 +189,8 @@ void parser::at_token(std::istream& stream) {
       try {
         reduce_result =
             this->reduce(parser_action.production, reduction_rhs);
-      } catch (std::exception const& e) {
-        handle_reduce_exception(stream, e, parser_action.production);
+      } catch (error& e) {
+        handle_reduce_exception(stream, e, prod);
       }
       resize(value_stack, isize(value_stack) - isize(prod.rhs));
       value_stack.emplace_back(std::move(reduce_result));

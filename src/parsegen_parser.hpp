@@ -8,6 +8,7 @@
 
 #include "parsegen_parser_tables.hpp"
 #include "parsegen_std_vector.hpp"
+#include "parsegen_error.hpp"
 
 namespace parsegen {
 
@@ -73,7 +74,7 @@ class parser {
   void print_parser_stack(std::istream& stream, std::ostream& output);
   [[noreturn]] void handle_tokenization_failure(std::istream& stream);
   [[noreturn]] void handle_unacceptable_token(std::istream& stream);
-  [[noreturn]] void handle_reduce_exception(std::istream& stream, std::exception const& e, int production);
+  [[noreturn]] void handle_reduce_exception(std::istream& stream, error& e, grammar::production const& prod);
   [[noreturn]] void handle_shift_exception(std::istream& stream, std::exception const& e);
   [[noreturn]] void handle_bad_character(std::istream& stream, char c);
   [[noreturn]] void handle_indent_mismatch(std::istream& stream);
