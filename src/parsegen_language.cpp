@@ -43,7 +43,7 @@ grammar_ptr build_grammar(language const& language) {
         ss << "RHS entry \"" << lang_symb
            << "\" is neither a nonterminal (LHS of a production) nor a "
               "token!\n";
-        throw parse_error(ss.str());
+        throw std::invalid_argument(ss.str());
       }
       gprod.rhs.push_back(symbol_map[lang_symb]);
     }
@@ -132,38 +132,38 @@ static indentation build_indent_info(language const& language) {
     auto& token = at(language.tokens, tok_i);
     if (token.name == "INDENT") {
       if (out.indent_token != -1) {
-        throw parse_error("ERROR: language has two or more INDENT tokens\n");
+        throw std::invalid_argument("The language has two or more INDENT tokens\n");
       }
       out.indent_token = tok_i;
       out.is_sensitive = true;
     } else if (token.name == "DEDENT") {
       if (out.dedent_token != -1) {
-        throw parse_error("ERROR: language has two or more DEDENT tokens\n");
+        throw std::invalid_argument("The language has two or more DEDENT tokens\n");
       }
       out.dedent_token = tok_i;
     } else if (token.name == "NEWLINE") {
       if (out.newline_token != -1) {
-        throw parse_error("ERROR: language has two or more NEWLINE tokens\n");
+        throw std::invalid_argument("The language has two or more NEWLINE tokens\n");
       }
       out.newline_token = tok_i;
     }
   }
   if (out.is_sensitive && out.indent_token == -1) {
-    throw parse_error(
-        "ERROR: Indentation-sensitive language has no INDENT token\n");
+    throw std::invalid_argument(
+        "This indentation-sensitive language has no INDENT token\n");
   }
   if (out.is_sensitive && out.dedent_token == -1) {
-    throw parse_error(
-        "ERROR: Indentation-sensitive language has no DEDENT token\n");
+    throw std::invalid_argument(
+        "This indentation-sensitive language has no DEDENT token\n");
   }
   if (out.is_sensitive && out.newline_token == -1) {
-    throw parse_error(
-        "ERROR: Indentation-sensitive language has no NEWLINE token\n");
+    throw std::invalid_argument(
+        "This indentation-sensitive language has no NEWLINE token\n");
   }
   if (out.indent_token < out.newline_token ||
       out.dedent_token < out.newline_token) {
-    throw parse_error(
-        "ERROR: NEWLINE needs to come before all other indent tokens\n");
+    throw std::invalid_argument(
+        "NEWLINE needs to come before all other indent tokens\n");
   }
   return out;
 }

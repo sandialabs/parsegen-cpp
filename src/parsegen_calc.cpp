@@ -46,7 +46,7 @@ class calculator : public parsegen::parser {
     switch (prod) {
       case parsegen::math_lang::PROD_PROGRAM: {
         if (!rhs.at(1).has_value()) {
-          throw parsegen::parse_error(
+          throw parsegen::error(
               "Calculator needs an expression to evaluate!");
         }
         return std::move(rhs.at(1));
@@ -107,14 +107,14 @@ class calculator : public parsegen::parser {
         auto& name = any_cast<std::string&>(rhs.at(0));
         auto& args = any_cast<arguments&>(rhs.at(4));
         if (args.n < 1 || args.n > 2) {
-          throw parsegen::parse_error(
+          throw parsegen::error(
               "Only unary and binary functions supported!\n");
         }
         if (args.n == 1) {
           if (!unary_function_map.count(name)) {
             std::stringstream ss;
             ss << "Unknown unary function name \"" << name << "\"\n";
-            throw parsegen::parse_error(ss.str());
+            throw parsegen::error(ss.str());
           }
           Unary fptr = unary_function_map[name];
           return (*fptr)(args.a0);
@@ -122,7 +122,7 @@ class calculator : public parsegen::parser {
           if (!binary_function_map.count(name)) {
             std::stringstream ss;
             ss << "Unknown binary function name \"" << name << "\"\n";
-            throw parsegen::parse_error(ss.str());
+            throw parsegen::error(ss.str());
           }
           Binary fptr = binary_function_map[name];
           return (*fptr)(args.a0, args.a1);
@@ -142,7 +142,7 @@ class calculator : public parsegen::parser {
       case parsegen::math_lang::PROD_NEXT_ARG: {
         auto& args = any_cast<arguments&>(rhs.at(0));
         args.a1 = any_cast<double>(rhs.at(3));
-        args.n = 2;
+        args.n += 1;
         return args;
       }
       case parsegen::math_lang::PROD_NEG:
@@ -157,7 +157,7 @@ class calculator : public parsegen::parser {
         if (it == variable_map.end()) {
           std::stringstream ss;
           ss << "variable " << name << " not defined!";
-          throw parsegen::parse_error(ss.str());
+          throw parsegen::error(ss.str());
         }
         return it->second;
     }
