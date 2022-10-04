@@ -112,7 +112,8 @@ void parser::handle_unacceptable_token(std::istream& stream)
   std::stringstream ss;
   int line, column;
   get_line_column(stream, stream_ends_stack.back(), line, column);
-  ss << "\nat line " << line << " of " << stream_name << ":\n";
+  ss << "Could not parse the text\n";
+  ss << "at line " << line << " of " << stream_name << ":\n";
   get_underlined_portion(stream, stream_ends_stack.back(), last_lexer_accept_position, ss);
   throw unacceptable_token(ss.str());
 }
@@ -152,7 +153,7 @@ void parser::handle_bad_character(std::istream& stream, char c)
   int line, column;
   get_line_column(stream, position, line, column);
   ss << "Encountered a non-ASCII character ";
-  ss << "at line " << line << ", column " << column << " of " << stream_name << "\n";
+  ss << "at line " << line << ", column " << column << " of " << stream_name << ".\n";
   ss << "This parser can only handle ASCII characters.\n";
   ss << "Usually, non-ASCII characters are caused by trying to ";
   ss << "use foreign-language accents or by copying text from a web page.\n";
@@ -215,11 +216,9 @@ void parser::handle_indent_mismatch(std::istream& stream) {
   std::stringstream ss;
   int line, column;
   get_line_column(stream, last_lexer_accept_position, line, column);
-  ss << "parsegen::parser noticed the indentation characters beginning line " << line << " of "
-     << stream_name << " don't match earlier indentation.\n";
-  ss << "It is strongly recommended not to mix tabs and spaces in "
-        "indentation-sensitive formats.\n";
-  throw parse_error(ss.str());
+  ss << "The indentation characters beginning line " << line << " of "
+     << stream_name << " do not match earlier indentation.\n";
+  throw error("", ss.str());
 }
 
 void parser::at_token_indent(std::istream& stream) {
@@ -229,7 +228,7 @@ void parser::at_token_indent(std::istream& stream) {
   }
   auto last_newline_pos = lexer_text.find_last_of("\n");
   if (last_newline_pos == std::string::npos) {
-    throw parse_error("INDENT token did not contain a newline");
+    throw error("", "INDENT token did not contain a newline");
   }
   auto lexer_indent =
       lexer_text.substr(last_newline_pos + 1, std::string::npos);
@@ -297,11 +296,10 @@ void parser::handle_tokenization_failure(std::istream& stream)
   std::stringstream ss;
   int line, column;
   get_line_column(stream, last_lexer_accept_position, line, column);
-  ss << "Starting at column " << column << " of line " << line << " of " << stream_name << ",\n";
-  ss << "parsegen::parser found some text that did not match any of the tokens in the language:\n";
+  ss << "Could not parse the text\n";
+  ss << "at line " << line << " of " << stream_name << ":\n";
   get_underlined_portion(stream, last_lexer_accept_position, position, ss);
-  print_parser_stack(stream, ss);
-  throw parse_error(ss.str());
+  throw tokenization_failure(ss.str());
 }
 
 void parser::at_lexer_end(std::istream& stream) {

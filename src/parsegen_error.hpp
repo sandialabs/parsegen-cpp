@@ -42,13 +42,20 @@ class error : public std::runtime_error {
 class unacceptable_token : public error {
  public:
   unacceptable_token(std::string const& parser_message_arg)
-    :error("Could not parse the text", parser_message_arg)
+    :error("", parser_message_arg)
   {}
 };
 
 class bad_character : public error {
  public:
   bad_character(std::string const& parser_message_arg)
+    :error("", parser_message_arg)
+  {}
+};
+
+class tokenization_failure : public error {
+ public:
+  tokenization_failure(std::string const& parser_message_arg)
     :error("", parser_message_arg)
   {}
 };
