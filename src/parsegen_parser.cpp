@@ -112,7 +112,7 @@ void parser::handle_unacceptable_token(std::istream& stream)
   std::stringstream ss;
   int line, column;
   get_line_column(stream, stream_ends_stack.back(), line, column);
-  ss << "\nat line " << line << ", column " << column << " of " << stream_name << ":\n";
+  ss << "\nat line " << line << " of " << stream_name << ":\n";
   get_underlined_portion(stream, stream_ends_stack.back(), last_lexer_accept_position, ss);
   throw unacceptable_token(ss.str());
 }
@@ -125,7 +125,7 @@ void parser::handle_reduce_exception(
   std::stringstream ss;
   int line, column;
   get_line_column(stream, stream_ends_stack.back(), line, column);
-  ss << "\nat line " << line << ", column " << column << " of " << stream_name << ":\n";
+  ss << "\nat line " << line << " of " << stream_name << ":\n";
   auto const first_stack_index = isize(symbol_stack) - isize(prod.rhs);
   auto const last_stack_index = isize(symbol_stack);
   auto const first_stream_pos = at(stream_ends_stack, first_stack_index);
@@ -135,15 +135,15 @@ void parser::handle_reduce_exception(
   throw;
 }
 
-void parser::handle_shift_exception(std::istream& stream, std::exception const& e)
+void parser::handle_shift_exception(std::istream& stream, error& e)
 {
   std::stringstream ss;
-  ss << "parsegen::parser caught an exception in the shift() virtual member method:\n";
-  ss << e.what() << '\n';
-  ss << "While trying to shift this " << at(grammar->symbol_names, lexer_token) << " symbol:\n";
+  int line, column;
+  get_line_column(stream, stream_ends_stack.back(), line, column);
+  ss << "\nat line " << line << " of " << stream_name << ":\n";
   get_underlined_portion(stream, stream_ends_stack.back(), last_lexer_accept_position, ss);
-  print_parser_stack(stream, ss);
-  throw parse_error(ss.str());
+  e.set_parser_message(ss.str());
+  throw;
 }
 
 void parser::handle_bad_character(std::istream& stream, char c)
@@ -168,7 +168,7 @@ void parser::at_token(std::istream& stream) {
       std::any shift_result;
       try {
         shift_result = this->shift(lexer_token, lexer_text);
-      } catch (std::exception const& e) {
+      } catch (error& e) {
         handle_shift_exception(stream, e);
       }
       value_stack.emplace_back(std::move(shift_result));
