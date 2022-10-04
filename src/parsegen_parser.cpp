@@ -151,9 +151,12 @@ void parser::handle_bad_character(std::istream& stream, char c)
   std::stringstream ss;
   int line, column;
   get_line_column(stream, position, line, column);
-  ss << "At column " << column << " of line " << line << " of " << stream_name << ",\n";
-  ss << "parsegen::parser found an unacceptable character code " << int(c) << ".\n";
-  throw parse_error(ss.str());
+  ss << "Encountered a non-ASCII character ";
+  ss << "at line " << line << ", column " << column << " of " << stream_name << "\n";
+  ss << "This parser can only handle ASCII characters.\n";
+  ss << "Usually, non-ASCII characters are caused by trying to ";
+  ss << "use foreign-language accents or by copying text from a web page.\n";
+  throw bad_character(ss.str());
 }
 
 void parser::at_token(std::istream& stream) {
