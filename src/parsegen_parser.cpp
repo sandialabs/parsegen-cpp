@@ -112,10 +112,9 @@ void parser::handle_unacceptable_token(std::istream& stream)
   std::stringstream ss;
   int line, column;
   get_line_column(stream, stream_ends_stack.back(), line, column);
-  ss << "Could not parse the text\n";
   ss << "at line " << line << " of " << stream_name << ":\n";
   get_underlined_portion(stream, stream_ends_stack.back(), last_lexer_accept_position, ss);
-  throw unacceptable_token(ss.str());
+  throw unacceptable_token(ss.str(), at(grammar->symbol_names, lexer_token));
 }
 
 void parser::handle_reduce_exception(
@@ -152,11 +151,7 @@ void parser::handle_bad_character(std::istream& stream, char c)
   std::stringstream ss;
   int line, column;
   get_line_column(stream, position, line, column);
-  ss << "Encountered a non-ASCII character ";
   ss << "at line " << line << ", column " << column << " of " << stream_name << ".\n";
-  ss << "This parser can only handle ASCII characters.\n";
-  ss << "Usually, non-ASCII characters are caused by trying to ";
-  ss << "use foreign-language accents or by copying text from a web page.\n";
   throw bad_character(ss.str());
 }
 
@@ -218,7 +213,7 @@ void parser::handle_indent_mismatch(std::istream& stream) {
   get_line_column(stream, last_lexer_accept_position, line, column);
   ss << "The indentation characters beginning line " << line << " of "
      << stream_name << " do not match earlier indentation.\n";
-  throw error("", ss.str());
+  throw error("", "", ss.str());
 }
 
 void parser::at_token_indent(std::istream& stream) {
@@ -228,7 +223,7 @@ void parser::at_token_indent(std::istream& stream) {
   }
   auto last_newline_pos = lexer_text.find_last_of("\n");
   if (last_newline_pos == std::string::npos) {
-    throw error("", "INDENT token did not contain a newline");
+    throw error("", "", "INDENT token did not contain a newline");
   }
   auto lexer_indent =
       lexer_text.substr(last_newline_pos + 1, std::string::npos);
@@ -296,7 +291,6 @@ void parser::handle_tokenization_failure(std::istream& stream)
   std::stringstream ss;
   int line, column;
   get_line_column(stream, last_lexer_accept_position, line, column);
-  ss << "Could not parse the text\n";
   ss << "at line " << line << " of " << stream_name << ":\n";
   get_underlined_portion(stream, last_lexer_accept_position, position, ss);
   throw tokenization_failure(ss.str());
@@ -393,7 +387,7 @@ std::any parser::parse_string(
 std::any parser::parse_file(std::filesystem::path const& file_path) {
   std::ifstream stream(file_path);
   if (!stream.is_open()) {
-    throw error("Could not open file " + file_path.string());
+    throw error("", "", "Could not open file " + file_path.string());
   }
   return parse_stream(stream, file_path.string());
 }
