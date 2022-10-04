@@ -393,7 +393,7 @@ std::any parser::parse_string(
 std::any parser::parse_file(std::filesystem::path const& file_path) {
   std::ifstream stream(file_path);
   if (!stream.is_open()) {
-    throw parse_error("Could not open file " + file_path.string());
+    throw error("Could not open file " + file_path.string());
   }
   return parse_stream(stream, file_path.string());
 }
