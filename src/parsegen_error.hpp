@@ -28,7 +28,7 @@ class error : public std::runtime_error {
   {
     m_full_message = m_before_message + m_parser_message + m_after_message;
   }
-  void set_user_message(std::string const& before_message_arg)
+  void set_before_message(std::string const& before_message_arg)
   {
     m_before_message = before_message_arg;
     m_full_message = m_before_message + m_parser_message + m_after_message;
