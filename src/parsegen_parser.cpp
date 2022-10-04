@@ -112,7 +112,7 @@ void parser::handle_unacceptable_token(std::istream& stream)
   std::stringstream ss;
   int line, column;
   get_line_column(stream, stream_ends_stack.back(), line, column);
-  ss << "at line " << line << ", column " << column << " of " << stream_name << ":\n";
+  ss << "\nat line " << line << ", column " << column << " of " << stream_name << ":\n";
   get_underlined_portion(stream, stream_ends_stack.back(), last_lexer_accept_position, ss);
   throw unacceptable_token(ss.str());
 }
@@ -125,6 +125,7 @@ void parser::handle_reduce_exception(
   std::stringstream ss;
   int line, column;
   get_line_column(stream, stream_ends_stack.back(), line, column);
+  ss << "\nat line " << line << ", column " << column << " of " << stream_name << ":\n";
   auto const first_stack_index = isize(symbol_stack) - isize(prod.rhs);
   auto const last_stack_index = isize(symbol_stack);
   auto const first_stream_pos = at(stream_ends_stack, first_stack_index);
