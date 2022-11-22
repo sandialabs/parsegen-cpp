@@ -30,7 +30,7 @@ void add_terminal_action(shift_reduce_tables& p, int state, int terminal, action
   if (action.kind == action::kind::shift) {
     assert(0 <= action.next_state);
     assert(action.next_state < get_nstates(p));
-  } else {
+  } else if (action.kind == action::kind::reduce) {
     assert(0 <= action.production);
     assert(action.production < isize(p.grammar->productions));
   }
@@ -54,7 +54,7 @@ int execute_action(
   assert(action.kind != action::kind::none);
   if (action.kind == action::kind::shift) {
     stack.push_back(action.next_state);
-  } else {
+  } else if (action.kind == action::kind::reduce) {
     auto& prod = at(p.grammar->productions, action.production);
     resize(stack, isize(stack) - isize(prod.rhs));
     assert(p.grammar.get());
@@ -63,6 +63,7 @@ int execute_action(
     assert(!stack.empty());
     auto next_state = at(p.nonterminal_table, stack.back(), nt);
     stack.push_back(next_state);
+  } else if (action.kind == action::kind::skip) {
   }
   return stack.back();
 }

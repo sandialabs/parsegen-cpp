@@ -13,8 +13,8 @@ language build_language() {
   prods[PROD_PROGRAM] = {"program", {"statements", "expr?"}};
   prods[PROD_NO_STATEMENTS] = {"statements", {}};
   prods[PROD_NEXT_STATEMENT] = {
-      "statements", {"statements", "statement", ";", "S?"}};
-  prods[PROD_ASSIGN] = {"statement", {"name", "S?", "=", "S?", "expr"}};
+      "statements", {"statements", "statement", ";"}};
+  prods[PROD_ASSIGN] = {"statement", {"name", "=", "expr"}};
   prods[PROD_NO_EXPR] = {"expr?", {}};
   prods[PROD_YES_EXPR] = {"expr?", {"expr"}};
   prods[PROD_EXPR] = {"expr", {"ternary"}};
@@ -26,33 +26,31 @@ language build_language() {
   prods[PROD_NEG_DECAY] = {"neg", {"pow"}};
   prods[PROD_POW_DECAY] = {"pow", {"scalar"}};
   prods[PROD_TERNARY] = {
-      "ternary", {"or", "?", "S?", "add_sub", ":", "S?", "add_sub"}};
-  prods[PROD_OR] = {"or", {"or", "||", "S?", "and"}};
-  prods[PROD_AND] = {"and", {"and", "&&", "S?", "comp"}};
-  prods[PROD_GT] = {"comp", {"add_sub", ">", "S?", "add_sub"}};
-  prods[PROD_LT] = {"comp", {"add_sub", "<", "S?", "add_sub"}};
-  prods[PROD_GEQ] = {"comp", {"add_sub", ">=", "S?", "add_sub"}};
-  prods[PROD_LEQ] = {"comp", {"add_sub", "<=", "S?", "add_sub"}};
-  prods[PROD_EQ] = {"comp", {"add_sub", "==", "S?", "add_sub"}};
-  prods[PROD_BOOL_PARENS] = {"comp", {"(", "S?", "or", ")", "S?"}};
-  prods[PROD_ADD] = {"add_sub", {"add_sub", "+", "S?", "mul_div"}};
-  prods[PROD_SUB] = {"add_sub", {"add_sub", "-", "S?", "mul_div"}};
-  prods[PROD_MUL] = {"mul_div", {"mul_div", "*", "S?", "pow"}};
-  prods[PROD_DIV] = {"mul_div", {"mul_div", "/", "S?", "pow"}};
-  prods[PROD_POW] = {"pow", {"scalar", "^", "S?", "pow"}};
-  prods[PROD_CALL] = {"scalar", {"name", "S?", "(", "S?", "args?", ")", "S?"}};
+      "ternary", {"or", "?", "add_sub", ":", "add_sub"}};
+  prods[PROD_OR] = {"or", {"or", "||", "and"}};
+  prods[PROD_AND] = {"and", {"and", "&&", "comp"}};
+  prods[PROD_GT] = {"comp", {"add_sub", ">", "add_sub"}};
+  prods[PROD_LT] = {"comp", {"add_sub", "<", "add_sub"}};
+  prods[PROD_GEQ] = {"comp", {"add_sub", ">=", "add_sub"}};
+  prods[PROD_LEQ] = {"comp", {"add_sub", "<=", "add_sub"}};
+  prods[PROD_EQ] = {"comp", {"add_sub", "==", "add_sub"}};
+  prods[PROD_BOOL_PARENS] = {"comp", {"(", "or", ")"}};
+  prods[PROD_ADD] = {"add_sub", {"add_sub", "+", "mul_div"}};
+  prods[PROD_SUB] = {"add_sub", {"add_sub", "-", "mul_div"}};
+  prods[PROD_MUL] = {"mul_div", {"mul_div", "*", "pow"}};
+  prods[PROD_DIV] = {"mul_div", {"mul_div", "/", "pow"}};
+  prods[PROD_POW] = {"pow", {"scalar", "^", "pow"}};
+  prods[PROD_CALL] = {"scalar", {"name", "(", "args?", ")"}};
   prods[PROD_NO_ARGS] = {"args?", {}};
   prods[PROD_SOME_ARGS] = {"args?", {"args"}};
   prods[PROD_FIRST_ARG] = {"args", {"ternary"}};
-  prods[PROD_NEXT_ARG] = {"args", {"args", ",", "S?", "ternary"}};
-  prods[PROD_NEG] = {"neg", {"-", "S?", "neg"}};
-  prods[PROD_VAL_PARENS] = {"scalar", {"(", "S?", "ternary", ")", "S?"}};
-  prods[PROD_CONST] = {"scalar", {"constant", "S?"}};
-  prods[PROD_VAR] = {"scalar", {"name", "S?"}};
-  prods[PROD_NO_SPACES] = {"S?", {}};
-  prods[PROD_SPACES] = {"S?", {"spaces"}};
+  prods[PROD_NEXT_ARG] = {"args", {"args", ",", "ternary"}};
+  prods[PROD_NEG] = {"neg", {"-", "neg"}};
+  prods[PROD_VAL_PARENS] = {"scalar", {"(", "ternary", ")"}};
+  prods[PROD_CONST] = {"scalar", {"constant"}};
+  prods[PROD_VAR] = {"scalar", {"name"}};
   out.tokens.resize(NTOKS);
-  out.tokens[TOK_SPACE] = {"spaces", regex::whitespace()};
+  out.tokens[TOK_SPACE] = {"whitespace", regex::whitespace()};
   out.tokens[TOK_NAME] = {"name", regex::identifier()};
   out.tokens[TOK_ADD] = {"+", "\\+"};
   out.tokens[TOK_SUB] = {"-", "\\-"};
@@ -75,6 +73,7 @@ language build_language() {
       "constant", regex::unsigned_floating_point() };
   out.tokens[TOK_SEMICOLON] = {";", ";"};
   out.tokens[TOK_ASSIGN] = {"=", "="};
+  out.ignored_tokens.push_back("whitespace");
   return out;
 }
 

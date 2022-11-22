@@ -11,7 +11,8 @@ struct action {
   enum class kind {
     none,
     shift,
-    reduce
+    reduce,
+    skip
   };
   parsegen::action::kind kind;
   union {

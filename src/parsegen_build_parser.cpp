@@ -1126,6 +1126,12 @@ shift_reduce_tables accept_parser(parser_in_progress const& pip) {
           add_terminal_action(out, s_i, terminal, action.action);
         }
       }
+      for (auto terminal : grammar->ignored_terminals) {
+        assert(is_terminal(*grammar, terminal));
+        parsegen::action action;
+        action.kind = action::kind::skip;
+        add_terminal_action(out, s_i, terminal, action);
+      }
     }
   }
   return out;

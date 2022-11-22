@@ -18,6 +18,7 @@ struct language {
     std::string regex;
   };
   std::vector<token> tokens;
+  std::vector<std::string> ignored_tokens;
   struct production {
     std::string lhs;
     std::vector<std::string> rhs;

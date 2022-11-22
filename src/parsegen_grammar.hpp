@@ -21,6 +21,7 @@ struct grammar {
   int nterminals;
   production_vector productions;
   std::vector<std::string> symbol_names;
+  std::vector<int> ignored_terminals;
 };
 
 using grammar_ptr = std::shared_ptr<grammar const>;

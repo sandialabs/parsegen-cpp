@@ -1102,6 +1102,10 @@ std::string whitespace() {
   return "[ \t\n\r]+";
 }
 
+std::string newline() {
+  return "\r?\n";
+}
+
 std::string identifier() {
   return "[_a-zA-Z][_a-zA-Z0-9]*";
 }

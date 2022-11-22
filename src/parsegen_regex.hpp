@@ -98,6 +98,7 @@ std::string signed_integer();
 std::string signed_floating_point_not_integer();
 std::string signed_floating_point();
 std::string whitespace();
+std::string newline();
 std::string identifier();
 std::string C_style_comment();
 

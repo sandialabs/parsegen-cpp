@@ -199,6 +199,8 @@ void parser::at_token(std::istream& stream) {
       stream_ends_stack.push_back(old_end);
       resize(symbol_stack, isize(symbol_stack) - isize(prod.rhs));
       symbol_stack.push_back(prod.lhs);
+    } else if (parser_action.kind == action::kind::skip) {
+      done = true;
     } else {
       throw std::logic_error(
           "serious bug in parsegen::parser: action::kind enum value out of range\n");

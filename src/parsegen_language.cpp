@@ -55,6 +55,13 @@ grammar_ptr build_grammar(language const& language) {
   }
   add_end_terminal(out);
   add_accept_production(out);
+  for (auto const& name : language.ignored_tokens) {
+    auto const it = symbol_map.find(name);
+    if (it == symbol_map.end()) {
+      throw std::runtime_error("ignored token " + name + " does not exist");
+    }
+    out.ignored_terminals.push_back(it->second);
+  }
   return std::make_shared<grammar>(std::move(out));
 }
 
