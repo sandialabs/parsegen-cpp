@@ -47,11 +47,8 @@ enum {
   PROD_VAL_PARENS,
   PROD_CONST,
   PROD_VAR,
-  PROD_NO_SPACES,
-  PROD_SPACES
+  NPRODS
 };
-
-enum { NPRODS = PROD_SPACES + 1 };
 
 enum {
   TOK_SPACE,
