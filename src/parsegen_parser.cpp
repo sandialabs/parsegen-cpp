@@ -200,6 +200,7 @@ void parser::at_token(std::istream& stream) {
       resize(symbol_stack, isize(symbol_stack) - isize(prod.rhs));
       symbol_stack.push_back(prod.lhs);
     } else if (parser_action.kind == action::kind::skip) {
+      stream_ends_stack.back() = last_lexer_accept_position;
       done = true;
     } else {
       throw std::logic_error(
