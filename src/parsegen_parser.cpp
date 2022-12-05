@@ -123,13 +123,13 @@ void parser::handle_reduce_exception(
     grammar::production const& prod)
 {
   std::stringstream ss;
-  int line, column;
-  get_line_column(stream, stream_ends_stack.back(), line, column);
-  ss << "at line " << line << " of " << stream_name << ":\n";
   auto const first_stack_index = isize(symbol_stack) - isize(prod.rhs);
   auto const last_stack_index = isize(symbol_stack);
   auto const first_stream_pos = at(stream_ends_stack, first_stack_index);
   auto const last_stream_pos = at(stream_ends_stack, last_stack_index);
+  int line, column;
+  get_line_column(stream, first_stream_pos, line, column);
+  ss << "\nat line " << line << " of " << stream_name << ":\n";
   get_underlined_portion(stream, first_stream_pos, last_stream_pos, ss);
   e.set_parser_message(ss.str());
   throw;
