@@ -101,6 +101,7 @@ std::string whitespace();
 std::string newline();
 std::string identifier();
 std::string C_style_comment();
+std::string double_quoted_string();
 
 }  // end namespace regex
 

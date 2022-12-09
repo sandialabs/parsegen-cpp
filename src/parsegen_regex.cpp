@@ -1130,5 +1130,10 @@ std::string C_style_comment()
   return comment_start + comment_head + comment_repeater + slash;
 }
 
+std::string double_quoted_string()
+{
+  return "\"([^\"\\]|\\.)*\"";
+}
+
 }  // end namespace regex
 }  // end namespace parsegen
