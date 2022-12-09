@@ -1132,7 +1132,12 @@ std::string C_style_comment()
 
 std::string double_quoted_string()
 {
-  return "\"([^\"\\]|\\.)*\"";
+  return "\"([^\"\\\\]|\\\\.)*\"";
+}
+
+std::string single_quoted_string()
+{
+  return "'([^'\\\\]|\\\\.)*'";
 }
 
 }  // end namespace regex

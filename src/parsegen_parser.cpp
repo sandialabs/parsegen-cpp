@@ -403,7 +403,7 @@ debug_parser::debug_parser(parser_tables_ptr tables_in, std::ostream& os_in)
     : parser(tables_in), os(os_in) {}
 
 std::any debug_parser::shift(int token, std::string& text) {
-  auto escaped_text = escape_for_c_string(text);
+  auto escaped_text = escape(text);
   os << "SHIFT (" << at(grammar->symbol_names, token) << ")["
     << escaped_text << "]\n";
   return escaped_text;

@@ -14,7 +14,6 @@ set(PARSEGEN_HEADERS
   parsegen_error.hpp
   parsegen_object_pointer.hpp
   parsegen_string.hpp
-  parsegen_quoted.hpp
   parsegen.hpp
   )
 
