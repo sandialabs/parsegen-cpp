@@ -38,6 +38,7 @@ std::string unescape(std::string const& in)
       } else {
         out.push_back(c);
       }
+      is_escaped = false;
     } else {
       if (c == '\\') {
         is_escaped = true;
