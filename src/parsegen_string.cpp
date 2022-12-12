@@ -1,5 +1,7 @@
 #include "parsegen_string.hpp"
 
+#include <stdexcept>
+
 namespace parsegen {
 
 std::string escape(std::string const& in)
