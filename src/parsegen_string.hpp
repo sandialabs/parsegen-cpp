@@ -27,5 +27,7 @@ std::string unescape(std::string const& s);
 std::string double_quote(std::string const& s);
 std::string single_quote(std::string const& s);
 std::string unquote(std::string const& s);
+std::string lowercase(std::string const& s);
+std::string uppercase(std::string const& s);
 
 }  // namespace parsegen
