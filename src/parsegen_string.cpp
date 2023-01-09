@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <cctype>
+#include <algorithm>
 
 namespace parsegen {
 
